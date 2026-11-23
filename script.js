@@ -432,6 +432,143 @@
     }, 2600);
   }
 
+  // --- A Day with Vela Interactivity ---
+  function initDayInteractions() {
+    const momentBtns = document.querySelectorAll('.day-moment-btn');
+    const timelineEntries = document.querySelectorAll('.timeline-entry');
+
+    function setActiveMoment(momentNum) {
+      momentBtns.forEach(btn => {
+        const isActive = btn.getAttribute('data-moment') === String(momentNum);
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      timelineEntries.forEach(entry => {
+        const isActive = entry.getAttribute('data-moment') === String(momentNum);
+        entry.classList.toggle('is-active', isActive);
+      });
+    }
+
+    momentBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const momentNum = btn.getAttribute('data-moment');
+        setActiveMoment(momentNum);
+        const targetEntry = document.getElementById(`timeline-moment-${momentNum}`);
+        if (targetEntry && window.innerWidth <= 1024) {
+          targetEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    });
+
+    timelineEntries.forEach(entry => {
+      entry.addEventListener('click', (e) => {
+        if (e.target.closest('button, input, a')) return;
+        const momentNum = entry.getAttribute('data-moment');
+        if (momentNum) setActiveMoment(momentNum);
+      });
+    });
+
+    // Moment 1: Ada's Reminder
+    const btnShowMap = document.getElementById('btn-show-map');
+    const mapFeedback = document.getElementById('map-feedback');
+    const btnConfirmReminder = document.getElementById('btn-confirm-reminder');
+    const confirmReminderLabel = document.getElementById('confirm-reminder-label');
+    const reminderFeedback = document.getElementById('reminder-feedback');
+
+    if (btnShowMap && mapFeedback) {
+      btnShowMap.addEventListener('click', () => {
+        mapFeedback.hidden = !mapFeedback.hidden;
+      });
+    }
+
+    if (btnConfirmReminder && confirmReminderLabel && reminderFeedback) {
+      btnConfirmReminder.addEventListener('click', () => {
+        const isConfirmed = btnConfirmReminder.classList.toggle('is-confirmed');
+        confirmReminderLabel.textContent = isConfirmed ? 'Attendance Confirmed ✓' : 'Confirm Attendance';
+        reminderFeedback.hidden = !isConfirmed;
+      });
+    }
+
+    // Moment 2: Live Website Booking
+    const simChips = document.querySelectorAll('.sim-chip-btn');
+    const syncSlotTime = document.getElementById('sync-slot-time');
+    const btnSimBooking = document.getElementById('btn-simulate-booking');
+    const simBookingText = document.getElementById('simulate-booking-text');
+    const bookingCalendarSync = document.getElementById('booking-calendar-sync');
+    let selectedSlot = '3:30 PM';
+
+    simChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        simChips.forEach(c => c.classList.remove('is-selected'));
+        chip.classList.add('is-selected');
+        selectedSlot = chip.getAttribute('data-slot') || '3:30 PM';
+        if (syncSlotTime) syncSlotTime.textContent = selectedSlot;
+      });
+    });
+
+    if (btnSimBooking && bookingCalendarSync && simBookingText) {
+      btnSimBooking.addEventListener('click', () => {
+        simBookingText.textContent = 'Processing Deposit via Paystack...';
+        btnSimBooking.disabled = true;
+        setTimeout(() => {
+          simBookingText.textContent = 'Deposit Paid (₦10,000) ✓';
+          btnSimBooking.style.background = '#161817';
+          bookingCalendarSync.hidden = false;
+        }, 350);
+      });
+    }
+
+    // Moment 3: AI Email Outreach
+    const btnApproveOutreach = document.getElementById('btn-approve-outreach');
+    const approveOutreachLabel = document.getElementById('approve-outreach-label');
+    const campaignOutcomeBox = document.getElementById('campaign-outcome-box');
+    const btnResetDemo = document.getElementById('btn-reset-timeline-demo');
+
+    if (btnApproveOutreach && approveOutreachLabel && campaignOutcomeBox) {
+      btnApproveOutreach.addEventListener('click', () => {
+        approveOutreachLabel.textContent = 'Sending emails...';
+        btnApproveOutreach.disabled = true;
+        setTimeout(() => {
+          approveOutreachLabel.textContent = '✓ 8 Emails Sent to Clients';
+          btnApproveOutreach.style.background = '#25D366';
+          btnApproveOutreach.style.borderColor = '#25D366';
+          btnApproveOutreach.style.color = '#FFFFFF';
+          campaignOutcomeBox.hidden = false;
+        }, 400);
+      });
+    }
+
+    if (btnResetDemo) {
+      btnResetDemo.addEventListener('click', () => {
+        // Reset Moment 1
+        if (btnConfirmReminder) {
+          btnConfirmReminder.classList.remove('is-confirmed');
+          if (confirmReminderLabel) confirmReminderLabel.textContent = 'Confirm Attendance';
+        }
+        if (reminderFeedback) reminderFeedback.hidden = true;
+        if (mapFeedback) mapFeedback.hidden = true;
+
+        // Reset Moment 2
+        if (btnSimBooking && simBookingText) {
+          btnSimBooking.disabled = false;
+          btnSimBooking.style.background = '';
+          simBookingText.textContent = 'Pay ₦10,000 Deposit & Book';
+        }
+        if (bookingCalendarSync) bookingCalendarSync.hidden = true;
+
+        // Reset Moment 3
+        if (btnApproveOutreach && approveOutreachLabel) {
+          btnApproveOutreach.disabled = false;
+          btnApproveOutreach.style.background = '';
+          btnApproveOutreach.style.borderColor = '';
+          btnApproveOutreach.style.color = '';
+          approveOutreachLabel.textContent = 'Approve & Send to 8 Clients';
+        }
+        if (campaignOutcomeBox) campaignOutcomeBox.hidden = true;
+      });
+    }
+  }
+
   // --- Document Ready ---
   document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -439,6 +576,7 @@
     initFillOpenings();
     initReminders();
     initWebsiteUpdate();
+    initDayInteractions();
   });
 
 })();

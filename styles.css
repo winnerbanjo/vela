@@ -3289,20 +3289,129 @@ body {
   margin: 0;
 }
 
+.day-lead-body {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+  margin: 16px 0 24px;
+}
+
+/* Time Moment Navigation Pills */
+.day-moment-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.day-moment-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(22, 24, 23, 0.03);
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.day-moment-btn:hover {
+  background: rgba(22, 24, 23, 0.06);
+  border-color: rgba(22, 24, 23, 0.18);
+  transform: translateX(3px);
+}
+
+.day-moment-btn.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  box-shadow: 0 4px 14px rgba(22, 24, 23, 0.12);
+}
+
+.day-moment-btn .moment-time {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.day-moment-btn.is-active .moment-time {
+  color: var(--color-lime);
+}
+
+.day-moment-btn .moment-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.day-moment-btn.is-active .moment-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Sign up Action Box */
+.day-cta-box {
+  background: #F8F8F6;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.day-signup-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: 12px;
+  text-decoration: none;
+  background: var(--color-ink);
+  color: #FFFFFF;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.day-signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(22, 24, 23, 0.16);
+}
+
+.day-cta-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.day-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  display: inline-block;
+}
+
 /* Timeline entries connected by thin lime rule */
 .day-timeline {
   position: relative;
   padding-left: 36px;
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 40px;
 }
 
-/* One thin lime rule connecting the times */
 .day-timeline::before {
   content: '';
   position: absolute;
-  top: 12px;
+  top: 14px;
   bottom: 24px;
   left: 11px;
   width: 2px;
@@ -3311,24 +3420,45 @@ body {
 
 .timeline-entry {
   position: relative;
+  transition: all 0.2s ease;
+  border-radius: 18px;
+  padding: 14px 18px 18px;
+  margin-left: -18px;
+  border: 1px solid transparent;
+}
+
+.timeline-entry:hover {
+  background: rgba(251, 251, 250, 0.5);
+}
+
+.timeline-entry.is-active {
+  background: rgba(251, 251, 250, 0.95);
+  border-color: rgba(22, 24, 23, 0.08);
+  box-shadow: 0 6px 20px rgba(22, 24, 23, 0.03);
 }
 
 .timeline-entry::before {
   content: '';
   position: absolute;
-  top: 4px;
-  left: -36px;
-  width: 24px;
-  height: 24px;
+  top: 18px;
+  left: -27px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background-color: var(--color-warm-white);
   border: 3px solid var(--color-lime);
   box-shadow: 0 0 0 3px #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.timeline-entry.is-active::before {
+  background-color: var(--color-ink);
+  border-color: var(--color-lime);
 }
 
 .timeline-entry-title {
   font-family: var(--font-display);
-  font-size: 1.18rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--color-ink);
   margin-top: 0;
@@ -3337,11 +3467,453 @@ body {
 }
 
 .timeline-entry-body {
-  font-size: 1.02rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--color-ink-muted);
   margin: 0;
-  max-width: 580px;
+  max-width: 600px;
+}
+
+/* Day Interactive Simulation Cards */
+.day-interactive-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.09);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-top: 16px;
+  box-shadow: 0 2px 14px rgba(22, 24, 23, 0.04);
+}
+
+.interactive-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.interactive-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.wa-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #25D366;
+  display: inline-block;
+}
+
+.booking-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-lime);
+  border: 1px solid #161817;
+  display: inline-block;
+}
+
+.ai-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8B5CF6;
+  display: inline-block;
+}
+
+.interactive-time-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--color-ink-faint);
+}
+
+/* Moment 1 WhatsApp message bubble */
+.sim-message-bubble {
+  background: #F4F8F4;
+  border: 1px solid #E1EBE1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.bubble-sender {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a421a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.verified-check {
+  color: #25D366;
+  font-size: 11px;
+}
+
+.bubble-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #1e261e;
+  margin: 0 0 6px;
+}
+
+.bubble-meta {
+  font-size: 10.5px;
+  color: #647a64;
+  text-align: right;
+}
+
+.sim-actions-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sim-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 24, 23, 0.12);
+  background: #FFFFFF;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sim-action-btn:hover {
+  background: rgba(22, 24, 23, 0.04);
+  border-color: rgba(22, 24, 23, 0.25);
+}
+
+.sim-action-primary {
+  background: var(--color-lime);
+  border-color: #B5E85A;
+  color: #161817;
+}
+
+.sim-action-primary:hover {
+  background: #b9ec5b;
+}
+
+.sim-action-primary.is-confirmed {
+  background: #161817;
+  border-color: #161817;
+  color: #FFFFFF;
+}
+
+.sim-feedback-toast {
+  margin-top: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: #F8F8F6;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  color: var(--color-ink);
+}
+
+.sim-feedback-success {
+  background: #EBF9EB;
+  border-color: #C3EBC3;
+  color: #125412;
+}
+
+/* Moment 2 Booking Sandbox */
+.sim-booking-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sim-service-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.06);
+}
+
+.sim-service-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.sim-service-duration {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  margin-top: 2px;
+}
+
+.sim-service-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.sim-slots-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.sim-slots-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.sim-chip-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 24, 23, 0.12);
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sim-chip-btn:hover {
+  border-color: var(--color-ink);
+}
+
+.sim-chip-btn.is-selected {
+  background: var(--color-ink);
+  color: #FFFFFF;
+  border-color: var(--color-ink);
+}
+
+.sim-deposit-box {
+  background: #F9F9F8;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.deposit-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--color-ink);
+}
+
+.deposit-note {
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  margin-top: 4px;
+}
+
+.sim-book-btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 13.5px;
+  font-weight: 700;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.sim-calendar-sync {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #EBF9EB;
+  border: 1px solid #C3EBC3;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #125412;
+}
+
+.sync-icon {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Moment 3 AI Campaign Sandbox */
+.sim-prompt-bubble {
+  background: #F5F5F3;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.prompt-speaker {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+  margin-bottom: 4px;
+}
+
+.prompt-quote {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-ink);
+}
+
+.sim-draft-box {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.draft-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  margin-bottom: 8px;
+}
+
+.draft-permission {
+  color: #166534;
+  font-weight: 600;
+}
+
+.draft-subject-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.subject-label {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.sim-subject-input {
+  flex: 1;
+  border: 1px solid rgba(22, 24, 23, 0.15);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--color-ink);
+  background: #FFFFFF;
+}
+
+.draft-preview-snippet {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+  background: #FAF9F8;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.sim-approve-campaign-btn {
+  padding: 9px 15px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.sim-reset-btn {
+  background: none;
+  border: none;
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px;
+}
+
+.sim-campaign-outcome {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(22, 24, 23, 0.08);
+  text-align: center;
+}
+
+.outcome-stat .stat-number {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: #161817;
+}
+
+.outcome-stat .stat-name {
+  display: block;
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  margin-top: 2px;
+}
+
+/* Bottom CTA Strip inside day section */
+.day-bottom-cta {
+  margin-top: 36px;
+  background: var(--color-ink);
+  color: #FFFFFF;
+  border-radius: 20px;
+  padding: 32px 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.cta-mini-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-lime);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.cta-mini-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.cta-mini-sub {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.45;
+}
+
+.day-bottom-cta-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.day-bottom-cta-right .btn-primary {
+  background: var(--color-lime);
+  color: var(--color-ink);
+  border-color: var(--color-lime);
+  font-weight: 700;
+}
+
+.day-bottom-cta-right .btn-secondary {
+  background: transparent;
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 @media (max-width: 1024px) {
@@ -3353,6 +3925,20 @@ body {
   .day-left-col {
     position: static;
   }
+  .day-bottom-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 28px 24px;
+  }
+  .day-bottom-cta-right {
+    width: 100%;
+    flex-direction: column;
+  }
+  .day-bottom-cta-right .btn {
+    width: 100%;
+    justify-content: center;
+  }
   .day-timeline {
     padding-left: 30px;
   }
@@ -3360,10 +3946,10 @@ body {
     left: 9px;
   }
   .timeline-entry::before {
-    left: -30px;
-    width: 20px;
-    height: 20px;
-    top: 3px;
+    left: -27px;
+    width: 18px;
+    height: 18px;
+    top: 16px;
   }
   .agent-workspace-grid {
     grid-template-columns: 1fr;
@@ -3378,8 +3964,18 @@ body {
 
 @media (max-width: 640px) {
   .day-panel {
-    padding: 32px 20px;
+    padding: 28px 18px;
     border-radius: 20px;
+  }
+  .day-timeline {
+    padding-left: 20px;
+  }
+  .timeline-entry {
+    margin-left: -12px;
+    padding: 12px;
+  }
+  .timeline-entry::before {
+    left: -20px;
   }
   .agent-demo-wrapper {
     padding: 32px 18px;
