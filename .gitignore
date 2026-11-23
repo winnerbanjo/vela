@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+chrome-profile/
+scratch_chrome/
+screenshot-*.png
+*.log

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider Login · Vela | Online Booking for Service Businesses</title>
+  <meta name="description" content="Log in to your Vela service provider dashboard. Manage your bookings, services, calendar, and payouts.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Vela Provider Login">
+  <meta property="og:description" content="Access your Vela provider appointments, customer CRM, and earnings dashboard.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Geist -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Outer Framing Container (Mint / Pale Lime Surround) -->
+  <div class="outer-frame">
+    <!-- Inner Warm-White Canvas -->
+    <div class="inner-canvas">
+
+      <!-- Slim Header inside Canvas -->
+      <header class="site-header">
+        <div class="header-inner content-container">
+          <a href="/" class="brand-link" aria-label="Vela Homepage">
+            <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="108" height="36">
+          </a>
+
+          <!-- Desktop Navigation -->
+          <nav class="desktop-nav" aria-label="Main Navigation">
+            <ul class="nav-list">
+              <li><a href="/product" class="nav-link">Product</a></li>
+              <li><a href="/how-it-works" class="nav-link">How it works</a></li>
+              <li><a href="/pricing" class="nav-link">Pricing</a></li>
+              <li><a href="/faqs" class="nav-link">FAQs</a></li>
+            </ul>
+          </nav>
+
+          <!-- Header Actions -->
+          <div class="header-actions">
+            <a href="/pricing" class="btn btn-pill-ink header-cta">
+              <span class="desktop-text">Create booking page</span>
+              <span class="mobile-text">Get started</span>
+            </a>
+            <!-- Mobile Menu Toggle Button -->
+            <button type="button" class="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+              <span class="menu-bar"></span>
+              <span class="menu-bar"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Drawer -->
+        <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+          <div class="mobile-menu-backdrop"></div>
+          <div class="mobile-menu-panel">
+            <div class="mobile-menu-header">
+              <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="96" height="32">
+              <button type="button" class="mobile-menu-close" aria-label="Close menu">&times;</button>
+            </div>
+            <nav class="mobile-nav" aria-label="Mobile Navigation">
+              <a href="/product" class="mobile-nav-link">Product</a>
+              <a href="/how-it-works" class="mobile-nav-link">How it works</a>
+              <a href="/pricing" class="mobile-nav-link">Pricing</a>
+              <a href="/faqs" class="mobile-nav-link">FAQs</a>
+              <div class="mobile-menu-divider"></div>
+              <a href="/pricing" class="btn btn-pill-ink mobile-signup-btn">Create booking page</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main id="main-content">
+        <!-- Hero Section -->
+        <section class="inner-hero content-container" style="padding-bottom:12px;">
+          <div class="inner-badge">Provider Portal</div>
+          <h1 class="inner-title" style="font-size:clamp(1.8rem, 4vw, 2.6rem); margin-bottom:8px;">Welcome back to Vela.</h1>
+          <p class="inner-subtitle" style="margin-bottom:20px;">
+            Log in to manage appointments, update services, and view deposit payouts.
+          </p>
+        </section>
+
+        <!-- Auth Card -->
+        <section class="content-container">
+          <div class="auth-wrapper">
+            <div class="auth-card">
+              <form id="provider-login-form" onsubmit="handleLoginSubmit(event)">
+                <div class="auth-field">
+                  <label for="login-email" class="auth-label">Email address</label>
+                  <input type="email" id="login-email" class="auth-input" placeholder="you@example.com" required autocomplete="email">
+                </div>
+
+                <div class="auth-field">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label for="login-password" class="auth-label" style="margin-bottom:0;">Password</label>
+                    <a href="mailto:support@vela.ng?subject=Reset%20Password" style="font-size:12px; color:var(--color-ink-muted); text-decoration:none;">Forgot?</a>
+                  </div>
+                  <input type="password" id="login-password" class="auth-input" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:24px;">
+                  <input type="checkbox" id="remember-me" style="accent-color:var(--color-ink);">
+                  <label for="remember-me" style="font-size:13px; color:var(--color-ink-muted); cursor:pointer;">Keep me signed in</label>
+                </div>
+
+                <button type="submit" class="auth-btn">Log in to dashboard &rarr;</button>
+
+                <div style="text-align:center; margin-top:24px; font-size:13px; color:var(--color-ink-muted);">
+                  Don't have a booking page yet?
+                  <a href="/pricing" style="color:var(--color-ink); font-weight:700; text-decoration:underline; margin-left:4px;">Sign up</a>
+                </div>
+              </form>
+
+              <div id="login-status-msg" style="display:none; margin-top:16px; padding:12px; border-radius:12px; font-size:13px; text-align:center;"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer (Dark Ink Background) -->
+      <footer class="site-footer">
+        <div class="content-container footer-container">
+          <div class="footer-top">
+            <div class="footer-brand-col">
+              <a href="/" class="footer-brand-link" aria-label="Vela Homepage">
+                <img src="assets/vela-logo-lime-opt.png" alt="vela" class="footer-logo" width="108" height="36">
+              </a>
+              <p class="footer-descriptor">Online booking for service businesses</p>
+            </div>
+
+            <div class="footer-links-group">
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Product</div>
+                <ul class="footer-list">
+                  <li><a href="/product">Product</a></li>
+                  <li><a href="/how-it-works">How it works</a></li>
+                  <li><a href="/pricing">Pricing</a></li>
+                  <li><a href="/faqs">FAQs</a></li>
+                  <li><a href="/login">Provider login</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Support & Legal</div>
+                <ul class="footer-list">
+                  <li><a href="mailto:support@vela.ng">Help & support</a></li>
+                  <li><a href="https://wa.me/2348123843076?text=Hello%20Vela%20team,%20I'd%20like%20to%20learn%20more%20about%20setting%20up%20my%20booking%20page" target="_blank" rel="noopener">WhatsApp concierge</a></li>
+                  <li><a href="/privacy">Privacy policy</a></li>
+                  <li><a href="/terms">Terms of service</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <p class="footer-copy">&copy; 2026 Vela Technologies. Formerly Nile Booking. All rights reserved.</p>
+            <div class="footer-badges">
+              <span class="badge-lagos">Lagos, Nigeria (WAT)</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div><!-- End Inner Canvas -->
+  </div><!-- End Outer Frame -->
+
+  <script src="script.js"></script>
+  <script>
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const status = document.getElementById('login-status-msg');
+      status.style.display = 'block';
+      status.style.backgroundColor = '#EDFCD4';
+      status.style.color = '#161817';
+      status.textContent = 'Redirecting to your provider dashboard...';
+      setTimeout(() => {
+        // Redirect to integrated live app on port 5174 or fallback
+        window.location.href = 'http://localhost:5174/login';
+      }, 700);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vela AI | The AI agent for service businesses</title>
+  <meta name="description" content="Give clients a website to book your services. Ask Vela AI to email reminders, follow up after appointments and invite past clients back when you have space.">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="Vela AI | The AI agent for service businesses">
+  <meta property="og:description" content="You handle the appointments. Vela handles the follow-up. The AI agent for independent Nigerian service businesses.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/vela-logo-black-opt.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Geist -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Screen reader live announcement region -->
+  <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="sr-only">Skip to main content</a>
+
+  <!-- Outer Framing Container (Mint / Pale Lime Surround) -->
+  <div class="outer-frame">
+    <!-- Inner Warm-White Canvas -->
+    <div class="inner-canvas">
+
+      <!-- Background Accent Curves -->
+      <div class="canvas-decorations" aria-hidden="true">
+        <div class="vertical-rule rule-left"></div>
+        <div class="vertical-rule rule-right"></div>
+        <svg class="concentric-curves" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="600" cy="50" rx="420" ry="240" stroke="#161817" stroke-width="1" stroke-opacity="0.04" />
+          <ellipse cx="600" cy="50" rx="580" ry="340" stroke="#161817" stroke-width="1" stroke-opacity="0.03" />
+          <ellipse cx="600" cy="50" rx="740" ry="440" stroke="#161817" stroke-width="1" stroke-opacity="0.02" />
+        </svg>
+      </div>
+
+      <!-- Slim Header inside Canvas -->
+      <header class="site-header">
+        <div class="header-inner content-container">
+          <a href="/" class="brand-link-ai" aria-label="Vela AI Homepage">
+            <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="100" height="34">
+            <span class="logo-ai-badge">AI</span>
+          </a>
+
+          <!-- Desktop Navigation -->
+          <!-- Desktop Navigation -->
+          <nav class="desktop-nav" aria-label="Main Navigation">
+            <ul class="nav-list">
+              <li><a href="#what-vela-does" class="nav-link">What Vela does</a></li>
+              <li><a href="#see-vela-at-work" class="nav-link">See Vela at work</a></li>
+              <li><a href="#pricing" class="nav-link">Pricing</a></li>
+              <li><a href="/login" class="nav-link">Log in</a></li>
+            </ul>
+          </nav>
+
+          <!-- Header Actions -->
+          <div class="header-actions">
+            <a href="/login" class="login-link track-cta" data-cta-placement="header_login">Log in</a>
+            <a href="/login" class="btn btn-pill-ink header-cta track-cta" data-cta-placement="header_primary">
+              <span class="desktop-text">Set up my agent</span>
+              <span class="mobile-text">Get started</span>
+            </a>
+            <!-- Mobile Menu Toggle Button -->
+            <button type="button" class="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+              <span class="menu-bar"></span>
+              <span class="menu-bar"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Drawer -->
+        <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+          <div class="mobile-menu-backdrop"></div>
+          <div class="mobile-menu-panel">
+            <div class="mobile-menu-header">
+              <div class="brand-link-ai">
+                <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="96" height="32">
+                <span class="logo-ai-badge">AI</span>
+              </div>
+              <button type="button" class="mobile-menu-close" aria-label="Close menu">&times;</button>
+            </div>
+            <nav class="mobile-nav" aria-label="Mobile Navigation">
+              <a href="#what-vela-does" class="mobile-nav-link">What Vela does</a>
+              <a href="#see-vela-at-work" class="mobile-nav-link">See Vela at work</a>
+              <a href="#pricing" class="mobile-nav-link">Pricing</a>
+              <a href="/faqs" class="mobile-nav-link">FAQs</a>
+              <div class="mobile-menu-divider"></div>
+              <a href="/login" class="mobile-nav-link track-cta" data-cta-placement="mobile_drawer_login">Log in</a>
+              <a href="/login" class="btn btn-pill-ink mobile-signup-btn track-cta" data-cta-placement="mobile_drawer_primary">Set up my agent</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main id="main-content">
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+          <div class="content-container hero-container">
+            <!-- Plain Descriptor Tag -->
+            <div class="hero-tagline-strip">
+              <span class="status-pulse-dot"></span>
+              <span class="tagline-text">The AI agent for service businesses</span>
+            </div>
+
+            <!-- Two-line Headline with desktop break and natural wrap -->
+            <h1 class="hero-headline">
+              You handle the appointments.<br class="desktop-break"> Vela handles the <span style="white-space: nowrap;">follow-up.</span>
+            </h1>
+
+            <!-- Supporting Copy -->
+            <p class="hero-subheading">
+              Give clients a website to book your services. Ask Vela AI to email reminders, follow up after appointments and invite past clients back when you have space.
+            </p>
+
+            <!-- Hero CTAs -->
+            <div class="hero-ctas">
+              <a href="#see-vela-at-work" class="btn btn-pill-ink hero-primary-cta" id="see-vela-hero-btn">
+                <span>See Vela at work</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cta-arrow" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </a>
+              <a href="/login" class="btn btn-pill-secondary hero-secondary-cta track-cta" data-cta-placement="hero_setup">
+                Set up my agent
+              </a>
+            </div>
+
+            <!-- Audience Strip with plain category labels and middots -->
+            <div class="audience-strip" aria-label="Industries served by Vela AI">
+              <span class="audience-item">Beauty &amp; wellness</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Barbers</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Photography</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Fitness</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Consulting</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Editorial Photography Split (38:62) with Context Cards -->
+        <section class="photo-pair-section" aria-label="Studio Teni Story">
+          <div class="content-container photo-grid">
+            <!-- Left Photo (38% width): Owner checking her phone -->
+            <div class="photo-card photo-card-left">
+              <img 
+                src="assets/stylist-portrait.jpg" 
+                alt="Studio Teni owner checking her schedule between appointments on her smartphone" 
+                class="editorial-img"
+                loading="eager"
+                width="600"
+                height="800"
+              >
+              <!-- Story Label -->
+              <div class="story-badge-floating">
+                <span>Studio Teni · Sample business</span>
+              </div>
+              <!-- Card: Saturday · 2 appointments open -->
+              <div class="photo-overlay-openings">
+                <span class="dot"></span>
+                <strong>Saturday</strong>
+                <span>· 2 appointments open</span>
+              </div>
+            </div>
+
+            <!-- Right Photo (62% width): Working with client with email ready to review -->
+            <div class="photo-card photo-card-right">
+              <img 
+                src="assets/stylist-consultation.jpg" 
+                alt="Stylist consulting with a client in a modern Lagos salon" 
+                class="editorial-img"
+                loading="eager"
+                width="1000"
+                height="800"
+              >
+              <!-- Ink Overlay Card: Saturday email ready to review -->
+              <div class="photo-overlay-email">
+                <div class="email-status-pill">
+                  <span>● AI Draft Ready</span>
+                </div>
+                <div class="email-title">Saturday email ready to review</div>
+                <div class="email-sub">8 eligible clients · 2 available times</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             A Day with Vela (Static Editorial Section)
+             ========================================================================== -->
+        <section id="see-vela-at-work" class="day-with-vela-section" aria-labelledby="day-heading">
+          <!-- Retain existing anchor alias so existing links still work -->
+          <div id="agent-demo" style="position:relative; top:-20px;"></div>
+          <div class="content-container">
+            <div class="day-panel">
+              <!-- Left Column: Caption and Heading -->
+              <div class="day-left-col">
+                <div class="day-caption">An example day at Studio Teni</div>
+                <h2 id="day-heading" class="day-heading">While you’re with a client</h2>
+              </div>
+
+              <!-- Right Column: Three short entries connected by one thin lime rule -->
+              <div class="day-timeline">
+                <!-- Entry 1 -->
+                <div class="timeline-entry">
+                  <h3 class="timeline-entry-title">9:00 AM · Before the first appointment</h3>
+                  <p class="timeline-entry-body">
+                    Ada gets a reminder with her appointment time and the studio address. Teni is already setting up for the day.
+                  </p>
+                </div>
+
+                <!-- Entry 2 -->
+                <div class="timeline-entry">
+                  <h3 class="timeline-entry-title">12:30 PM · While Teni is working</h3>
+                  <p class="timeline-entry-body">
+                    A new client opens the studio’s website, picks a time and pays her deposit. The booking appears on Teni’s calendar.
+                  </p>
+                </div>
+
+                <!-- Entry 3 -->
+                <div class="timeline-entry">
+                  <h3 class="timeline-entry-title">4:00 PM · Before Teni heads home</h3>
+                  <p class="timeline-entry-body">
+                    Teni asks Vela to invite past clients back for Saturday. Vela picks clients who opted in and drafts an email with the open times. Teni reviews it before it goes out.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             Capabilities and Control ("What would you hand over to Vela?")
+             ========================================================================== -->
+        <section id="what-vela-does" class="capabilities-section">
+          <div class="content-container">
+            <div style="text-align:center; max-width:760px; margin:0 auto 48px;">
+              <div class="inner-badge">Core Capabilities</div>
+              <h2 class="inner-title" style="font-size:clamp(2rem, 4vw, 3rem); margin-bottom:12px;">What would you hand over to Vela?</h2>
+              <p class="inner-subtitle" style="margin-bottom:0;">
+                Show the owner's instruction and the client's experience as two sides of the same product.
+              </p>
+            </div>
+
+            <!-- 4 Capabilities Grid -->
+            <div class="capabilities-grid-4">
+              <div class="cap-card">
+                <div class="cap-num">01 / PLATFORM</div>
+                <h3 class="cap-heading">Give clients a website</h3>
+                <p class="cap-desc">
+                  Services, prices, time slots, deposits and one link for WhatsApp or Instagram bio.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">02 / REMINDERS</div>
+                <h3 class="cap-heading">Keep clients informed</h3>
+                <p class="cap-desc">
+                  Appointment confirmation, automated reminders and post-visit follow-up email previews.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">03 / REBOOKING</div>
+                <h3 class="cap-heading">Bring clients back</h3>
+                <p class="cap-desc">
+                  Rebooking campaign with a relevant audience, owner-editable copy and a direct booking link.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">04 / ACTIVITY</div>
+                <h3 class="cap-heading">Know what got done</h3>
+                <p class="cap-desc">
+                  A short activity record showing the instruction, action, verified result and items needing attention.
+                </p>
+              </div>
+            </div>
+
+            <!-- Owner Control Panel ("Your business. Your say.") -->
+            <div class="owner-control-panel">
+              <div class="control-panel-header">
+                <span class="control-badge">Full Owner Oversight</span>
+                <h3 class="control-title">Your business. Your say.</h3>
+              </div>
+              <p style="font-size:15px; color:var(--color-ink-muted); line-height:1.6; max-width:720px; margin:0;">
+                Vela AI works on your instruction, never without your permission. You maintain complete veto power over copy, audience, and pricing before anything reaches a client.
+              </p>
+
+              <div class="control-rule-list">
+                <div class="control-rule-item">
+                  <div class="control-rule-heading">1. Approval Required</div>
+                  <p class="control-rule-desc">
+                    One-off marketing campaigns always require explicit owner approval before dispatch. Routine reminders run under an enabled rule you can pause anytime.
+                  </p>
+                </div>
+                <div class="control-rule-item">
+                  <div class="control-rule-heading">2. Missing Information Check</div>
+                  <p class="control-rule-desc">
+                    If a service price is missing, the agent asks for it before drafting. If no clients qualify, an empty audience is shown with the reason explained.
+                  </p>
+                </div>
+                <div class="control-rule-item">
+                  <div class="control-rule-heading">3. Verified Delivery Status</div>
+                  <p class="control-rule-desc">
+                    If a send partially fails, Vela distinguishes successful and failed recipients, retrying only failed ones. Emails are never counted as delivered solely because they were queued.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             Pricing Section ("Choose the help your business needs.")
+             ========================================================================== -->
+        <section id="pricing" class="pricing-section">
+          <div class="content-container">
+            <div style="text-align:center; max-width:720px; margin:0 auto 48px;">
+              <div class="inner-badge">Transparent Pricing</div>
+              <h2 class="inner-title" style="font-size:clamp(2rem, 4vw, 3rem); margin-bottom:12px;">Choose the help your business needs.</h2>
+              <p class="inner-subtitle" style="margin-bottom:0;">
+                Clear quarterly plans designed for independent Nigerian service businesses. Zero hidden fees.
+              </p>
+            </div>
+
+            <!-- Pricing Cards -->
+            <div class="pricing-grid">
+              
+              <!-- Starter Plan -->
+              <div class="pricing-card">
+                <div class="plan-header">
+                  <h3 class="plan-name">Starter</h3>
+                  <p class="plan-description">For solo operators starting out with streamlined client bookings.</p>
+                  <div class="plan-price">
+                    <span class="currency">&#8358;</span>
+                    <span class="amount">10,000</span>
+                    <span class="period">/ quarter</span>
+                  </div>
+                  <span class="billing-cycle">Billed quarterly</span>
+                </div>
+                <ul class="plan-features">
+                  <li><span class="check-mark">&#10003;</span> 1 provider profile &amp; unlimited client bookings</li>
+                  <li><span class="check-mark">&#10003;</span> Dedicated mobile booking site (vela.ng/p/yourname)</li>
+                  <li><span class="check-mark">&#10003;</span> 50 AI agent follow-up tasks / quarter</li>
+                  <li><span class="check-mark">&#10003;</span> Bank transfer verification &amp; instant receipts</li>
+                </ul>
+                <a href="/login" class="btn btn-outline-ink plan-cta track-cta" data-cta-placement="pricing_starter">Choose Starter</a>
+              </div>
+
+              <!-- Growth Plan (Featured) -->
+              <div class="pricing-card card-featured">
+                <div class="popular-pill">Most popular</div>
+                <div class="plan-header">
+                  <h3 class="plan-name">Growth</h3>
+                  <p class="plan-description">For busy service providers with growing client volume.</p>
+                  <div class="plan-price">
+                    <span class="currency">&#8358;</span>
+                    <span class="amount">15,000</span>
+                    <span class="period">/ quarter</span>
+                  </div>
+                  <span class="billing-cycle">Billed quarterly</span>
+                </div>
+                <ul class="plan-features">
+                  <li><span class="check-mark">&#10003;</span> Up to 3 staff members &amp; calendar synchronization</li>
+                  <li><span class="check-mark">&#10003;</span> Automated SMS &amp; WhatsApp appointment reminders</li>
+                  <li><span class="check-mark">&#10003;</span> 250 AI agent follow-up &amp; rebooking tasks / quarter</li>
+                  <li><span class="check-mark">&#10003;</span> Paystack &amp; Moniepoint instant deposit collection</li>
+                </ul>
+                <a href="/login" class="btn btn-pill-ink plan-cta track-cta" data-cta-placement="pricing_growth">Choose Growth</a>
+              </div>
+
+              <!-- Scale Plan -->
+              <div class="pricing-card">
+                <div class="plan-header">
+                  <h3 class="plan-name">Scale</h3>
+                  <p class="plan-description">For multi-chair salons, studios, and expanding brands.</p>
+                  <div class="plan-price">
+                    <span class="currency">&#8358;</span>
+                    <span class="amount">25,000</span>
+                    <span class="period">/ quarter</span>
+                  </div>
+                  <span class="billing-cycle">Billed quarterly</span>
+                </div>
+                <ul class="plan-features">
+                  <li><span class="check-mark">&#10003;</span> Multiple salon/studio locations &amp; team permissions</li>
+                  <li><span class="check-mark">&#10003;</span> Custom domain booking page (.biz eligible)</li>
+                  <li><span class="check-mark">&#10003;</span> Unlimited AI agent follow-up tasks &amp; campaign builder</li>
+                  <li><span class="check-mark">&#10003;</span> Priority dedicated WhatsApp concierge support</li>
+                </ul>
+                <a href="/login" class="btn btn-outline-ink plan-cta track-cta" data-cta-placement="pricing_scale">Choose Scale</a>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             FAQs Section (Version 2 Themes)
+             ========================================================================== -->
+        <section id="faqs" class="faqs-section">
+          <div class="content-container">
+            <div style="text-align:center; max-width:720px; margin:0 auto 48px;">
+              <div class="inner-badge">Frequently Asked Questions</div>
+              <h2 class="inner-title" style="font-size:clamp(2rem, 4vw, 3rem); margin-bottom:12px;">Frequently asked questions</h2>
+              <p class="inner-subtitle" style="margin-bottom:0;">
+                Everything you need to know about switching your business to Vela AI.
+              </p>
+            </div>
+
+            <div class="faqs-wrapper" style="max-width:760px; margin:0 auto;">
+              <div class="accordion-list">
+
+                <!-- FAQ 1 -->
+                <div class="accordion-item">
+                  <h3>
+                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-1" id="faq-btn-1">
+                      <span class="faq-question">Do I get a website?</span>
+                      <span class="accordion-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  </h3>
+                  <div id="faq-ans-1" class="accordion-panel" role="region" aria-labelledby="faq-btn-1" hidden>
+                    <p class="faq-answer">
+                      Yes. Every plan includes your own dedicated merchant booking page (e.g. <code>vela.ng/p/yourname</code>). Clients use this site to view your services, check available times, book, and pay their deposit. On the Scale plan, you can connect your own custom domain (e.g. <code>yourbrand.biz</code>).
+                    </p>
+                  </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="accordion-item">
+                  <h3>
+                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-2" id="faq-btn-2">
+                      <span class="faq-question">Can Vela send emails for me?</span>
+                      <span class="accordion-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  </h3>
+                  <div id="faq-ans-2" class="accordion-panel" role="region" aria-labelledby="faq-btn-2" hidden>
+                    <p class="faq-answer">
+                      Yes, but only under your explicit instruction and oversight. Vela uses a verified business sender, filters eligible clients who have given marketing permission, and drafts the email. You review the wording and recipient count before giving approval.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="accordion-item">
+                  <h3>
+                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-3" id="faq-btn-3">
+                      <span class="faq-question">Can I edit a campaign?</span>
+                      <span class="accordion-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  </h3>
+                  <div id="faq-ans-3" class="accordion-panel" role="region" aria-labelledby="faq-btn-3" hidden>
+                    <p class="faq-answer">
+                      Yes, completely. You can edit the subject line and message body directly in the preview workspace. If you decide not to proceed, you can discard the draft with a single click.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="accordion-item">
+                  <h3>
+                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-4" id="faq-btn-4">
+                      <span class="faq-question">Does Vela message people on WhatsApp?</span>
+                      <span class="accordion-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  </h3>
+                  <div id="faq-ans-4" class="accordion-panel" role="region" aria-labelledby="faq-btn-4" hidden>
+                    <p class="faq-answer">
+                      Vela allows you to share your booking link easily in any WhatsApp chat or Instagram bio. For routine appointment reminders, automated notification messages are dispatched to confirmed clients before their session.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="accordion-item">
+                  <h3>
+                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-5" id="faq-btn-5">
+                      <span class="faq-question">Can the agent spend money on ads?</span>
+                      <span class="accordion-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                  </h3>
+                  <div id="faq-ans-5" class="accordion-panel" role="region" aria-labelledby="faq-btn-5" hidden>
+                    <p class="faq-answer">
+                      No. Marketing in this release covers email campaigns and rebooking your past clients. Paid advertising requires separate integration and commercial scope, and Vela will never charge for ads without your explicit consent.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================================================
+             Dark Closing Card
+             ========================================================================== -->
+        <section class="closing-section">
+          <div class="content-container">
+            <div class="closing-card">
+              <div class="closing-card-inner">
+                <h2 class="closing-headline">What would you ask Vela to handle first?</h2>
+                <p class="closing-subhead">Join independent service businesses across Nigeria letting AI handle their follow-up.</p>
+                <div class="closing-cta-wrap">
+                  <a href="/login" class="btn btn-pill-lime track-cta" data-cta-placement="closing_setup">
+                    Set up my agent
+                  </a>
+                  <a href="#see-vela-at-work" class="btn btn-pill-ghost" style="border-color:rgba(255,255,255,0.3); color:#FFFFFF;">
+                    See Vela at work
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Footer (Dark Ink Background) -->
+      <footer class="site-footer">
+        <div class="content-container footer-container">
+          <div class="footer-top">
+            <div class="footer-brand-col">
+              <a href="/" class="brand-link-ai" aria-label="Vela AI Homepage">
+                <img src="assets/vela-logo-lime-opt.png" alt="vela" class="footer-logo" width="108" height="36">
+                <span class="logo-ai-badge footer-ai-badge">AI</span>
+              </a>
+              <p class="footer-descriptor">The AI agent for service businesses</p>
+            </div>
+
+            <div class="footer-links-group">
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Product</div>
+                <ul class="footer-list">
+                  <li><a href="#what-vela-does">What Vela does</a></li>
+                  <li><a href="#see-vela-at-work">See Vela at work</a></li>
+                  <li><a href="#pricing">Pricing</a></li>
+                  <li><a href="/faqs">FAQs</a></li>
+                  <li><a href="/login" class="track-cta" data-cta-placement="footer_login">Provider login</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Support &amp; Legal</div>
+                <ul class="footer-list">
+                  <li><a href="mailto:support@vela.ng">Help &amp; support</a></li>
+                  <li><a href="https://wa.me/2348123843076?text=Hello%20Vela%20team,%20I'd%20like%20to%20learn%20more%20about%20setting%20up%20my%20agent" target="_blank" rel="noopener">WhatsApp concierge</a></li>
+                  <li><a href="/privacy">Privacy policy</a></li>
+                  <li><a href="/terms">Terms of service</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <p class="footer-copy">&copy; 2026 Vela Technologies. Formerly Nile Booking. All rights reserved.</p>
+            <div class="footer-badges">
+              <span class="badge-lagos">Lagos, Nigeria (WAT)</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div><!-- End Inner Canvas -->
+  </div><!-- End Outer Frame -->
+
+  <script src="script.js"></script>
+</body>
+</html>
