@@ -201,19 +201,161 @@ function el(tag, text, className) {
   return node;
 }
 
+let savedDraft = '';
+let savedInboxScrollTop = 0;
+let isReviewDropdownOpen = false;
+
 function updatePendingBadges() {
   const pendingCount = workspace.conversations.filter(c => c.status === 'needs_approval').length;
   
-  // Home card badge
-  const homeBadge = document.querySelector('.action-badge-count');
-  if (homeBadge) homeBadge.textContent = `${pendingCount} pending`;
-  
-  const homeCardTitle = document.querySelectorAll('.action-card-title')[1];
-  if (homeCardTitle) homeCardTitle.textContent = `Manage my inbox · ${pendingCount}`;
-
-  // Nav badge
+  // Sidebar nav badge
   const navBadge = document.querySelector('a[href="#inbox"] .nav-badge');
-  if (navBadge) navBadge.textContent = String(pendingCount);
+  if (navBadge) {
+    navBadge.textContent = String(pendingCount);
+    navBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+  }
+
+  // Mobile top bar badge
+  const mobileBadge = byId('mobileInboxBadge');
+  if (mobileBadge) {
+    mobileBadge.textContent = String(pendingCount);
+    mobileBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+  }
+
+  // Quiet review row
+  renderQuietReviewRow(pendingCount);
+}
+
+function renderQuietReviewRow(count) {
+  const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
+  const pendingCount = typeof count === 'number' ? count : pendingDecisions.length;
+  const row = byId('quietReviewRow');
+  const text = byId('quietReviewText');
+  const dropdown = byId('quietReviewDropdown');
+
+  if (!row) return;
+
+  if (pendingCount === 0) {
+    row.style.display = 'none';
+    if (dropdown) dropdown.style.display = 'none';
+    isReviewDropdownOpen = false;
+    return;
+  }
+
+  row.style.display = 'flex';
+  if (text) {
+    text.textContent = `${pendingCount} decision${pendingCount === 1 ? '' : 's'} need${pendingCount === 1 ? 's' : ''} your review`;
+  }
+
+  if (dropdown && isReviewDropdownOpen) {
+    populateQuietReviewDropdown(pendingDecisions);
+  }
+}
+
+function toggleReviewDropdown() {
+  const dropdown = byId('quietReviewDropdown');
+  const btn = byId('quietReviewBtn');
+  if (!dropdown) return;
+
+  isReviewDropdownOpen = !isReviewDropdownOpen;
+  if (isReviewDropdownOpen) {
+    const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
+    populateQuietReviewDropdown(pendingDecisions);
+    dropdown.style.display = 'flex';
+    dropdown.style.flexDirection = 'column';
+    if (btn) btn.textContent = 'Hide';
+  } else {
+    dropdown.style.display = 'none';
+    if (btn) btn.textContent = 'Review';
+  }
+}
+
+function getDecisionSummary(conv) {
+  if (conv.isQuote) {
+    return `Approve ${conv.sender.split('(')[0].trim()}’s quotation · ₦350,000`;
+  }
+  if (conv.id === 'conv-1') {
+    return `Confirm 4:15 PM haircut for ${conv.sender} · ₦10,000`;
+  }
+  if (conv.id === 'conv-3') {
+    return `Confirm shift to 2:30 PM for ${conv.sender}`;
+  }
+  if (conv.channel === 'instagram') {
+    return `Review Instagram reply for ${conv.sender}`;
+  }
+  if (conv.channel === 'tiktok') {
+    return `Review TikTok reply for ${conv.sender}`;
+  }
+  return `Review ${conv.channel} reply for ${conv.sender}`;
+}
+
+function populateQuietReviewDropdown(decisions) {
+  const dropdown = byId('quietReviewDropdown');
+  if (!dropdown) return;
+
+  dropdown.innerHTML = '';
+  decisions.forEach(conv => {
+    const item = document.createElement('div');
+    item.className = 'quiet-review-item';
+    item.innerHTML = `
+      <div class="quiet-item-header" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleReviewItemDetail(this)">
+        <span style="font-weight:600; color:#161817; font-size:13px;">${getDecisionSummary(conv)}</span>
+        <span class="quiet-chevron" style="font-size:12px; color:#888; transition:transform 0.15s;">▸</span>
+      </div>
+      <div class="quiet-item-detail" style="display:none; margin-top:10px; border-top:1px solid #E5E5E0; padding-top:10px; font-size:12px;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:10px; text-transform:uppercase; font-weight:700; background:#E5E7EB; color:#374151; padding:2px 6px; border-radius:4px;">${conv.channel}</span>
+          <span style="font-weight:600; color:#161817;">${conv.sender}</span>
+          <span style="color:#888; font-size:11px;">· ${conv.time}</span>
+        </div>
+        <div style="color:#444; margin-bottom:6px; font-style:italic;">${conv.message}</div>
+        <div style="color:#2563eb; font-size:11.5px; margin-bottom:8px; font-weight:500;">✦ Context: ${conv.context}</div>
+        <div style="background:#FFF; border:1px solid #DDD; border-radius:8px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.4;">
+          <span style="color:#888; font-size:10.5px; font-weight:600; text-transform:uppercase;">Vela Prepared Reply:</span><br>
+          ${conv.draftText}
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${conv.isQuote ? `
+            <button type="button" class="btn-approve" style="font-size:11.5px; padding:6px 12px;" onclick="originatingScreen='agent'; runWorkflow('review_quote')">Review quotation</button>
+          ` : `
+            <button type="button" class="btn-approve" style="font-size:11.5px; padding:6px 12px;" onclick="approveConversation('${conv.id}', this); setTimeout(updatePendingBadges, 300);">Approve &amp; send</button>
+            <button type="button" class="btn-secondary" style="font-size:11.5px; padding:6px 12px;" onclick="pauseAIForConversation('${conv.id}', this); setTimeout(updatePendingBadges, 300);">I’ll handle this</button>
+          `}
+        </div>
+      </div>
+    `;
+    dropdown.append(item);
+  });
+}
+
+function toggleReviewItemDetail(headerEl) {
+  const detail = headerEl.nextElementSibling;
+  const chevron = headerEl.querySelector('.quiet-chevron');
+  if (!detail) return;
+  const isHidden = detail.style.display === 'none';
+  detail.style.display = isHidden ? 'block' : 'none';
+  if (chevron) chevron.textContent = isHidden ? '▾' : '▸';
+}
+
+function toggleRecentTasks() {
+  const list = byId('recentTasksList');
+  const chevron = byId('recentTasksChevron');
+  if (!list) return;
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'flex' : 'none';
+  if (isHidden) {
+    list.style.flexDirection = 'column';
+    list.style.gap = '4px';
+    list.style.marginTop = '6px';
+  }
+  if (chevron) chevron.textContent = isHidden ? '▾' : '▸';
+}
+
+function autoGrowComposer(textarea) {
+  if (!textarea) return;
+  textarea.style.height = 'auto';
+  const newHeight = Math.min(Math.max(textarea.scrollHeight, 28), 160);
+  textarea.style.height = newHeight + 'px';
 }
 
 function closeDrawer() {
@@ -231,8 +373,20 @@ function startFreshTask() {
   page.hidden = true;
   byId('homeView').style.display = 'flex';
   byId('chatView').style.display = 'none';
+
+  // Reset scroll to top
+  const mainWorkspace = document.querySelector('.main-workspace');
+  if (mainWorkspace) mainWorkspace.scrollTop = 0;
+  window.scrollTo(0, 0);
+
+  // Preserve unfinished drafts when starting a new task
   const input = byId('homePromptInput');
-  if (input) input.value = '';
+  if (input) {
+    input.value = savedDraft || '';
+    autoGrowComposer(input);
+  }
+
+  updatePendingBadges();
 }
 
 function closeCurrentTask() {
@@ -1414,6 +1568,12 @@ function renderPage() {
 
   if (view === 'inbox') {
     page.append(renderInbox());
+    const mainWorkspace = document.querySelector('.main-workspace');
+    if (mainWorkspace && savedInboxScrollTop > 0) {
+      requestAnimationFrame(() => {
+        mainWorkspace.scrollTop = savedInboxScrollTop;
+      });
+    }
   } else {
     page.append(el('h1', sections[view]));
     if (view === 'website') page.append(renderWebsite());
@@ -2139,17 +2299,33 @@ window.prepareCustomerCampaign = prepareCustomerCampaign;
 window.simulateCampaignState = simulateCampaignState;
 window.copyCampaignCaption = copyCampaignCaption;
 window.openChangeGoalDropdown = openChangeGoalDropdown;
+window.toggleRecentTasks = toggleRecentTasks;
+window.toggleReviewDropdown = toggleReviewDropdown;
+window.toggleReviewItemDetail = toggleReviewItemDetail;
+window.updatePendingBadges = updatePendingBadges;
+window.autoGrowComposer = autoGrowComposer;
+window.startFreshTask = startFreshTask;
+window.closeCurrentTask = closeCurrentTask;
 
 // -------------------------------------------------------------
 // EVENT LISTENERS & INITIALIZATION
 // -------------------------------------------------------------
-// Fix: Agent nav button reliably returns home every time
-const agentLink = document.querySelector('a[href="#agent"]');
-if (agentLink) {
-  agentLink.addEventListener('click', e => {
+// Fix: All Agent links reliably return home and scroll to top every time
+document.querySelectorAll('a[href="#agent"]').forEach(link => {
+  link.addEventListener('click', e => {
     e.preventDefault();
     startFreshTask();
   });
+});
+
+// Scroll tracking for inbox scroll position preservation
+const mainWorkspaceEl = document.querySelector('.main-workspace');
+if (mainWorkspaceEl) {
+  mainWorkspaceEl.addEventListener('scroll', () => {
+    if (location.hash === '#inbox') {
+      savedInboxScrollTop = mainWorkspaceEl.scrollTop;
+    }
+  }, { passive: true });
 }
 
 // Fix: Close task button returns to originating screen
@@ -2177,6 +2353,8 @@ window.addEventListener('hashchange', renderPage);
 // Initial bootstrap
 updatePendingBadges();
 renderPage();
+
+
 
 // URL deep-link trigger for Find Me Customers flow and Prepared Campaign
 const urlFlow = new URLSearchParams(location.search).get('flow') || location.hash.slice(1);
