@@ -240,22 +240,181 @@ function updatePendingBadges() {
 function renderQuietReviewRow(count) {
   const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
   const pendingCount = typeof count === 'number' ? count : pendingDecisions.length;
-  const row = byId('quietReviewRow');
+  const panel = byId('quietReviewRow');
   const text = byId('quietReviewCountText');
 
-  if (!row) return;
+  if (!panel) return;
 
   if (pendingCount === 0) {
-    row.style.display = 'none';
+    panel.style.display = 'none';
+    isReviewDropdownOpen = false;
     closeDecisionTriage();
     return;
   }
 
-  row.style.display = 'flex';
+  panel.style.display = 'block';
   if (text) {
     text.textContent = `${pendingCount} decision${pendingCount === 1 ? '' : 's'} need${pendingCount === 1 ? 's' : ''} your review`;
   }
+
+  if (isReviewDropdownOpen) {
+    populateQuietReviewDropdown(pendingDecisions);
+  }
 }
+
+function toggleReviewDropdown() {
+  const dropdown = byId('quietReviewDropdown');
+  const panel = byId('quietReviewRow');
+  const btnLabel = byId('quietReviewBtnLabel');
+  if (!dropdown) return;
+
+  isReviewDropdownOpen = !isReviewDropdownOpen;
+  if (isReviewDropdownOpen) {
+    const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
+    populateQuietReviewDropdown(pendingDecisions);
+    dropdown.style.display = 'flex';
+    if (panel) panel.classList.add('open');
+    if (btnLabel) btnLabel.textContent = 'Hide';
+  } else {
+    dropdown.style.display = 'none';
+    if (panel) panel.classList.remove('open');
+    if (btnLabel) btnLabel.textContent = 'Review';
+  }
+}
+
+function getDecisionData(conv) {
+  const isQuote = !!conv.isQuote;
+  let title = `Review ${conv.channel || 'message'} reply for ${conv.sender}`;
+  let amount = null;
+
+  if (isQuote) {
+    title = `Approve ${conv.sender.split('(')[0].trim()}’s quotation`;
+    amount = '₦350,000';
+  } else if (conv.id === 'conv-1') {
+    title = `Confirm 4:15 PM haircut for ${conv.sender}`;
+    amount = '₦10,000';
+  } else if (conv.id === 'conv-3') {
+    title = `Confirm shift to 2:30 PM for ${conv.sender}`;
+    amount = null;
+  } else if (conv.channel === 'instagram') {
+    title = `Review Instagram reply for ${conv.sender}`;
+    amount = null;
+  } else if (conv.channel === 'tiktok') {
+    title = `Review TikTok reply for ${conv.sender}`;
+    amount = null;
+  }
+
+  return { title, amount, isQuote };
+}
+
+function populateQuietReviewDropdown(decisions) {
+  const dropdown = byId('quietReviewDropdown');
+  if (!dropdown) return;
+
+  if (decisions.length === 0) {
+    dropdown.innerHTML = `
+      <div style="padding: 28px 20px; text-align: center; color: #666; font-size: 13px;">
+        <div style="font-size: 20px; margin-bottom: 6px;">✓</div>
+        <div style="font-weight: 600; color: #161817; margin-bottom: 4px;">All caught up</div>
+        <div>No pending decisions need your attention right now.</div>
+      </div>
+    `;
+    return;
+  }
+
+  dropdown.innerHTML = decisions.map(conv => {
+    const channelLower = (conv.channel || 'whatsapp').toLowerCase();
+    const channelName = conv.channel ? conv.channel.charAt(0).toUpperCase() + conv.channel.slice(1) : 'WhatsApp';
+    const cleanMsg = (conv.message || '').replace(/^["'“\s]+|["'”\s]+$/g, '');
+    const { title, amount, isQuote } = getDecisionData(conv);
+    const statusText = isQuote ? 'Quotation ready' : 'Needs approval';
+    const statusClass = isQuote ? 'quiet-status-tag quote' : 'quiet-status-tag';
+
+    return `
+      <div class="quiet-decision-item" id="quiet-item-${conv.id}">
+        <div class="quiet-item-head" onclick="toggleQuietItem('${conv.id}')">
+          <div class="quiet-item-left">
+            <div class="quiet-item-meta">
+              <span class="quiet-channel-badge ${channelLower}">${escapeHtml(channelName)}</span>
+              <span class="quiet-item-sender">${escapeHtml(conv.sender)}</span>
+              <span class="quiet-item-time">· ${escapeHtml(conv.time || 'Recent')}</span>
+              <span class="${statusClass}">${statusText}</span>
+            </div>
+            <div class="quiet-item-title-row">
+              <span class="quiet-item-title">${escapeHtml(title)}</span>
+              ${amount ? `<span class="quiet-amount-badge">${escapeHtml(amount)}</span>` : ''}
+            </div>
+            <div class="quiet-item-snippet">“${escapeHtml(cleanMsg)}”</div>
+          </div>
+          <button type="button" class="quiet-item-chevron-btn" aria-label="Toggle details">
+            <svg class="quiet-item-chevron-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="quiet-item-detail" id="quiet-detail-${conv.id}">
+          <div class="quiet-context-row">
+            <span>✦</span>
+            <span><strong>Vela Context:</strong> ${escapeHtml(conv.context || 'Customer enquiry')}</span>
+          </div>
+
+          <div class="quiet-prepared-draft">
+            <div class="quiet-draft-label">Vela Prepared Reply:</div>
+            <div class="quiet-draft-body">${escapeHtml(conv.draftText || '')}</div>
+          </div>
+
+          <div class="quiet-actions-row">
+            ${isQuote ? `
+              <button type="button" class="quiet-btn-approve" onclick="originatingScreen='agent'; runWorkflow('review_quote')">
+                Review &amp; send quotation
+              </button>
+              <button type="button" class="quiet-btn-dismiss" onclick="quietItemDismiss('${conv.id}', this)">
+                I’ll handle this
+              </button>
+            ` : `
+              <button type="button" class="quiet-btn-approve" onclick="quietItemApprove('${conv.id}', this)">
+                Approve &amp; send ${escapeHtml(channelName)}
+              </button>
+              <button type="button" class="quiet-btn-dismiss" onclick="quietItemDismiss('${conv.id}', this)">
+                I’ll handle this
+              </button>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleQuietItem(convId) {
+  const item = byId(`quiet-item-${convId}`);
+  if (!item) return;
+  item.classList.toggle('expanded');
+}
+
+function quietItemApprove(convId, btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '✓ Approved &amp; Sent';
+  }
+  approveConversation(convId, btn);
+  setTimeout(() => {
+    updatePendingBadges();
+  }, 400);
+}
+
+function quietItemDismiss(convId, btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Dismissed';
+  }
+  pauseAIForConversation(convId, btn);
+  setTimeout(() => {
+    updatePendingBadges();
+  }, 400);
+}
+
 
 function openDecisionTriage() {
   const modal = byId('decisionTriageModal');
@@ -2424,6 +2583,10 @@ window.openChangeGoalDropdown = openChangeGoalDropdown;
 window.toggleRecentTasks = toggleRecentTasks;
 window.openDecisionTriage = openDecisionTriage;
 window.closeDecisionTriage = closeDecisionTriage;
+window.toggleReviewDropdown = toggleReviewDropdown;
+window.toggleQuietItem = toggleQuietItem;
+window.quietItemApprove = quietItemApprove;
+window.quietItemDismiss = quietItemDismiss;
 window.triageApprove = triageApprove;
 window.triageDismiss = triageDismiss;
 window.updatePendingBadges = updatePendingBadges;

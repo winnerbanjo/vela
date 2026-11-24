@@ -344,65 +344,84 @@
       }
     }
 
-    /* Quiet Review Row */
-    .quiet-review-row {
+    /* Decisions Review Panel */
+    .quiet-decision-panel {
+      width: 100%;
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.09);
+      border-radius: 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+      box-sizing: border-box;
+      margin-top: 14px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .quiet-decision-header {
       width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 11px 16px;
+      padding: 13px 18px;
       background: #F9F8F5;
-      border: 1px solid rgba(22, 24, 23, 0.08);
-      border-radius: 12px;
-      font-size: 13px;
-      color: var(--text-ink);
-      box-sizing: border-box;
-      transition: all 0.15s ease;
       cursor: pointer;
+      box-sizing: border-box;
       user-select: none;
+      transition: background 0.15s ease;
     }
-    .quiet-review-row:hover {
-      background: #F2F1EC;
-      border-color: rgba(22, 24, 23, 0.16);
+    .quiet-decision-header:hover {
+      background: #F2F0EB;
     }
-    .quiet-review-text {
-      font-weight: 500;
-      color: rgba(22, 24, 23, 0.85);
+    .quiet-decision-header-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+    }
+    .quiet-decision-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-ink);
+      letter-spacing: -0.01em;
     }
     .quiet-pulse-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--text-ink);
+      background: #15803D;
       display: inline-block;
+      box-shadow: 0 0 0 2.5px rgba(21, 128, 61, 0.22);
+      flex-shrink: 0;
       animation: quietPulse 2s infinite ease-in-out;
     }
     @keyframes quietPulse {
-      0% { transform: scale(0.9); opacity: 0.7; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(0.9); opacity: 0.7; }
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
     }
-    .quiet-review-btn {
+    .quiet-review-toggle-btn {
       background: #FFFFFF;
-      border: 1px solid rgba(22, 24, 23, 0.15);
-      border-radius: 8px;
-      padding: 5px 14px;
+      border: 1px solid rgba(22, 24, 23, 0.14);
+      border-radius: 9999px;
+      padding: 5px 13px;
       font-size: 12px;
       font-weight: 600;
       color: var(--text-ink);
       cursor: pointer;
-      transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
     }
-    .quiet-review-btn:hover {
+    .quiet-review-toggle-btn:hover {
       background: var(--text-ink);
       color: #FFFFFF;
       border-color: var(--text-ink);
+    }
+    .quiet-review-chevron {
+      transition: transform 0.2s ease;
+    }
+    .quiet-decision-panel.open .quiet-review-chevron {
+      transform: rotate(180deg);
     }
 
     /* Decision Triage Modal & Bottom Sheet */
@@ -1069,13 +1088,21 @@
           <button type="button" class="home-shortcut-btn secondary" onclick="location.hash = 'inbox'">Review inbox</button>
         </div>
 
-        <!-- Quiet Pending Decisions Row -->
-        <div class="quiet-review-row" id="quietReviewRow" style="display:none;" onclick="openDecisionTriage()">
-          <div class="quiet-review-text" id="quietReviewText">
-            <span class="quiet-pulse-dot"></span>
-            <span id="quietReviewCountText">5 decisions need your review</span>
+        <!-- Decisions Review Panel (Inline Expandable Drawer) -->
+        <div class="quiet-decision-panel" id="quietReviewRow" style="display:none;">
+          <div class="quiet-decision-header" id="quietReviewHeader" onclick="toggleReviewDropdown()">
+            <div class="quiet-decision-header-left">
+              <span class="quiet-pulse-dot"></span>
+              <span id="quietReviewCountText" class="quiet-decision-title">5 decisions need your review</span>
+            </div>
+            <button type="button" class="quiet-review-toggle-btn" id="quietReviewBtn" onclick="event.stopPropagation(); toggleReviewDropdown()">
+              <span id="quietReviewBtnLabel">Review</span>
+              <svg class="quiet-review-chevron" id="quietReviewChevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
           </div>
-          <button type="button" class="quiet-review-btn" id="quietReviewBtn" onclick="event.stopPropagation(); openDecisionTriage()">Review</button>
+          <div class="quiet-decision-list" id="quietReviewDropdown" style="display:none;">
+            <!-- Decisions populated dynamically with generous spacing -->
+          </div>
         </div>
       </div>
 

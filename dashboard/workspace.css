@@ -192,57 +192,382 @@ body{height:100dvh}
   }
 }
 
-/* Quiet Entry Point for Pending Review */
-.quiet-review-row {
+/* ============================================================
+   Decisions Review Panel (Inline Expandable Drawer)
+   ============================================================ */
+.quiet-decision-panel {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.09);
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+  box-sizing: border-box;
+  margin-top: 14px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.quiet-decision-header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 16px;
+  padding: 13px 18px;
   background: #F9F8F5;
-  border: 1px solid rgba(22, 24, 23, 0.08);
-  border-radius: 12px;
-  font-size: 13px;
-  color: #161817;
-  box-sizing: border-box;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-sizing: border-box;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
-.quiet-review-row:hover {
-  background: #F3F1EC;
-  border-color: rgba(22, 24, 23, 0.15);
+
+.quiet-decision-header:hover {
+  background: #F2F0EB;
 }
-.quiet-review-text {
-  font-weight: 500;
-  color: rgba(22, 24, 23, 0.88);
+
+.quiet-decision-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
+
+.quiet-decision-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #161817;
+  letter-spacing: -0.01em;
+}
+
 .quiet-pulse-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   background: #15803D;
   border-radius: 50%;
   display: inline-block;
-  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2);
+  box-shadow: 0 0 0 2.5px rgba(21, 128, 61, 0.22);
   flex-shrink: 0;
+  animation: quietPulse 2s infinite ease-in-out;
 }
-.quiet-review-btn {
+
+@keyframes quietPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.quiet-review-toggle-btn {
   background: #FFFFFF;
-  border: 1px solid rgba(22, 24, 23, 0.15);
-  border-radius: 8px;
-  padding: 5px 12px;
+  border: 1px solid rgba(22, 24, 23, 0.14);
+  border-radius: 9999px;
+  padding: 5px 13px;
   font-size: 12px;
   font-weight: 600;
   color: #161817;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.15s ease;
 }
-.quiet-review-btn:hover {
+
+.quiet-review-toggle-btn:hover {
   background: #161817;
   color: #FFFFFF;
   border-color: #161817;
+}
+
+.quiet-review-chevron {
+  transition: transform 0.2s ease;
+}
+
+.quiet-decision-panel.open .quiet-review-chevron {
+  transform: rotate(180deg);
+}
+
+/* Decision List - Clean & Spaced Out */
+.quiet-decision-list {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-top: 1px solid rgba(22, 24, 23, 0.07);
+}
+
+.quiet-decision-item {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.06);
+  transition: background 0.15s ease;
+}
+
+.quiet-decision-item:last-child {
+  border-bottom: none;
+}
+
+.quiet-decision-item:hover {
+  background: #FCFCF9;
+}
+
+.quiet-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.quiet-item-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.quiet-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.quiet-channel-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2.5px 8px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.quiet-channel-badge.whatsapp {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.quiet-channel-badge.email {
+  background: #E1F5FE;
+  color: #0277BD;
+}
+
+.quiet-channel-badge.instagram {
+  background: #F3E5F5;
+  color: #7B1FA2;
+}
+
+.quiet-channel-badge.tiktok {
+  background: #F5F5F5;
+  color: #212121;
+}
+
+.quiet-item-sender {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #161817;
+}
+
+.quiet-item-time {
+  font-size: 12px;
+  color: #777772;
+}
+
+.quiet-status-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid rgba(194, 65, 12, 0.15);
+  margin-left: auto;
+}
+
+.quiet-status-tag.quote {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border-color: rgba(29, 78, 216, 0.15);
+}
+
+.quiet-item-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.quiet-item-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #161817;
+  line-height: 1.4;
+}
+
+.quiet-amount-badge {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #15803D;
+  background: #F0FDF4;
+  border: 1px solid rgba(21, 128, 61, 0.18);
+  padding: 1.5px 8px;
+  border-radius: 9999px;
+  letter-spacing: -0.01em;
+}
+
+.quiet-item-snippet {
+  font-size: 13px;
+  color: #555550;
+  font-style: italic;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.quiet-item-chevron-btn {
+  background: transparent;
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666660;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  margin-top: 2px;
+}
+
+.quiet-decision-item:hover .quiet-item-chevron-btn {
+  background: #FFFFFF;
+  border-color: rgba(22, 24, 23, 0.2);
+  color: #161817;
+}
+
+.quiet-item-chevron-icon {
+  transition: transform 0.2s ease;
+}
+
+.quiet-decision-item.expanded .quiet-item-chevron-icon {
+  transform: rotate(90deg);
+}
+
+/* Expanded Detail Area */
+.quiet-item-detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(22, 24, 23, 0.12);
+  display: none;
+  animation: fadeInQuietDetail 0.18s ease;
+}
+
+.quiet-decision-item.expanded .quiet-item-detail {
+  display: block;
+}
+
+@keyframes fadeInQuietDetail {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.quiet-context-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12.5px;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 9px 13px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.quiet-prepared-draft {
+  background: #FAFAF8;
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  border-radius: 10px;
+  padding: 13px 15px;
+  margin-bottom: 14px;
+}
+
+.quiet-draft-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #777772;
+  margin-bottom: 6px;
+}
+
+.quiet-draft-body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #161817;
+}
+
+.quiet-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quiet-btn-approve {
+  background: #161817;
+  color: #FFFFFF;
+  border: 1px solid #161817;
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quiet-btn-approve:hover {
+  background: #2D312E;
+  border-color: #2D312E;
+}
+
+.quiet-btn-approve:disabled {
+  background: #15803D;
+  border-color: #15803D;
+  opacity: 0.9;
+  cursor: default;
+}
+
+.quiet-btn-dismiss {
+  background: #FFFFFF;
+  color: #555550;
+  border: 1px solid rgba(22, 24, 23, 0.15);
+  border-radius: 9999px;
+  padding: 8px 15px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quiet-btn-dismiss:hover {
+  background: #F4F4F0;
+  color: #161817;
+  border-color: rgba(22, 24, 23, 0.3);
+}
+
+@media (max-width: 600px) {
+  .quiet-decision-item {
+    padding: 14px 14px;
+  }
+  .quiet-decision-header {
+    padding: 12px 14px;
+  }
+  .quiet-item-title {
+    font-size: 13.5px;
+  }
 }
 
 /* ============================================================
