@@ -2401,3 +2401,437 @@ body{height:100dvh}
   line-height: 1.45;
 }
 
+
+
+/* ============================================================
+   Connected Apps Section & Detail Modal
+   ============================================================ */
+.apps-summary-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.apps-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.apps-summary-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #161817;
+  letter-spacing: -0.01em;
+}
+
+.apps-connected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #FAF9F5;
+  border: 1px solid rgba(22, 24, 23, 0.06);
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.app-compact-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-logo-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.app-logo-badge.paystack { background: #0BA4DB; color: #FFFFFF; }
+.app-logo-badge.flutterwave { background: #FB9129; color: #FFFFFF; }
+.app-logo-badge.stripe { background: #635BFF; color: #FFFFFF; }
+.app-logo-badge.whatsapp { background: #25D366; color: #FFFFFF; }
+.app-logo-badge.zoho-mail { background: #E42528; color: #FFFFFF; }
+.app-logo-badge.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #FFFFFF; }
+.app-logo-badge.tiktok { background: #000000; color: #FFFFFF; }
+.app-logo-badge.google-calendar { background: #4285F4; color: #FFFFFF; }
+.app-logo-badge.apple-outlook-calendar { background: #0078D4; color: #FFFFFF; }
+.app-logo-badge.zoho-books { background: #009688; color: #FFFFFF; }
+.app-logo-badge.zoho-crm { background: #2267B2; color: #FFFFFF; }
+.app-logo-badge.google-drive { background: #0F9D58; color: #FFFFFF; }
+.app-logo-badge.dropbox { background: #0061FF; color: #FFFFFF; }
+.app-logo-badge.meta-ads { background: #0668E1; color: #FFFFFF; }
+
+.app-compact-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-compact-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-compact-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #161817;
+}
+
+.app-default-pill {
+  font-size: 10px;
+  font-weight: 700;
+  color: #166534;
+  background: #DCFCE7;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.app-compact-desc {
+  font-size: 12px;
+  color: #666660;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-compact-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.app-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.app-status-indicator.needs-attention {
+  color: #B45309;
+}
+
+.app-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22C55E;
+}
+
+.app-status-indicator.needs-attention .app-status-dot {
+  background: #F59E0B;
+}
+
+/* Recommendation Banner */
+.app-recommendation-box {
+  background: #F2F7E6;
+  border: 1px solid rgba(197, 243, 106, 0.8);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-recommendation-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.app-recommendation-icon {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.app-recommendation-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #2E5A1C;
+  margin-bottom: 2px;
+}
+
+.app-recommendation-text {
+  font-size: 13px;
+  color: #161817;
+  line-height: 1.4;
+}
+
+/* Filter Strip & Search */
+.apps-controls-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.apps-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.apps-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid rgba(22, 24, 23, 0.14);
+  border-radius: 12px;
+  font-size: 13px;
+  background: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.apps-search-input:focus {
+  outline: none;
+  border-color: #161817;
+}
+
+.apps-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888880;
+  pointer-events: none;
+}
+
+.apps-category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.apps-category-tab {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.12);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666660;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.apps-category-tab:hover {
+  border-color: #161817;
+  color: #161817;
+}
+
+.apps-category-tab.active {
+  background: #161817;
+  color: #FFFFFF;
+  border-color: #161817;
+}
+
+/* Available Apps List */
+.apps-available-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-row-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.app-row-card:hover {
+  border-color: rgba(22, 24, 23, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.app-row-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-row-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #161817;
+}
+
+.app-category-pill {
+  font-size: 10.5px;
+  color: #666660;
+  background: #F3F3F0;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.app-row-sentence {
+  font-size: 12.5px;
+  color: #666660;
+  line-height: 1.4;
+}
+
+.app-row-action {
+  flex-shrink: 0;
+}
+
+/* Detail & Config Modal */
+.app-detail-header-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.08);
+  margin-bottom: 18px;
+}
+
+.app-detail-section {
+  margin-bottom: 20px;
+}
+
+.app-detail-section-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #666660;
+  margin-bottom: 8px;
+}
+
+.app-capabilities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app-capability-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #161817;
+  line-height: 1.4;
+}
+
+.app-capability-icon {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.app-permission-box {
+  background: #FAF9F5;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.app-permission-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.06);
+}
+
+.app-permission-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.app-health-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F4F8EC;
+  border: 1px solid rgba(197, 243, 106, 0.6);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+
+.app-danger-zone {
+  border-top: 1px solid rgba(22, 24, 23, 0.08);
+  padding-top: 16px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .app-compact-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .app-compact-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .app-row-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .app-row-action {
+    width: 100%;
+  }
+  .app-row-action button, .app-row-action a {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}

@@ -447,21 +447,33 @@ function getDecisionItemData(conv) {
   }
 
   if (conv.id === 'conv-3') {
+    const apps = getAppsState();
+    const gCal = apps['google-calendar'];
+    const isCalActive = gCal && gCal.status === 'connected';
+
+    const contextNote = isCalActive
+      ? 'Dele calendar verified: 2:30 PM slot open at Chair 1'
+      : '⚠️ Google Calendar is disconnected. Cannot verify Dele’s availability. <a href="#apps?app=google-calendar&returnTask=conv-3" style="color:#B45309; font-weight:700; text-decoration:underline;" onclick="closeDecisionTriage();">Reconnect Dele’s Calendar →</a>';
+
     return {
       title: 'Move Babatunde’s appointment',
       detail: 'Shift to 2:30 PM · Executive Low Taper · WhatsApp',
-      proposedAction: 'Confirm move to 2:30 PM & reply to Babatunde Ojo',
+      proposedAction: isCalActive
+        ? 'Confirm move to 2:30 PM & reply to Babatunde Ojo'
+        : 'Connect Dele’s calendar to verify 2:30 PM slot before moving',
       facts: [
         { label: 'Client', value: 'Babatunde Ojo (Regular client · 6 visits)' },
         { label: 'Service', value: 'Executive Low Taper Fade' },
         { label: 'Original slot', value: 'Today at 1:00 PM' },
         { label: 'Requested slot', value: 'Today at 2:30 PM' },
+        { label: 'Calendar sync', value: isCalActive ? 'Dele (Chair 1) verified open' : '⚠️ Reconnection Required' },
         { label: 'Deposit', value: '₦2,000 paid · ₦6,000 due at shop' },
         { label: 'Channel', value: 'WhatsApp (+234 803 998 7766)' }
       ],
-      contextNote: 'Dele calendar verified: 2:30 PM slot open at Chair 1',
-      primaryLabel: 'Confirm move & reply',
-      cleanMsg: cleanMsg
+      contextNote: contextNote,
+      primaryLabel: isCalActive ? 'Confirm move & reply' : 'Reconnect Calendar to move',
+      cleanMsg: cleanMsg,
+      isCalActive: isCalActive
     };
   }
 
@@ -761,8 +773,22 @@ function executeDecisionAction(convId) {
     conv.status = 'sent';
 
     if (conv.id === 'conv-2' || conv.isQuote) {
-      notify('✓ Quotation #VQ-2026-112 approved and emailed to Kemi Adeleke (Horizon Capital).');
+      const apps = getAppsState();
+      if (apps['zoho-books'] && apps['zoho-books'].status === 'connected') {
+        const invId = (apps['zoho-books'].config.invoicePrefix || 'ZB-INV-') + '2026-092';
+        notify(`✓ Quotation approved! Emailed to Kemi Adeleke & Invoice #${invId} created in Zoho Books.`);
+      } else {
+        notify('✓ Quotation #VQ-2026-112 approved and emailed to Kemi Adeleke (Horizon Capital).');
+      }
     } else if (conv.id === 'conv-3') {
+      const apps = getAppsState();
+      const gCal = apps['google-calendar'];
+      if (!gCal || gCal.status !== 'connected') {
+        notify('⚠️ Google Calendar is disconnected. Please reconnect Dele’s calendar to verify availability.');
+        closeDecisionTriage();
+        openAppDetailModal('google-calendar', 'conv-3');
+        return;
+      }
       const booking = (workspace.bookingsList || []).find(b => b.clientName === 'Babatunde Ojo');
       if (booking) {
         booking.status = 'Rescheduled · Confirmed 2:30 PM';
@@ -1014,7 +1040,7 @@ function renderInbox() {
           <svg class="inbox-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
       </div>
-      <a href="#settings" class="page-hero-btn-secondary" title="Manage channel connections">
+      <a href="#apps?category=messaging" class="page-hero-btn-secondary" title="Manage messaging apps in Connected Apps">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>Channels</span>
       </a>
@@ -1989,6 +2015,7 @@ function renderMoney() {
         </div>
       </div>
       <div class="page-hero-actions">
+        <a href="#apps?category=payments" class="page-hero-btn-secondary" title="Configure Paystack, Flutterwave or Stripe in Connected Apps">Payment setup</a>
         <a href="#inbox" class="page-hero-btn-secondary">Review quote enquiries</a>
       </div>
     </div>
@@ -2291,14 +2318,18 @@ const sections = {
   services: 'Services',
   website: 'Website',
   gallery: 'Gallery',
-  settings: 'Settings'
+  settings: 'Settings',
+  apps: 'Connected apps'
 };
 
 function renderPage() {
   closeDrawer();
   closeModal();
 
-  const view = location.hash.slice(1);
+  const rawHash = location.hash.slice(1);
+  const [view, queryStr] = rawHash.split('?');
+  const params = new URLSearchParams(queryStr || '');
+
   if (!Object.hasOwn(sections, view)) {
     startFreshTask();
     return;
@@ -2325,6 +2356,7 @@ function renderPage() {
   else if (view === 'clients') page.append(renderClients());
   else if (view === 'money') page.append(renderMoney());
   else if (view === 'settings') page.append(renderSettings());
+  else if (view === 'apps') page.append(renderConnectedApps(params));
 }
 
 // -------------------------------------------------------------
@@ -3101,6 +3133,1138 @@ document.addEventListener('click', event => {
 
 window.addEventListener('hashchange', renderPage);
 
+// ============================================================
+// CONNECTED APPS & INTEGRATIONS SYSTEM
+// ============================================================
+
+let currentAppsCategory = 'all';
+let currentAppsSearch = '';
+
+// Default app catalog with rich capabilities, permissions, and health status
+const defaultAppsCatalogue = {
+  paystack: {
+    id: 'paystack',
+    name: 'Paystack',
+    category: 'payments',
+    headline: 'Collect booking deposits and match payments to clients.',
+    status: 'connected',
+    isDefault: true,
+    mode: 'live',
+    accountIdentity: 'Studio Teni Enterprises (RC-381920) · Paystack Live',
+    settlementAccount: 'Guaranty Trust Bank (GTBank) · ...4910',
+    supportedCurrencies: ['NGN'],
+    capabilities: [
+      'Automated Paystack deposit checkout links',
+      'Split settlement & instant transaction verification',
+      'Webhooks reconciliation to client ledger',
+      'Automatic refund and balance due calculation'
+    ],
+    permissions: {
+      readTransactions: true,
+      createCheckout: true,
+      refunds: false
+    },
+    lastSync: '2m ago',
+    health: '100% Operational · Webhooks Active',
+    config: {
+      depositPercentage: 20,
+      autoCreditInvoice: true,
+      enforceDeposits: true,
+      settlementBank: 'GTBank (058)'
+    }
+  },
+  flutterwave: {
+    id: 'flutterwave',
+    name: 'Flutterwave',
+    category: 'payments',
+    headline: 'Collect deposits and international payments in NGN, USD and GBP.',
+    status: 'disconnected',
+    isDefault: false,
+    mode: 'test',
+    accountIdentity: 'Studio Teni Global (flw_live_...9182)',
+    settlementAccount: 'Zenith Bank · ...8821',
+    supportedCurrencies: ['NGN', 'USD', 'GBP', 'EUR'],
+    capabilities: [
+      'Multi-currency deposit collection (USD/GBP/EUR)',
+      'Direct Nigerian bank transfers via USSD & virtual accounts',
+      'International card acceptance without FX friction'
+    ],
+    permissions: {
+      readTransactions: true,
+      createCheckout: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      defaultCurrency: 'NGN',
+      enableCard: true,
+      enableBankTransfer: true
+    }
+  },
+  stripe: {
+    id: 'stripe',
+    name: 'Stripe',
+    category: 'payments',
+    headline: 'Accept global cards, Apple Pay and US/UK client payments.',
+    status: 'disconnected',
+    isDefault: false,
+    mode: 'test',
+    accountIdentity: 'Studio Teni Ltd (acct_1N92X...)',
+    settlementAccount: 'Wise USD / Barclays GBP',
+    supportedCurrencies: ['USD', 'GBP', 'EUR', 'CAD'],
+    capabilities: [
+      'Apple Pay and Google Pay 1-tap booking checkout',
+      'Corporate invoicing for international commercial clients',
+      'Automated receipt delivery in customer currency'
+    ],
+    permissions: {
+      readTransactions: true,
+      createCheckout: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      defaultCurrency: 'USD'
+    }
+  },
+  whatsapp: {
+    id: 'whatsapp',
+    name: 'WhatsApp Business',
+    category: 'messaging',
+    headline: 'Reply to customer booking enquiries from your verified WhatsApp number.',
+    status: 'connected',
+    isDefault: false,
+    accountIdentity: '+234 803 123 4567 (Meta Cloud API)',
+    capabilities: [
+      'Direct customer chat on verified studio phone number',
+      'Automatic deposit checkout link insertion',
+      'Appointment reminder dispatch and reschedule links'
+    ],
+    permissions: {
+      readMessages: true,
+      draftReplies: true,
+      autoReplyRoutine: true
+    },
+    lastSync: '2m ago',
+    health: 'Active · Meta Webhook Verified',
+    config: {
+      phoneNumber: '+234 803 123 4567',
+      replyMode: 'draft'
+    }
+  },
+  'zoho-mail': {
+    id: 'zoho-mail',
+    name: 'Zoho Mail',
+    category: 'messaging',
+    headline: 'Send professional quotations and handle email bookings from your domain.',
+    status: 'connected',
+    accountIdentity: 'hello@studioteni.ng (Zoho Mail Professional)',
+    capabilities: [
+      'Custom domain business email (@studioteni.ng)',
+      'PDF Quotation attachments with Paystack deposit links',
+      'Separate receiving and sending health monitoring'
+    ],
+    permissions: {
+      readMessages: true,
+      sendQuotations: true
+    },
+    receivingHealth: 'Active (IMAP & Webhook 100% Passed)',
+    sendingHealth: 'Active (SPF, DKIM, DMARC Verified)',
+    lastSync: '12m ago',
+    health: 'Active · Inbound & Outbound Healthy',
+    config: {
+      emailAddress: 'hello@studioteni.ng',
+      smtpHost: 'smtp.zoho.com'
+    }
+  },
+  instagram: {
+    id: 'instagram',
+    name: 'Instagram Direct',
+    category: 'messaging',
+    headline: 'Turn DMs and story replies into confirmed appointments.',
+    status: 'connected',
+    accountIdentity: '@studioteni_ng (Meta Graph API)',
+    capabilities: [
+      'Direct message enquiry capture from Reels and Feed',
+      'Catalogue lookbook link sharing directly in chat',
+      'Instant studio address and slot guidance'
+    ],
+    permissions: {
+      readMessages: true,
+      draftReplies: true
+    },
+    lastSync: '5m ago',
+    health: 'Active · Graph API Verified',
+    config: {
+      handle: '@studioteni_ng'
+    }
+  },
+  tiktok: {
+    id: 'tiktok',
+    name: 'TikTok for Business',
+    category: 'messaging',
+    headline: 'Capture haircut and photoshoot bookings from viral videos.',
+    status: 'connected',
+    accountIdentity: '@studioteni (TikTok Direct Messaging API)',
+    capabilities: [
+      'Inquiries from viral haircut and portrait transformations',
+      'Automated bio booking link tracking'
+    ],
+    permissions: {
+      readMessages: true,
+      draftReplies: true
+    },
+    lastSync: '28m ago',
+    health: 'Active · TikTok Messaging API Verified',
+    config: {
+      handle: '@studioteni'
+    }
+  },
+  'google-calendar': {
+    id: 'google-calendar',
+    name: 'Google Calendar',
+    category: 'calendar',
+    headline: 'Keep staff availability in sync with their calendars.',
+    status: 'connected',
+    accountIdentity: 'dele.cuts@studioteni.ng (Google Workspace)',
+    capabilities: [
+      'Real-time availability check before proposing time slots',
+      'Two-way sync: calendar events block studio booking slots',
+      'Automatic reschedule updates without double bookings'
+    ],
+    permissions: {
+      readCalendar: true,
+      writeBookings: true,
+      requireConfirmation: true
+    },
+    lastSync: '1m ago',
+    health: 'Active · Google Workspace OAuth Verified',
+    config: {
+      assignedStaff: 'Dele (Chair 1)',
+      calendarName: 'Dele · Chair 1 Schedule',
+      bufferMinutes: 15,
+      allowConflictOverride: false
+    }
+  },
+  'apple-outlook-calendar': {
+    id: 'apple-outlook-calendar',
+    name: 'Outlook & Apple Calendar',
+    category: 'calendar',
+    headline: 'Sync personal schedules and prevent double bookings.',
+    status: 'disconnected',
+    accountIdentity: 'Unconnected',
+    capabilities: [
+      'CalDAV & Microsoft Exchange calendar integration',
+      'Personal appointment blockouts during work hours'
+    ],
+    permissions: {
+      readCalendar: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      provider: 'exchange'
+    }
+  },
+  'zoho-books': {
+    id: 'zoho-books',
+    name: 'Zoho Books',
+    category: 'accounting',
+    headline: 'Turn accepted quotes into invoices and track payments.',
+    status: 'connected',
+    accountIdentity: 'Studio Teni Services Ltd (Org #8029193)',
+    capabilities: [
+      'Turn accepted quotations into official accounting invoices',
+      'Automatic deposit matching when Paystack/Flutterwave succeeds',
+      'Direct one-click link to Zoho Books records'
+    ],
+    permissions: {
+      createInvoices: true,
+      recordPayments: true
+    },
+    lastSync: '15m ago',
+    health: 'Active · Zoho OAuth Verified',
+    config: {
+      organizationId: '8029193',
+      organizationName: 'Studio Teni Services Ltd',
+      autoCreateOnQuoteAcceptance: true,
+      invoicePrefix: 'ZB-INV-',
+      lastSyncedInvoice: 'ZB-INV-2026-092'
+    }
+  },
+  'zoho-crm': {
+    id: 'zoho-crm',
+    name: 'Zoho CRM',
+    category: 'accounting',
+    headline: 'Sync high-value corporate leads and wedding photography clients.',
+    status: 'disconnected',
+    accountIdentity: 'Unconnected',
+    capabilities: [
+      'Create Lead when corporate headshot or wedding inquiry arrives',
+      'Smart contact deduplication and review step for existing clients',
+      'Pipeline tracking for corporate packages (> ₦100,000)'
+    ],
+    permissions: {
+      createLeads: true,
+      createDeals: true,
+      requireDuplicateReview: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      leadThreshold: 100000,
+      autoMergeConfidence: 0.95
+    }
+  },
+  'google-drive': {
+    id: 'google-drive',
+    name: 'Google Drive',
+    category: 'files',
+    headline: 'Deliver client photo galleries and lookbook assets.',
+    status: 'disconnected',
+    accountIdentity: 'Unconnected',
+    capabilities: [
+      'Automated client gallery folder generation',
+      'Private proofing link dispatch with watermark protection'
+    ],
+    permissions: {
+      readDrive: true,
+      createFolders: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      rootFolder: 'Studio Teni Client Deliveries'
+    }
+  },
+  dropbox: {
+    id: 'dropbox',
+    name: 'Dropbox',
+    category: 'files',
+    headline: 'Store raw camera shoots and finished client albums securely.',
+    status: 'disconnected',
+    accountIdentity: 'Unconnected',
+    capabilities: [
+      'Cloud backup of high-res client photoshoot RAW files',
+      'Expiring client download links'
+    ],
+    permissions: {
+      createUploads: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {}
+  },
+  'meta-ads': {
+    id: 'meta-ads',
+    name: 'Meta Ads Manager',
+    category: 'marketing',
+    headline: 'Prepare targeted local campaigns to fill empty studio chairs.',
+    status: 'disconnected',
+    accountIdentity: 'Unconnected',
+    capabilities: [
+      'Draft Instagram & Facebook local campaigns for open weekday chairs',
+      'Geo-targeted ads in Victoria Island, Lekki and Ikoyi'
+    ],
+    permissions: {
+      draftCampaigns: true,
+      requireSpendApproval: true
+    },
+    lastSync: 'Never',
+    health: 'Not connected',
+    config: {
+      adAccount: '',
+      dailyBudgetCap: 5000
+    }
+  }
+};
+
+function getAppsState() {
+  if (!workspace.connectedApps) {
+    workspace.connectedApps = JSON.parse(JSON.stringify(defaultAppsCatalogue));
+    save({ connectedApps: workspace.connectedApps });
+  }
+  return workspace.connectedApps;
+}
+
+function getAppSummary(app) {
+  if (app.id === 'paystack') {
+    return `Collecting NGN deposits (${app.isDefault ? 'Default' : 'Active'})`;
+  }
+  if (app.id === 'flutterwave') {
+    return `Collecting NGN/USD/GBP (${app.isDefault ? 'Default' : 'Active'})`;
+  }
+  if (app.id === 'stripe') {
+    return `Global card & Apple Pay checkout (${app.isDefault ? 'Default' : 'Active'})`;
+  }
+  if (app.id === 'whatsapp') {
+    return `Replying from Studio Teni’s number (${app.config.phoneNumber})`;
+  }
+  if (app.id === 'google-calendar') {
+    return `${app.config.assignedStaff}’s appointments (${app.config.calendarName})`;
+  }
+  if (app.id === 'zoho-mail') {
+    return `${app.config.emailAddress} (Inbound & Outbound healthy)`;
+  }
+  if (app.id === 'zoho-books') {
+    return `Invoices linked to ${app.config.organizationName}`;
+  }
+  if (app.id === 'instagram') {
+    return `DMs from ${app.config.handle}`;
+  }
+  if (app.id === 'tiktok') {
+    return `Messages from ${app.config.handle}`;
+  }
+  return app.headline;
+}
+
+// Render Connected Apps Screen
+function renderConnectedApps(params) {
+  const container = el('div', '', 'apps-view-container');
+  const apps = getAppsState();
+
+  if (params && params.get('category')) {
+    currentAppsCategory = params.get('category').toLowerCase();
+  }
+  if (params && params.get('app')) {
+    setTimeout(() => {
+      openAppDetailModal(params.get('app'), params.get('returnTask'));
+    }, 100);
+  }
+
+  // Hero Header
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Connected apps</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Choose the tools Vela can use for your business.
+        </div>
+      </div>
+      <div class="page-hero-actions">
+        <button type="button" class="page-hero-btn-secondary" onclick="openAppDetailModal('paystack')" title="Inspect default NGN payment provider">
+          Payment Settings
+        </button>
+      </div>
+    </div>
+  `;
+  container.append(heroBar);
+
+  const connectedApps = Object.values(apps).filter(a => a.status === 'connected');
+
+  // Top Section: Connected Apps Compact Summary
+  const summaryCard = el('div', '', 'apps-summary-card');
+  summaryCard.innerHTML = `
+    <div class="apps-summary-header">
+      <div class="apps-summary-title">Connected Tools · ${connectedApps.length} active</div>
+      <span style="font-size:11.5px; color:#15803d; font-weight:600;">✓ Vela permissions verified</span>
+    </div>
+    <div class="apps-connected-list">
+      ${connectedApps.map(app => `
+        <div class="app-compact-row" id="connected-row-${app.id}">
+          <div class="app-compact-left">
+            <div class="app-logo-badge ${app.id}">${app.name.slice(0, 2).toUpperCase()}</div>
+            <div class="app-compact-info">
+              <div class="app-compact-name-row">
+                <span class="app-compact-name">${escapeHtml(app.name)}</span>
+                ${app.isDefault ? '<span class="app-default-pill">Default</span>' : ''}
+                ${app.status === 'needs_attention' ? '<span class="app-default-pill" style="background:#FEF3C7; color:#92400E;">Needs Attention</span>' : ''}
+              </div>
+              <div class="app-compact-desc">${escapeHtml(getAppSummary(app))}</div>
+            </div>
+          </div>
+          <div class="app-compact-right">
+            <span class="app-status-indicator ${app.status === 'needs_attention' ? 'needs-attention' : ''}">
+              <span class="app-status-dot"></span>
+              ${app.status === 'needs_attention' ? 'Needs Attention' : 'Connected'}
+            </span>
+            <button type="button" class="btn-secondary" style="font-size:12px; padding:5px 12px;" onclick="openAppDetailModal('${app.id}')">
+              Manage
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.append(summaryCard);
+
+  // Recommendation Banner (Only when follows from actual merchant need)
+  const isBarber = workspace.trade === 'barber';
+  const hasCalendar = apps['google-calendar'] && apps['google-calendar'].status === 'connected';
+  const hasAccounting = apps['zoho-books'] && apps['zoho-books'].status === 'connected';
+  const hasEmail = apps['zoho-mail'] && apps['zoho-mail'].status === 'connected';
+  const hasFlutterwave = apps['flutterwave'] && apps['flutterwave'].status === 'connected';
+
+  let recommendation = null;
+  if (isBarber && !hasCalendar) {
+    recommendation = {
+      appId: 'google-calendar',
+      title: 'Recommended for Studio Teni',
+      text: 'Connect Google Calendar for Dele to eliminate double bookings and verify open slots before proposing them to clients in WhatsApp.',
+      action: 'Connect Dele’s Calendar'
+    };
+  } else if (!hasAccounting) {
+    recommendation = {
+      appId: 'zoho-books',
+      title: 'Recommended for corporate quotations',
+      text: 'Connect Zoho Books to automatically convert accepted quotations into invoices and reconcile Paystack deposits directly to your accounting ledger.',
+      action: 'Connect Zoho Books'
+    };
+  } else if (!hasFlutterwave) {
+    recommendation = {
+      appId: 'flutterwave',
+      title: 'Recommended for USD & International Clients',
+      text: 'Add Flutterwave as a secondary payment gateway to accept USD, GBP and international credit cards without currency limits.',
+      action: 'Connect Flutterwave'
+    };
+  }
+
+  if (recommendation) {
+    const recBox = el('div', '', 'app-recommendation-box');
+    recBox.innerHTML = `
+      <div class="app-recommendation-content">
+        <span class="app-recommendation-icon">✦</span>
+        <div>
+          <div class="app-recommendation-title">${escapeHtml(recommendation.title)}</div>
+          <div class="app-recommendation-text">${escapeHtml(recommendation.text)}</div>
+        </div>
+      </div>
+      <button type="button" class="btn-approve" style="white-space:nowrap; font-size:12px; padding:7px 14px;" onclick="openAppDetailModal('${recommendation.appId}')">
+        ${escapeHtml(recommendation.action)}
+      </button>
+    `;
+    container.append(recBox);
+  }
+
+  // Controls Bar (Search + Categories)
+  const controlsBar = el('div', '', 'apps-controls-bar');
+  controlsBar.innerHTML = `
+    <div class="apps-search-wrap">
+      <svg class="apps-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" class="apps-search-input" id="appsSearchInput" placeholder="Search tools and integrations (e.g. Google Calendar, Stripe, Zoho)..." value="${escapeHtml(currentAppsSearch)}" oninput="handleAppsSearch(this.value)">
+    </div>
+    <div class="apps-category-tabs">
+      <button class="apps-category-tab ${currentAppsCategory === 'all' ? 'active' : ''}" onclick="setAppsCategory('all')">All</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'payments' ? 'active' : ''}" onclick="setAppsCategory('payments')">Payments</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'messaging' ? 'active' : ''}" onclick="setAppsCategory('messaging')">Messaging</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'calendar' ? 'active' : ''}" onclick="setAppsCategory('calendar')">Calendar</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'accounting' ? 'active' : ''}" onclick="setAppsCategory('accounting')">Accounting</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'files' ? 'active' : ''}" onclick="setAppsCategory('files')">Files</button>
+      <button class="apps-category-tab ${currentAppsCategory === 'marketing' ? 'active' : ''}" onclick="setAppsCategory('marketing')">Marketing</button>
+    </div>
+  `;
+  container.append(controlsBar);
+
+  // Available Apps Grid
+  const availableContainer = el('div', '', 'apps-available-grid');
+  availableContainer.id = 'appsAvailableList';
+  renderAvailableAppsList(availableContainer);
+  container.append(availableContainer);
+
+  return container;
+}
+
+function handleAppsSearch(val) {
+  currentAppsSearch = val.trim().toLowerCase();
+  const container = byId('appsAvailableList');
+  if (container) renderAvailableAppsList(container);
+}
+
+function setAppsCategory(category) {
+  currentAppsCategory = category;
+  history.replaceState(null, '', category === 'all' ? '#apps' : `#apps?category=${category}`);
+  const container = byId('appsAvailableList');
+  if (container) {
+    document.querySelectorAll('.apps-category-tab').forEach(t => {
+      t.classList.toggle('active', t.textContent.trim().toLowerCase() === category);
+    });
+    renderAvailableAppsList(container);
+  }
+}
+
+function renderAvailableAppsList(container) {
+  const apps = Object.values(getAppsState());
+  const filtered = apps.filter(app => {
+    if (currentAppsCategory !== 'all' && app.category !== currentAppsCategory) return false;
+    if (currentAppsSearch) {
+      const matchName = app.name.toLowerCase().includes(currentAppsSearch);
+      const matchHeadline = app.headline.toLowerCase().includes(currentAppsSearch);
+      const matchCat = app.category.toLowerCase().includes(currentAppsSearch);
+      if (!matchName && !matchHeadline && !matchCat) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.08); border-radius:14px; padding:32px 20px; text-align:center; color:#666;">
+        <div style="font-size:20px; margin-bottom:6px;">🔍</div>
+        <div style="font-weight:700; color:#161817; margin-bottom:4px;">No apps found</div>
+        <div style="font-size:12.5px;">Try a different search keyword or category filter.</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(app => {
+    const isConnected = app.status === 'connected';
+    const isNeedsAttention = app.status === 'needs_attention';
+    const catUpper = app.category.charAt(0).toUpperCase() + app.category.slice(1);
+
+    return `
+      <div class="app-row-card" id="app-card-${app.id}">
+        <div class="app-row-main">
+          <div class="app-logo-badge ${app.id}">${app.name.slice(0, 2).toUpperCase()}</div>
+          <div class="app-row-details">
+            <div class="app-row-title-line">
+              <span class="app-row-title">${escapeHtml(app.name)}</span>
+              <span class="app-category-pill">${escapeHtml(catUpper)}</span>
+              ${app.isDefault ? '<span class="app-default-pill">Default Provider</span>' : ''}
+              ${isConnected ? '<span style="font-size:11px; color:#15803d; font-weight:600;">✓ Connected</span>' : ''}
+              ${isNeedsAttention ? '<span style="font-size:11px; color:#B45309; font-weight:600;">⚠️ Needs Attention</span>' : ''}
+            </div>
+            <div class="app-row-sentence">${escapeHtml(app.headline)}</div>
+          </div>
+        </div>
+        <div class="app-row-action">
+          ${isConnected ? `
+            <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 14px;" onclick="openAppDetailModal('${app.id}')">
+              Manage
+            </button>
+          ` : isNeedsAttention ? `
+            <button type="button" class="btn-approve" style="font-size:12px; padding:6px 14px; background:#B45309;" onclick="openAppDetailModal('${app.id}')">
+              Reconnect
+            </button>
+          ` : `
+            <button type="button" class="btn-approve" style="font-size:12px; padding:6px 14px;" onclick="openAppDetailModal('${app.id}')">
+              Connect
+            </button>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// -------------------------------------------------------------
+// APP DETAIL & CONFIGURATION MODAL
+// -------------------------------------------------------------
+function openAppDetailModal(appId, returnTask) {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const apps = getAppsState();
+  const app = apps[appId];
+  if (!app) return;
+
+  const isConnected = app.status === 'connected';
+  const isNeedsAttention = app.status === 'needs_attention';
+  const isPayment = app.category === 'payments';
+  const isCalendar = app.category === 'calendar';
+  const isZoho = app.id.startsWith('zoho');
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="app-logo-badge ${app.id}">${app.name.slice(0, 2).toUpperCase()}</div>
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">${escapeHtml(app.name)}</h3>
+          <span style="font-size:11.5px; color:#666;">${escapeHtml(app.category.toUpperCase())} · ${isConnected ? 'Connected & Verified' : 'Available for connection'}</span>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <!-- 1. What Connecting Enables -->
+    <div class="app-detail-section">
+      <div class="app-detail-section-title">1. What connecting this enables in Vela</div>
+      <div class="app-capabilities-list">
+        ${app.capabilities.map(cap => `
+          <div class="app-capability-item">
+            <span class="app-capability-icon">✓</span>
+            <span>${escapeHtml(cap)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- 2. Account & Business Identity -->
+    <div class="app-detail-section">
+      <div class="app-detail-section-title">2. Connected Business Identity</div>
+      <div class="app-permission-box">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="color:#161817;">${escapeHtml(app.accountIdentity || 'Studio Teni Enterprise Account')}</strong>
+            ${isPayment ? `<div style="font-size:11.5px; color:#666; margin-top:2px;">Settlement Bank: <strong>${escapeHtml(app.settlementAccount || 'GTBank ...4910')}</strong></div>` : ''}
+            ${isPayment ? `<div style="font-size:11.5px; color:#666;">Currencies: <strong>${(app.supportedCurrencies || ['NGN']).join(', ')}</strong> · Mode: <strong>${(app.mode || 'live').toUpperCase()}</strong></div>` : ''}
+          </div>
+          <span class="app-default-pill" style="background:#E0E7FF; color:#3730A3;">Verified Account</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. What Vela May Read and What it May Change -->
+    <div class="app-detail-section">
+      <div class="app-detail-section-title">3. Permissions &amp; Agent Controls</div>
+      <div class="app-permission-box">
+        ${isCalendar ? `
+          <div class="app-permission-row">
+            <div>
+              <strong>Read availability</strong>
+              <div style="font-size:11.5px; color:#666;">Check free and busy calendar slots before proposing times</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+          <div class="app-permission-row">
+            <div>
+              <strong>Require staff confirmation for reschedules</strong>
+              <div style="font-size:11.5px; color:#666;">Staff member must approve appointment changes before calendar moves</div>
+            </div>
+            <input type="checkbox" id="permCalendarConfirm" ${app.permissions.requireConfirmation ? 'checked' : ''} onchange="toggleAppPerm('${app.id}', 'requireConfirmation', this.checked)">
+          </div>
+        ` : isPayment ? `
+          <div class="app-permission-row">
+            <div>
+              <strong>Generate Paystack deposit checkout links</strong>
+              <div style="font-size:11.5px; color:#666;">Create secure Paystack links for booking deposits &amp; invoices</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+          <div class="app-permission-row">
+            <div>
+              <strong>Auto-reconcile client deposits to ledger</strong>
+              <div style="font-size:11.5px; color:#666;">Match verified Paystack webhooks to booking balances immediately</div>
+            </div>
+            <input type="checkbox" id="permAutoCredit" checked disabled>
+          </div>
+        ` : app.id === 'zoho-mail' ? `
+          <div class="app-permission-row">
+            <div>
+              <strong>Read inbound enquiries</strong>
+              <div style="font-size:11.5px; color:#666;">Detect booking requests sent to hello@studioteni.ng</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+          <div class="app-permission-row">
+            <div>
+              <strong>Draft email replies for review</strong>
+              <div style="font-size:11.5px; color:#666;">Prepare quotation emails; owner approves before send</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+        ` : `
+          <div class="app-permission-row">
+            <div>
+              <strong>Read customer messages &amp; comments</strong>
+              <div style="font-size:11.5px; color:#666;">Receive booking questions in Vela unified inbox</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+          <div class="app-permission-row">
+            <div>
+              <strong>Prepare replies</strong>
+              <div style="font-size:11.5px; color:#666;">Generate accurate service price &amp; address replies for review</div>
+            </div>
+            <input type="checkbox" checked disabled>
+          </div>
+        `}
+      </div>
+    </div>
+
+    <!-- 4. Health & Verification Step -->
+    <div class="app-detail-section">
+      <div class="app-detail-section-title">4. Capability Health &amp; Verification</div>
+      <div class="app-health-badge-row">
+        <div>
+          <span style="font-weight:700; color:#166534;">${isConnected ? '✓ Connection Verified' : isNeedsAttention ? '⚠️ Token Expired' : 'Not Connected'}</span>
+          <div style="font-size:11.5px; color:#555; margin-top:2px;">${escapeHtml(app.health || 'Ready for OAuth verification')}</div>
+          ${app.receivingHealth ? `<div style="font-size:11px; color:#166534; margin-top:2px;">Receiving: ${app.receivingHealth}</div>` : ''}
+          ${app.sendingHealth ? `<div style="font-size:11px; color:#166534;">Sending: ${app.sendingHealth}</div>` : ''}
+        </div>
+        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:4px 10px;" onclick="testCapabilityHealth('${app.id}')">
+          Verify capability now
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. Configuration Step -->
+    <div class="app-detail-section">
+      <div class="app-detail-section-title">5. Configuration</div>
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:14px;">
+        ${isCalendar ? `
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Which calendar belongs to Dele?</label>
+          <select id="configStaffCalendar" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:10px;" onchange="updateStaffCalendarAssignment(this.value)">
+            <option value="Dele · Chair 1 Schedule" selected>Dele · Chair 1 Schedule (Google Workspace)</option>
+            <option value="Segun · Chair 2 Schedule">Segun · Chair 2 Schedule (Google Workspace)</option>
+            <option value="General Studio Floor">General Studio Floor</option>
+          </select>
+
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Buffer Time Between Appointments</label>
+          <select id="configBufferMinutes" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" onchange="updateAppBufferMinutes(this.value)">
+            <option value="15" ${app.config.bufferMinutes == 15 ? 'selected' : ''}>15 minutes cleanup &amp; sanitation</option>
+            <option value="20" ${app.config.bufferMinutes == 20 ? 'selected' : ''}>20 minutes</option>
+            <option value="30" ${app.config.bufferMinutes == 30 ? 'selected' : ''}>30 minutes</option>
+          </select>
+        ` : isPayment ? `
+          <div style="margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; cursor:pointer;">
+              <input type="checkbox" id="configIsDefaultPayment" ${app.isDefault ? 'checked' : ''} onchange="setDefaultPaymentGateway('${app.id}', this.checked)">
+              Use this account as default for NGN booking deposits
+            </label>
+            <div style="font-size:11.5px; color:#666; margin-top:2px; margin-left:22px;">
+              When clients book online or receive payment links, deposits will route to this provider.
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:11.5px; font-weight:700; display:block; margin-bottom:4px;">Deposit Percentage</label>
+              <input type="number" value="${app.config.depositPercentage || 20}" style="width:100%; padding:7px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" onchange="saveDepositPercentage(this.value)">
+            </div>
+            <div>
+              <label style="font-size:11.5px; font-weight:700; display:block; margin-bottom:4px;">Processing Mode</label>
+              <select style="width:100%; padding:7px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" onchange="togglePaymentMode('${app.id}', this.value)">
+                <option value="live" ${app.mode === 'live' ? 'selected' : ''}>Live Production</option>
+                <option value="test" ${app.mode === 'test' ? 'selected' : ''}>Test Sandbox</option>
+              </select>
+            </div>
+          </div>
+        ` : app.id === 'zoho-books' ? `
+          <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Select Connected Zoho Organisation</label>
+          <select style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:10px;">
+            <option value="8029193" selected>Studio Teni Services Ltd (Org #8029193)</option>
+            <option value="9928172">Studio Teni Media Ventures</option>
+          </select>
+          <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; cursor:pointer;">
+            <input type="checkbox" id="configZohoAutoInvoice" checked>
+            Create an invoice when a customer accepts a quotation
+          </label>
+          <div style="font-size:11.5px; color:#666; margin-top:4px; margin-left:22px;">
+            Last synced invoice: <strong>${app.config.lastSyncedInvoice || 'ZB-INV-2026-092'}</strong>
+          </div>
+        ` : `
+          <div style="font-size:12.5px; color:#555;">
+            Verified business identity: <strong>${escapeHtml(app.accountIdentity)}</strong>. Automated sync runs continuously every 5 minutes.
+          </div>
+        `}
+      </div>
+    </div>
+
+    <!-- 6. Useful Next Action Button -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:10px;">
+      ${returnTask ? `
+        <button type="button" class="btn-approve" style="padding:10px 18px;" onclick="returnToAgentTask('${returnTask}')">
+          Return to task &amp; resume →
+        </button>
+      ` : isPayment ? `
+        <button type="button" class="btn-approve" style="padding:10px 18px;" onclick="previewDepositCheckout()">
+          Preview deposit checkout →
+        </button>
+      ` : isCalendar ? `
+        <button type="button" class="btn-approve" style="padding:10px 18px;" onclick="checkAvailableTimes()">
+          Check available times →
+        </button>
+      ` : app.id === 'zoho-books' ? `
+        <button type="button" class="btn-approve" style="padding:10px 18px;" onclick="createTestQuotation()">
+          Create a test quotation →
+        </button>
+      ` : `
+        <button type="button" class="btn-approve" style="padding:10px 18px;" onclick="closeAppDetailModal(); notify('Connection verified.');">
+          Save &amp; Continue
+        </button>
+      `}
+
+      ${isConnected ? `
+        <button type="button" class="btn-secondary" style="color:#b91c1c; border-color:#fca5a5;" onclick="disconnectAppPrompt('${app.id}')">
+          Disconnect app
+        </button>
+      ` : `
+        <button type="button" class="btn-approve" onclick="connectAppPrompt('${app.id}', '${returnTask || ''}')">
+          Authorize &amp; Connect Now
+        </button>
+      `}
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function closeAppDetailModal() {
+  const modal = byId('appDetailModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function returnToAgentTask(returnTask) {
+  closeAppDetailModal();
+  if (returnTask === 'conv-3') {
+    openDecisionReview('conv-3');
+    openDecisionTriage();
+    notify('✓ Google Calendar verified. Dele’s 2:30 PM slot confirmed available.');
+  } else if (returnTask === 'review_quote') {
+    originatingScreen = 'agent';
+    runWorkflow('review_quote');
+    notify('✓ Payment gateway verified. Quotation ready to send.');
+  } else {
+    location.hash = 'agent';
+  }
+}
+
+function previewDepositCheckout() {
+  closeAppDetailModal();
+  window.open('/storefront?service=srv-1&promo=wed_slots', '_blank');
+  notify('Opening deposit checkout preview with active provider.');
+}
+
+function checkAvailableTimes() {
+  closeAppDetailModal();
+  location.hash = 'bookings';
+  bookingFilter = 'dele';
+  renderPage();
+  notify('Showing Dele (Chair 1) verified calendar appointments.');
+}
+
+function createTestQuotation() {
+  closeAppDetailModal();
+  originatingScreen = 'agent';
+  runWorkflow('review_quote');
+  notify('Opening corporate quotation flow linked to Zoho Books.');
+}
+
+function setDefaultPaymentGateway(appId, isDefault) {
+  const apps = getAppsState();
+  if (isDefault) {
+    for (const k of Object.keys(apps)) {
+      if (apps[k].category === 'payments') {
+        apps[k].isDefault = (k === appId);
+      }
+    }
+  } else {
+    apps[appId].isDefault = false;
+  }
+  save({ connectedApps: apps });
+  notify(`${apps[appId].name} is now ${isDefault ? 'the default NGN deposit provider' : 'no longer default'}.`);
+  renderPage();
+}
+
+function togglePaymentMode(appId, mode) {
+  const apps = getAppsState();
+  if (apps[appId]) {
+    apps[appId].mode = mode;
+    save({ connectedApps: apps });
+    notify(`${apps[appId].name} switched to ${mode.toUpperCase()} mode.`);
+  }
+}
+
+function saveDepositPercentage(pct) {
+  const apps = getAppsState();
+  if (apps.paystack) {
+    apps.paystack.config.depositPercentage = Number(pct);
+    save({ connectedApps: apps });
+    notify(`Paystack default deposit set to ${pct}%.`);
+  }
+}
+
+function updateStaffCalendarAssignment(calName) {
+  const apps = getAppsState();
+  if (apps['google-calendar']) {
+    apps['google-calendar'].config.calendarName = calName;
+    save({ connectedApps: apps });
+    notify(`Assigned Google Calendar: "${calName}".`);
+  }
+}
+
+function updateAppBufferMinutes(mins) {
+  const apps = getAppsState();
+  if (apps['google-calendar']) {
+    apps['google-calendar'].config.bufferMinutes = Number(mins);
+    save({ connectedApps: apps });
+    notify(`Calendar buffer time updated to ${mins} minutes.`);
+  }
+}
+
+function toggleAppPerm(appId, permKey, checked) {
+  const apps = getAppsState();
+  if (apps[appId] && apps[appId].permissions) {
+    apps[appId].permissions[permKey] = checked;
+    save({ connectedApps: apps });
+    notify('Permission updated.');
+  }
+}
+
+function testCapabilityHealth(appId) {
+  const apps = getAppsState();
+  const app = apps[appId];
+  if (!app) return;
+
+  notify(`Verifying ${app.name} capability health...`);
+  setTimeout(() => {
+    app.status = 'connected';
+    app.lastSync = 'Just now';
+    app.health = '100% Operational · Latency 14ms';
+    save({ connectedApps: apps });
+    notify(`✓ ${app.name} capability verified successfully!`);
+    openAppDetailModal(appId);
+    renderPage();
+  }, 400);
+}
+
+function connectAppPrompt(appId, returnTask) {
+  const apps = getAppsState();
+  const app = apps[appId];
+  if (!app) return;
+
+  notify(`Authorising ${app.name} connection...`);
+  setTimeout(() => {
+    app.status = 'connected';
+    app.lastSync = 'Just now';
+    app.health = 'Active · Verified';
+    if (app.id === 'google-calendar') {
+      app.accountIdentity = 'dele.cuts@studioteni.ng (Google Workspace)';
+    } else if (app.id === 'flutterwave') {
+      app.accountIdentity = 'Studio Teni Global (flw_live_...9182)';
+    } else if (app.id === 'zoho-books') {
+      app.accountIdentity = 'Studio Teni Services Ltd (Org #8029193)';
+    }
+    save({ connectedApps: apps });
+    notify(`✓ ${app.name} connected and verified!`);
+    if (returnTask) {
+      returnToAgentTask(returnTask);
+    } else {
+      openAppDetailModal(appId);
+      renderPage();
+    }
+  }, 500);
+}
+
+function disconnectAppPrompt(appId) {
+  const apps = getAppsState();
+  const app = apps[appId];
+  if (!app) return;
+
+  if (confirm(`Disconnect ${app.name}?\n\nFuture automated syncs will stop. All historical bookings, client payments, receipts, and provider references will remain preserved.`)) {
+    app.status = 'disconnected';
+    app.health = 'Disconnected by merchant';
+    app.lastSync = 'Disconnected';
+    if (app.isDefault) {
+      app.isDefault = false;
+      const other = Object.values(apps).find(a => a.category === 'payments' && a.id !== appId && a.status === 'connected');
+      if (other) other.isDefault = true;
+    }
+    save({ connectedApps: apps });
+    notify(`${app.name} disconnected. Historical data preserved.`);
+    closeAppDetailModal();
+    renderPage();
+  }
+}
+
+// -------------------------------------------------------------
+// MULTI-PROVIDER PAYMENT INTERFACE (VelaPaymentGateway)
+// -------------------------------------------------------------
+const VelaPaymentGateway = {
+  createCheckout(options) {
+    const apps = getAppsState();
+    const defaultProv = Object.values(apps).find(a => a.category === 'payments' && a.isDefault && a.status === 'connected') || apps.paystack;
+    const providerId = options.provider || defaultProv.id;
+    const txRef = 'VP-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random() * 899 + 100);
+
+    const tx = {
+      id: 'tx-' + Date.now(),
+      reference: txRef,
+      provider: providerId,
+      merchantId: 'merch-studioteni',
+      bookingId: options.bookingId || null,
+      invoiceId: options.invoiceId || 'INV-' + txRef.slice(-6),
+      clientName: options.clientName || 'Client',
+      expectedAmount: Number(options.amount || 2000),
+      currency: options.currency || 'NGN',
+      customerPaymentStatus: 'Pending',
+      bankSettlementStatus: 'Awaiting customer payment',
+      createdAt: 'Today at ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      verifiedAt: null
+    };
+
+    if (!workspace.transactions) workspace.transactions = [];
+    workspace.transactions.unshift(tx);
+    save({ transactions: workspace.transactions });
+
+    return {
+      reference: txRef,
+      provider: providerId,
+      checkoutUrl: `/storefront?ref=${txRef}&provider=${providerId}`,
+      transaction: tx
+    };
+  },
+
+  verifyPayment(ref) {
+    if (!workspace.transactions) workspace.transactions = [];
+    const tx = workspace.transactions.find(t => t.reference === ref);
+    if (!tx) return false;
+
+    // Idempotent: if already paid, return true without double counting
+    if (tx.customerPaymentStatus === 'Paid') {
+      return { alreadyVerified: true, transaction: tx };
+    }
+
+    tx.customerPaymentStatus = 'Paid';
+    tx.verifiedAt = 'Today at ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    tx.bankSettlementStatus = tx.provider === 'paystack' ? 'Settled to GTBank (...4910)' : 'Settled to Zenith Bank (...8821)';
+
+    // Also update Zoho Books invoice if connected
+    const apps = getAppsState();
+    if (apps['zoho-books'] && apps['zoho-books'].status === 'connected') {
+      tx.externalInvoiceId = apps['zoho-books'].config.invoicePrefix + '2026-' + Math.floor(Math.random() * 899 + 100);
+    }
+
+    save({ transactions: workspace.transactions });
+    return { alreadyVerified: false, transaction: tx };
+  }
+};
+
+window.renderConnectedApps = renderConnectedApps;
+window.openAppDetailModal = openAppDetailModal;
+window.closeAppDetailModal = closeAppDetailModal;
+window.setAppsCategory = setAppsCategory;
+window.handleAppsSearch = handleAppsSearch;
+window.testCapabilityHealth = testCapabilityHealth;
+window.connectAppPrompt = connectAppPrompt;
+window.disconnectAppPrompt = disconnectAppPrompt;
+window.setDefaultPaymentGateway = setDefaultPaymentGateway;
+window.togglePaymentMode = togglePaymentMode;
+window.saveDepositPercentage = saveDepositPercentage;
+window.updateStaffCalendarAssignment = updateStaffCalendarAssignment;
+window.updateAppBufferMinutes = updateAppBufferMinutes;
+window.toggleAppPerm = toggleAppPerm;
+window.returnToAgentTask = returnToAgentTask;
+window.previewDepositCheckout = previewDepositCheckout;
+window.checkAvailableTimes = checkAvailableTimes;
+window.createTestQuotation = createTestQuotation;
+window.VelaPaymentGateway = VelaPaymentGateway;
+
+
+window.checkMultiStylistAvailability = function(timeSlot) {
+  const isOnePm = timeSlot.includes('1:00');
+  return {
+    requestedTime: timeSlot,
+    dele: {
+      staff: 'Dele (Chair 1)',
+      available: !isOnePm,
+      conflict: isOnePm ? 'Booked: Tobi Adebayo (Haircut & Beard)' : null
+    },
+    segun: {
+      staff: 'Segun (Chair 2)',
+      available: true,
+      conflict: null
+    },
+    recommendation: isOnePm
+      ? 'Dele is booked at 1:00 PM on Google Calendar. Segun (Chair 2) is available.'
+      : 'Both Dele and Segun are open at ' + timeSlot
+  };
+};
+
+
 // Initial bootstrap
 updatePendingBadges();
 renderPage();
@@ -3115,3 +4279,5 @@ if (urlFlow === 'find_customers') {
   runFindCustomersFlow();
   prepareCustomerCampaign(workspace.trade);
 }
+
+

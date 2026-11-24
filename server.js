@@ -15,7 +15,15 @@ const MIME = {
   '.json': 'application/json'
 };
 
+const { handleApiRequest } = require('./server_api');
+
 const server = http.createServer((req, res) => {
+  // Handle Connected Apps & Payments API requests
+  if (req.url.startsWith('/api/')) {
+    const handled = handleApiRequest(req, res);
+    if (handled !== false) return;
+  }
+
   let reqPath = decodeURI(req.url.split('?')[0]);
   if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
 
