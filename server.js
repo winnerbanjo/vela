@@ -43,13 +43,16 @@ const server = http.createServer((req, res) => {
     '/signup': '/register.html',
     '/dashboard': '/dashboard.html',
     '/book': '/storefront.html',
-    '/storefront': '/storefront.html'
+    '/storefront': '/storefront.html',
+    '/knowledge-base': '/knowledge-base.html'
   };
 
   if (routeAliases[reqPath]) {
     reqPath = routeAliases[reqPath];
   } else if (reqPath.startsWith('/p/')) {
     reqPath = '/storefront.html';
+  } else if (reqPath.startsWith('/knowledge-base/')) {
+    reqPath = '/knowledge-base.html';
   }
 
   let filePath = path.join(__dirname, reqPath);

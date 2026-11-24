@@ -157,6 +157,7 @@
               <div class="footer-nav-col">
                 <div class="footer-col-title">Support &amp; Legal</div>
                 <ul class="footer-list">
+                  <li><a href="/knowledge-base">Knowledge Base</a></li>
                   <li><a href="mailto:support@vela.ng">Help &amp; support</a></li>
                   <li><a href="https://wa.me/2348123843076" target="_blank" rel="noopener">WhatsApp concierge</a></li>
                   <li><a href="/privacy">Privacy policy</a></li>
@@ -186,11 +187,11 @@
       status.style.display = 'block';
       status.style.backgroundColor = '#EDFCD4';
       status.style.color = '#161817';
-      status.textContent = 'Redirecting to your provider dashboard...';
       setTimeout(() => {
-        // Redirect to integrated live app on port 5174 or fallback
-        window.location.href = 'http://localhost:5174/login';
-      }, 700);
+        const params = new URLSearchParams(window.location.search);
+        const returnTo = params.get('returnTo') || '/dashboard';
+        window.location.href = returnTo;
+      }, 500);
     }
   </script>
 </body>

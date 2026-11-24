@@ -1283,9 +1283,16 @@ function renderWebsite() {
     ${workspace.hasUnpublishedChanges ? `
       <div class="page-hero-notice">
         <span>⚠️ You have unpublished draft edits. The live site will remain on revision from ${workspace.lastPublishedAt} until published.</span>
-        <button class="page-hero-btn-primary" style="padding:4px 12px; font-size:11.5px;" onclick="publishWebsiteChanges()">Publish now</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <a href="/knowledge-base/website-gallery/preview-publish-changes" target="_blank" rel="noopener" style="color:#161817; font-size:11.5px; font-weight:600; text-decoration:underline;">How does publishing work?</a>
+          <button class="page-hero-btn-primary" style="padding:4px 12px; font-size:11.5px;" onclick="publishWebsiteChanges()">Publish now</button>
+        </div>
       </div>
-    ` : ''}
+    ` : `
+      <div style="margin-top:6px; display:flex; justify-content:flex-end;">
+        <a href="/knowledge-base/website-gallery/preview-publish-changes" target="_blank" rel="noopener" style="color:#666; font-size:11.5px; text-decoration:none;">How does publishing work? ↗</a>
+      </div>
+    `}
 
     <div class="page-hero-tabs">
       <button class="page-hero-tab ${activeWebsiteSection === 'details' ? 'active' : ''}" onclick="setWebsiteSection('details')">Business details</button>
@@ -4872,8 +4879,8 @@ async function renderPaymentProviderPanel(appId, forcedEnv, returnTask) {
           ` : ''}
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-            <a href="#" class="where-find-key-link" onclick="openKeyHelp('${app.id}', '${activeEnv}'); return false;" style="font-size:12px; color:#285731; font-weight:600; text-decoration:none;">
-              Where to find my key?
+            <a href="/knowledge-base/connected-apps/connect-${app.id}" target="_blank" rel="noopener" class="where-find-key-link" style="font-size:12px; color:#285731; font-weight:600; text-decoration:none;">
+              Where to find my key? ↗
             </a>
             <button type="button" class="btn-approve" onclick="submitPanelSecretKey('${app.id}', '${activeEnv}')" style="font-size:12px; padding:7px 16px;">
               Save &amp; verify key
@@ -4882,8 +4889,8 @@ async function renderPaymentProviderPanel(appId, forcedEnv, returnTask) {
 
           <div id="panelKeyHelpBox" style="display:none; margin-top:10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; font-size:11.5px; color:#475569; line-height:1.4;">
             ${app.id === 'paystack'
-              ? 'Find your keys in <strong>Paystack Dashboard → Settings → API Keys &amp; Webhooks</strong>. Live keys begin with <code>sk_live_</code>; test keys begin with <code>sk_test_</code>.'
-              : 'Find your keys in <strong>Flutterwave Dashboard → Settings → API Keys</strong>. Live keys begin with <code>FLWSECK_LIVE-</code>; test keys begin with <code>FLWSECK_TEST-</code>.'}
+              ? 'Find your keys in <strong>Paystack Dashboard → Settings → API Keys &amp; Webhooks</strong>. <a href="/knowledge-base/connected-apps/connect-paystack" target="_blank" style="color:#285731; font-weight:600;">Read complete guide ↗</a>'
+              : 'Find your keys in <strong>Flutterwave Dashboard → Settings → API Keys</strong>. <a href="/knowledge-base/connected-apps/connect-flutterwave" target="_blank" style="color:#285731; font-weight:600;">Read complete guide ↗</a>'}
           </div>
 
           <div id="panelCredentialsError" style="display:none; margin-top:10px; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:9px 12px; border-radius:8px; font-size:12px; font-weight:500;"></div>
