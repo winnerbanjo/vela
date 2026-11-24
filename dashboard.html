@@ -357,6 +357,13 @@
       font-size: 13px;
       color: var(--text-ink);
       box-sizing: border-box;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+    .quiet-review-row:hover {
+      background: #F2F1EC;
+      border-color: rgba(22, 24, 23, 0.16);
     }
     .quiet-review-text {
       font-weight: 500;
@@ -365,63 +372,306 @@
       align-items: center;
       gap: 8px;
     }
+    .quiet-pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-ink);
+      display: inline-block;
+      animation: quietPulse 2s infinite ease-in-out;
+    }
+    @keyframes quietPulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
     .quiet-review-btn {
       background: #FFFFFF;
       border: 1px solid rgba(22, 24, 23, 0.15);
       border-radius: 8px;
-      padding: 5px 12px;
+      padding: 5px 14px;
       font-size: 12px;
       font-weight: 600;
       color: var(--text-ink);
       cursor: pointer;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
     .quiet-review-btn:hover {
       background: var(--text-ink);
       color: #FFFFFF;
       border-color: var(--text-ink);
     }
-    .quiet-review-dropdown {
+
+    /* Decision Triage Modal & Bottom Sheet */
+    .triage-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      max-width: 580px;
       width: 100%;
+      max-height: 85vh;
       display: flex;
       flex-direction: column;
-      background: #FFFFFF;
-      border: 1px solid rgba(22, 24, 23, 0.12);
-      border-radius: 14px;
-      margin-top: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(22, 24, 23, 0.1);
       overflow: hidden;
-      box-sizing: border-box;
+      animation: triageCardPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .quiet-review-item {
-      width: 100%;
-      box-sizing: border-box;
-      border-bottom: 1px solid rgba(22, 24, 23, 0.06);
+    @keyframes triageCardPop {
+      from { transform: scale(0.96) translateY(8px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
     }
-    .quiet-review-item:last-child {
-      border-bottom: none;
+    .triage-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(22, 24, 23, 0.08);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
     }
-    .quiet-review-item-header {
-      padding: 12px 16px;
+    .triage-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .triage-badge-line {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-ink);
-      transition: background 0.15s;
+      gap: 8px;
     }
-    .quiet-review-item-header:hover {
-      background: #F9F8F5;
+    .triage-pill {
+      background: #161817;
+      color: var(--accent-lime);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 6px;
+      letter-spacing: 0.02em;
     }
-    .quiet-review-item-detail {
-      padding: 12px 16px 16px;
-      background: #F9F8F5;
-      border-top: 1px solid rgba(22, 24, 23, 0.06);
+    .triage-pill-sub {
+      font-size: 12px;
+      color: rgba(22, 24, 23, 0.45);
+    }
+    .triage-title {
+      margin: 2px 0 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #161817;
+      letter-spacing: -0.02em;
+    }
+    .triage-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .triage-inbox-link {
       font-size: 12.5px;
-      line-height: 1.5;
+      font-weight: 600;
+      color: #161817;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(22, 24, 23, 0.04);
+      border: 1px solid rgba(22, 24, 23, 0.08);
+      transition: all 0.15s ease;
     }
+    .triage-inbox-link:hover {
+      background: rgba(22, 24, 23, 0.08);
+    }
+    .triage-close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: rgba(22, 24, 23, 0.5);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.15s ease;
+    }
+    .triage-close-btn:hover {
+      color: #161817;
+    }
+    .triage-scroll-body {
+      padding: 18px 24px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .triage-item {
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.1);
+      border-radius: 14px;
+      padding: 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+    .triage-item:hover {
+      border-color: rgba(22, 24, 23, 0.22);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    }
+    .triage-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .triage-client-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .triage-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #161817;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .triage-channel-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .triage-channel-tag.whatsapp { background: #DCFCE7; color: #166534; }
+    .triage-channel-tag.email { background: #E0E7FF; color: #3730A3; }
+    .triage-channel-tag.instagram { background: #FCE7F3; color: #9D174D; }
+    .triage-channel-tag.tiktok { background: #F3F4F6; color: #111827; }
+    .triage-client-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #161817;
+    }
+    .triage-time {
+      font-size: 11.5px;
+      color: rgba(22, 24, 23, 0.45);
+    }
+    .triage-amount-tag {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      background: #F4F4F1;
+      color: #161817;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .triage-inbound-msg {
+      font-size: 13px;
+      color: #2b2e2c;
+      line-height: 1.45;
+      background: #F9F8F5;
+      border-left: 3px solid #161817;
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 8px;
+    }
+    .triage-context-line {
+      font-size: 11.5px;
+      color: #2563eb;
+      font-weight: 500;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .triage-draft-box {
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #161817;
+      margin-bottom: 12px;
+    }
+    .triage-draft-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: rgba(22, 24, 23, 0.45);
+      margin-bottom: 4px;
+    }
+    .triage-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .triage-btn-approve {
+      height: 35px;
+      padding: 0 16px;
+      background: #161817;
+      color: #F7F6F0;
+      border: none;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .triage-btn-approve:hover {
+      background: #2b2e2c;
+    }
+    .triage-btn-dismiss {
+      height: 35px;
+      padding: 0 14px;
+      background: transparent;
+      color: rgba(22, 24, 23, 0.7);
+      border: 1px solid rgba(22, 24, 23, 0.15);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .triage-btn-dismiss:hover {
+      background: #F4F4F1;
+      color: #161817;
+    }
+    @media (max-width: 600px) {
+      #decisionTriageModal {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .triage-card {
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 88vh;
+        animation: triageSheetSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes triageSheetSlide {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .triage-header {
+        padding: 16px 20px 14px;
+      }
+      .triage-scroll-body {
+        padding: 14px 18px 24px;
+      }
+    }
+
     .updates-section {
       border-top: 1px solid var(--border-subtle);
       padding-top: 16px;
@@ -820,13 +1070,13 @@
         </div>
 
         <!-- Quiet Pending Decisions Row -->
-        <div class="quiet-review-row" id="quietReviewRow" style="display:none;">
-          <div class="quiet-review-text" id="quietReviewText">3 decisions need your review</div>
-          <button type="button" class="quiet-review-btn" id="quietReviewBtn" onclick="toggleReviewDropdown()">Review</button>
+        <div class="quiet-review-row" id="quietReviewRow" style="display:none;" onclick="openDecisionTriage()">
+          <div class="quiet-review-text" id="quietReviewText">
+            <span class="quiet-pulse-dot"></span>
+            <span id="quietReviewCountText">5 decisions need your review</span>
+          </div>
+          <button type="button" class="quiet-review-btn" id="quietReviewBtn" onclick="event.stopPropagation(); openDecisionTriage()">Review</button>
         </div>
-
-        <!-- Understated list revealed when Review is tapped -->
-        <div class="quiet-review-dropdown" id="quietReviewDropdown" style="display:none;"></div>
       </div>
 
       <!-- State 2: Conversation View -->
@@ -856,6 +1106,29 @@
 
       <section id="workspacePage" class="workspace-page" hidden></section>
     </main>
+  </div>
+
+  <!-- Decision Triage Modal / Bottom Sheet -->
+  <div class="triage-backdrop" id="decisionTriageModal" style="display:none;" onclick="if(event.target===this)closeDecisionTriage()">
+    <div class="triage-card">
+      <div class="triage-drag-handle"></div>
+      <div class="triage-header">
+        <div class="triage-title-group">
+          <div class="triage-badge-line">
+            <span class="triage-pill" id="triageCountPill">5 decisions</span>
+            <span class="triage-pill-sub">Vela prepared actions</span>
+          </div>
+          <h3 class="triage-title">Needs your decision</h3>
+        </div>
+        <div class="triage-actions-group">
+          <a href="#inbox" class="triage-inbox-link" onclick="closeDecisionTriage()">Open Inbox →</a>
+          <button type="button" class="triage-close-btn" onclick="closeDecisionTriage()" aria-label="Close modal">✕</button>
+        </div>
+      </div>
+      <div class="triage-scroll-body" id="triageListContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
   </div>
 
   <!-- Booking Modal -->

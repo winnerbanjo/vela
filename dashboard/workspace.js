@@ -5,6 +5,16 @@ const byId = id => document.getElementById(id);
 const page = byId('workspacePage');
 const storageKey = 'vela.preview.workspace.v1';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 let originatingScreen = 'agent';
 
 const defaultWorkspace = {
@@ -226,19 +236,18 @@ function updatePendingBadges() {
   renderQuietReviewRow(pendingCount);
 }
 
+
 function renderQuietReviewRow(count) {
   const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
   const pendingCount = typeof count === 'number' ? count : pendingDecisions.length;
   const row = byId('quietReviewRow');
-  const text = byId('quietReviewText');
-  const dropdown = byId('quietReviewDropdown');
+  const text = byId('quietReviewCountText');
 
   if (!row) return;
 
   if (pendingCount === 0) {
     row.style.display = 'none';
-    if (dropdown) dropdown.style.display = 'none';
-    isReviewDropdownOpen = false;
+    closeDecisionTriage();
     return;
   }
 
@@ -246,95 +255,120 @@ function renderQuietReviewRow(count) {
   if (text) {
     text.textContent = `${pendingCount} decision${pendingCount === 1 ? '' : 's'} need${pendingCount === 1 ? 's' : ''} your review`;
   }
-
-  if (dropdown && isReviewDropdownOpen) {
-    populateQuietReviewDropdown(pendingDecisions);
-  }
 }
 
-function toggleReviewDropdown() {
-  const dropdown = byId('quietReviewDropdown');
-  const btn = byId('quietReviewBtn');
-  if (!dropdown) return;
-
-  isReviewDropdownOpen = !isReviewDropdownOpen;
-  if (isReviewDropdownOpen) {
-    const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
-    populateQuietReviewDropdown(pendingDecisions);
-    dropdown.style.display = 'flex';
-    dropdown.style.flexDirection = 'column';
-    if (btn) btn.textContent = 'Hide';
-  } else {
-    dropdown.style.display = 'none';
-    if (btn) btn.textContent = 'Review';
-  }
+function openDecisionTriage() {
+  const modal = byId('decisionTriageModal');
+  if (!modal) return;
+  renderDecisionTriageList();
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
 }
 
-function getDecisionSummary(conv) {
-  if (conv.isQuote) {
-    return `Approve ${conv.sender.split('(')[0].trim()}’s quotation · ₦350,000`;
-  }
-  if (conv.id === 'conv-1') {
-    return `Confirm 4:15 PM haircut for ${conv.sender} · ₦10,000`;
-  }
-  if (conv.id === 'conv-3') {
-    return `Confirm shift to 2:30 PM for ${conv.sender}`;
-  }
-  if (conv.channel === 'instagram') {
-    return `Review Instagram reply for ${conv.sender}`;
-  }
-  if (conv.channel === 'tiktok') {
-    return `Review TikTok reply for ${conv.sender}`;
-  }
-  return `Review ${conv.channel} reply for ${conv.sender}`;
+function closeDecisionTriage() {
+  const modal = byId('decisionTriageModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
-function populateQuietReviewDropdown(decisions) {
-  const dropdown = byId('quietReviewDropdown');
-  if (!dropdown) return;
+function renderDecisionTriageList() {
+  const container = byId('triageListContainer');
+  const pill = byId('triageCountPill');
+  if (!container) return;
 
-  dropdown.innerHTML = '';
-  decisions.forEach(conv => {
-    const item = document.createElement('div');
-    item.className = 'quiet-review-item';
-    item.innerHTML = `
-      <div class="quiet-item-header" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleReviewItemDetail(this)">
-        <span style="font-weight:600; color:#161817; font-size:13px;">${getDecisionSummary(conv)}</span>
-        <span class="quiet-chevron" style="font-size:12px; color:#888; transition:transform 0.15s;">▸</span>
+  const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
+  
+  if (pill) {
+    pill.textContent = `${pendingDecisions.length} decision${pendingDecisions.length === 1 ? '' : 's'}`;
+  }
+
+  if (pendingDecisions.length === 0) {
+    container.innerHTML = `
+      <div class="triage-empty-state">
+        <div class="triage-empty-icon">✓</div>
+        <div class="triage-empty-title">All caught up</div>
+        <div class="triage-empty-sub">No pending decisions need your attention right now. Vela will notify you when new messages arrive.</div>
+        <button type="button" class="triage-btn-primary" onclick="closeDecisionTriage()">Back to Agent Home</button>
       </div>
-      <div class="quiet-item-detail" style="display:none; margin-top:10px; border-top:1px solid #E5E5E0; padding-top:10px; font-size:12px;">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; text-transform:uppercase; font-weight:700; background:#E5E7EB; color:#374151; padding:2px 6px; border-radius:4px;">${conv.channel}</span>
-          <span style="font-weight:600; color:#161817;">${conv.sender}</span>
-          <span style="color:#888; font-size:11px;">· ${conv.time}</span>
+    `;
+    return;
+  }
+
+  container.innerHTML = pendingDecisions.map(conv => {
+    const channelLower = (conv.channel || 'whatsapp').toLowerCase();
+    const channelName = conv.channel ? conv.channel.charAt(0).toUpperCase() + conv.channel.slice(1) : 'Message';
+    const cleanMsg = (conv.message || '').replace(/^["'“\s]+|["'”\s]+$/g, '');
+    const isQuote = !!conv.isQuote;
+    const statusText = isQuote ? 'Quotation ready' : 'Needs approval';
+    const statusClass = isQuote ? 'triage-status-tag quote' : 'triage-status-tag';
+
+    return `
+      <div class="triage-item" id="triage-item-${conv.id}">
+        <div class="triage-item-top">
+          <div class="triage-sender-info">
+            <span class="triage-channel-tag ${channelLower}">
+              ${escapeHtml(channelName)}
+            </span>
+            <span class="triage-sender-name">${escapeHtml(conv.sender)}</span>
+            <span class="triage-sender-time">· ${escapeHtml(conv.time || 'Recent')}</span>
+          </div>
+          <span class="${statusClass}">${statusText}</span>
         </div>
-        <div style="color:#444; margin-bottom:6px; font-style:italic;">${conv.message}</div>
-        <div style="color:#2563eb; font-size:11.5px; margin-bottom:8px; font-weight:500;">✦ Context: ${conv.context}</div>
-        <div style="background:#FFF; border:1px solid #DDD; border-radius:8px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.4;">
-          <span style="color:#888; font-size:10.5px; font-weight:600; text-transform:uppercase;">Vela Prepared Reply:</span><br>
-          ${conv.draftText}
+
+        <div class="triage-quote-box">
+          “${escapeHtml(cleanMsg)}”
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          ${conv.isQuote ? `
-            <button type="button" class="btn-approve" style="font-size:11.5px; padding:6px 12px;" onclick="originatingScreen='agent'; runWorkflow('review_quote')">Review quotation</button>
+
+        <div class="triage-context-line">
+          <span>✦</span>
+          <span><strong>Vela Context:</strong> ${escapeHtml(conv.context || 'Customer enquiry')}</span>
+        </div>
+
+        <div class="triage-draft-box">
+          <div class="triage-draft-label">Vela Prepared Reply:</div>
+          <div>${escapeHtml(conv.draftText || '')}</div>
+        </div>
+
+        <div class="triage-actions-row">
+          ${isQuote ? `
+            <button type="button" class="triage-btn-primary" onclick="closeDecisionTriage(); originatingScreen='agent'; runWorkflow('review_quote')">
+              Review quotation
+            </button>
+            <button type="button" class="triage-btn-secondary" onclick="triageDismiss('${conv.id}', this)">
+              I’ll handle this
+            </button>
           ` : `
-            <button type="button" class="btn-approve" style="font-size:11.5px; padding:6px 12px;" onclick="approveConversation('${conv.id}', this); setTimeout(updatePendingBadges, 300);">Approve &amp; send</button>
-            <button type="button" class="btn-secondary" style="font-size:11.5px; padding:6px 12px;" onclick="pauseAIForConversation('${conv.id}', this); setTimeout(updatePendingBadges, 300);">I’ll handle this</button>
+            <button type="button" class="triage-btn-primary" onclick="triageApprove('${conv.id}', this)">
+              Approve &amp; send ${escapeHtml(channelName)}
+            </button>
+            <button type="button" class="triage-btn-secondary" onclick="triageDismiss('${conv.id}', this)">
+              I’ll handle this
+            </button>
           `}
         </div>
       </div>
     `;
-    dropdown.append(item);
-  });
+  }).join('');
 }
 
-function toggleReviewItemDetail(headerEl) {
-  const detail = headerEl.nextElementSibling;
-  const chevron = headerEl.querySelector('.quiet-chevron');
-  if (!detail) return;
-  const isHidden = detail.style.display === 'none';
-  detail.style.display = isHidden ? 'block' : 'none';
-  if (chevron) chevron.textContent = isHidden ? '▾' : '▸';
+function triageApprove(convId, btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '✓ Approved & Sent';
+  }
+  approveConversation(convId, btn);
+  updatePendingBadges();
+  renderDecisionTriageList();
+}
+
+function triageDismiss(convId, btn) {
+  if (btn) {
+    btn.disabled = true;
+  }
+  pauseAIForConversation(convId, btn);
+  updatePendingBadges();
+  renderDecisionTriageList();
 }
 
 function toggleRecentTasks() {
@@ -426,9 +460,11 @@ function approveConversation(convId, btn) {
   const conv = workspace.conversations.find(c => c.id === convId);
   if (!conv) return;
 
-  btn.disabled = true;
-  btn.textContent = '✓ Approved & Sent';
-  btn.style.background = '#15803d';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '✓ Approved & Sent';
+    btn.style.background = '#15803d';
+  }
   conv.status = 'sent';
 
   if (convId === 'conv-1') {
@@ -2307,8 +2343,10 @@ window.simulateCampaignState = simulateCampaignState;
 window.copyCampaignCaption = copyCampaignCaption;
 window.openChangeGoalDropdown = openChangeGoalDropdown;
 window.toggleRecentTasks = toggleRecentTasks;
-window.toggleReviewDropdown = toggleReviewDropdown;
-window.toggleReviewItemDetail = toggleReviewItemDetail;
+window.openDecisionTriage = openDecisionTriage;
+window.closeDecisionTriage = closeDecisionTriage;
+window.triageApprove = triageApprove;
+window.triageDismiss = triageDismiss;
 window.updatePendingBadges = updatePendingBadges;
 window.autoGrowComposer = autoGrowComposer;
 window.startFreshTask = startFreshTask;

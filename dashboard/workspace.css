@@ -205,13 +205,28 @@ body{height:100dvh}
   font-size: 13px;
   color: #161817;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiet-review-row:hover {
+  background: #F3F1EC;
+  border-color: rgba(22, 24, 23, 0.15);
 }
 .quiet-review-text {
   font-weight: 500;
-  color: rgba(22, 24, 23, 0.85);
+  color: rgba(22, 24, 23, 0.88);
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.quiet-pulse-dot {
+  width: 7px;
+  height: 7px;
+  background: #15803D;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2);
+  flex-shrink: 0;
 }
 .quiet-review-btn {
   background: #FFFFFF;
@@ -230,46 +245,395 @@ body{height:100dvh}
   border-color: #161817;
 }
 
-.quiet-review-dropdown {
+/* ============================================================
+   Decision Triage Modal / Bottom Sheet
+   ============================================================ */
+.triage-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 24, 23, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: triageFadeIn 0.15s ease-out;
+}
+
+.triage-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  border-radius: 20px;
   width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
-  border: 1px solid rgba(22, 24, 23, 0.12);
-  border-radius: 14px;
-  margin-top: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   box-sizing: border-box;
+  animation: triageScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.quiet-review-item {
-  width: 100%;
-  box-sizing: border-box;
-  border-bottom: 1px solid rgba(22, 24, 23, 0.06);
+
+.triage-drag-handle {
+  display: none;
+  width: 38px;
+  height: 4px;
+  background: rgba(22, 24, 23, 0.2);
+  border-radius: 999px;
+  margin: 10px auto 2px;
 }
-.quiet-review-item:last-child {
-  border-bottom: none;
-}
-.quiet-review-item-header {
-  padding: 12px 16px;
+
+.triage-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.07);
+  background: #FAFAF7;
+}
+
+.triage-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.triage-badge-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.triage-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
   color: #161817;
-  transition: background 0.15s;
+  background: #C5F36A;
+  padding: 2.5px 8.5px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  display: inline-block;
 }
-.quiet-review-item-header:hover {
-  background: #F9F8F5;
+
+.triage-pill-sub {
+  font-size: 11.5px;
+  color: rgba(22, 24, 23, 0.55);
+  white-space: nowrap;
 }
-.quiet-review-item-detail {
-  padding: 12px 16px 16px;
+
+.triage-title {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #161817;
+  letter-spacing: -0.01em;
+}
+
+.triage-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.triage-inbox-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #161817;
+  text-decoration: none;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.12);
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+.triage-inbox-link:hover {
+  background: #F3F1EC;
+  border-color: rgba(22, 24, 23, 0.2);
+}
+
+.triage-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: rgba(22, 24, 23, 0.5);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.triage-close-btn:hover {
+  color: #161817;
+  background: rgba(22, 24, 23, 0.05);
+}
+
+.triage-scroll-body {
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #FAF9F5;
+  -webkit-overflow-scrolling: touch;
+}
+
+.triage-item {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.triage-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.triage-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.triage-sender-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.triage-channel-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2.5px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.triage-channel-tag.whatsapp {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.triage-channel-tag.email {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.triage-channel-tag.instagram {
+  background: #F3E8FF;
+  color: #6B21A8;
+}
+
+.triage-channel-tag.tiktok {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.triage-sender-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #161817;
+}
+
+.triage-sender-time {
+  font-size: 11px;
+  color: rgba(22, 24, 23, 0.45);
+}
+
+.triage-status-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.triage-status-tag.quote {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.triage-quote-box {
   background: #F9F8F5;
-  border-top: 1px solid rgba(22, 24, 23, 0.06);
+  border-left: 3px solid #161817;
+  border-radius: 0 8px 8px 0;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #161817;
+  line-height: 1.45;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.triage-context-line {
+  font-size: 11.5px;
+  color: #4B5563;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.triage-draft-box {
+  background: #F3F8EA;
+  border: 1px solid rgba(197, 243, 106, 0.6);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
   font-size: 12.5px;
-  line-height: 1.5;
+  line-height: 1.45;
+  color: #161817;
+}
+
+.triage-draft-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #2E5A1C;
+  margin-bottom: 4px;
+}
+
+.triage-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.triage-btn-primary {
+  background: #161817;
+  color: #FFFFFF;
+  border: 1px solid #161817;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.triage-btn-primary:hover {
+  background: #000000;
+}
+
+.triage-btn-secondary {
+  background: #FFFFFF;
+  color: #161817;
+  border: 1px solid rgba(22, 24, 23, 0.15);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.triage-btn-secondary:hover {
+  background: #F9F8F5;
+  border-color: rgba(22, 24, 23, 0.25);
+}
+
+.triage-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.triage-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #C5F36A;
+  color: #161817;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.triage-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #161817;
+  margin-bottom: 4px;
+}
+
+.triage-empty-sub {
+  font-size: 13px;
+  color: rgba(22, 24, 23, 0.6);
+  margin-bottom: 16px;
+  max-width: 280px;
+}
+
+@keyframes triageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes triageScaleIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes triageSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Mobile responsive bottom sheet */
+@media (max-width: 600px) {
+  .triage-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .triage-drag-handle {
+    display: block;
+  }
+
+  .triage-card {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 88vh;
+    animation: triageSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .triage-header {
+    padding: 12px 16px 12px;
+  }
+
+  .triage-scroll-body {
+    padding: 14px 16px 24px;
+  }
 }
 
 /* Collapsible Recent Tasks */
