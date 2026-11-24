@@ -490,31 +490,38 @@ function renderInbox() {
   const heroBar = el('div', '', 'inbox-hero-bar');
   heroBar.innerHTML = `
     <div class="inbox-title-group">
-      <h1>Inbox</h1>
-      <div class="inbox-subtitle">
+      <div class="inbox-title-row">
+        <h1>Inbox</h1>
         ${pendingCount > 0 ? `
-          <span class="inbox-pulse-indicator">
-            <span class="inbox-pulse-dot"></span>
-            ${pendingCount} decision${pendingCount === 1 ? '' : 's'} required
+          <span class="inbox-status-pill pending">
+            <span class="inbox-status-dot"></span>
+            ${pendingCount} decision${pendingCount === 1 ? '' : 's'} waiting
           </span>
         ` : `
-          <span style="color:#15803d; font-weight:600; font-size:12px;">✓ All enquiries up to date</span>
+          <span class="inbox-status-pill clean">✓ All clear</span>
         `}
-        <span style="color:#aaa;">·</span>
-        <span style="font-size:12px; color:#666;">Connected to WhatsApp, Email, Instagram, TikTok</span>
+      </div>
+      <div class="inbox-subtitle">
+        WhatsApp · Email · Instagram · TikTok
       </div>
     </div>
 
     <div class="inbox-controls-group">
-      <div class="inbox-mode-dropdown-wrap">
-        <span style="color:#777; font-size:11.5px; font-weight:500;">AI Mode:</span>
-        <select onchange="setInboxMode(this.value)">
-          <option value="draft" ${workspace.inboxMode === 'draft' ? 'selected' : ''}>Draft for me</option>
-          <option value="routine" ${workspace.inboxMode === 'routine' ? 'selected' : ''}>Reply to routine</option>
-          <option value="manual" ${workspace.inboxMode === 'manual' ? 'selected' : ''}>Manual handling</option>
-        </select>
+      <div class="inbox-mode-control">
+        <span class="inbox-mode-label">Mode:</span>
+        <div class="inbox-select-wrapper">
+          <select class="inbox-mode-select" onchange="setInboxMode(this.value)" aria-label="Inbox Response Mode">
+            <option value="draft" ${workspace.inboxMode === 'draft' ? 'selected' : ''}>Draft for me</option>
+            <option value="routine" ${workspace.inboxMode === 'routine' ? 'selected' : ''}>Reply to routine</option>
+            <option value="manual" ${workspace.inboxMode === 'manual' ? 'selected' : ''}>Manual handling</option>
+          </select>
+          <svg class="inbox-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
       </div>
-      <a href="#settings" class="inbox-channels-link" title="Manage channel connections">Channels ⚙</a>
+      <a href="#settings" class="inbox-channels-btn" title="Manage channel connections">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Channels</span>
+      </a>
     </div>
   `;
   container.append(heroBar);
