@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <rect width="40" height="40" rx="8" fill="#F0F6FF"/>
+  <path d="M10 14C10 12.34 11.34 11 13 11H27C28.66 11 30 12.34 30 14V26C30 27.66 28.66 29 27 29H13C11.34 29 10 27.66 10 26V14Z" fill="#0078D4"/>
+  <path d="M10 14H30V18H10V14Z" fill="#106EBE"/>
+  <rect x="14" y="21" width="3" height="3" rx="0.5" fill="#FFFFFF"/>
+  <rect x="19" y="21" width="3" height="3" rx="0.5" fill="#FFFFFF"/>
+  <rect x="24" y="21" width="3" height="3" rx="0.5" fill="#FFFFFF"/>
+  <rect x="14" y="25" width="3" height="3" rx="0.5" fill="#FFFFFF"/>
+  <rect x="19" y="25" width="3" height="3" rx="0.5" fill="#FFFFFF"/>
+  <rect x="24" y="25" width="3" height="3" rx="0.5" fill="#50E6FF"/>
+  <circle cx="12" cy="18" r="4.5" fill="#004E8C"/>
+  <text x="12" y="21" font-family="-apple-system, sans-serif" font-size="7" font-weight="bold" fill="#FFFFFF" text-anchor="middle">O</text>
+</svg>

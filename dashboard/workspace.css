@@ -2448,38 +2448,31 @@ body{height:100dvh}
 .app-compact-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
   flex: 1;
 }
 
-.app-logo-badge {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+.app-logo-container {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 13px;
+  background: transparent;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  overflow: hidden;
 }
 
-.app-logo-badge.paystack { background: #0BA4DB; color: #FFFFFF; }
-.app-logo-badge.flutterwave { background: #FB9129; color: #FFFFFF; }
-.app-logo-badge.stripe { background: #635BFF; color: #FFFFFF; }
-.app-logo-badge.whatsapp { background: #25D366; color: #FFFFFF; }
-.app-logo-badge.zoho-mail { background: #E42528; color: #FFFFFF; }
-.app-logo-badge.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #FFFFFF; }
-.app-logo-badge.tiktok { background: #000000; color: #FFFFFF; }
-.app-logo-badge.google-calendar { background: #4285F4; color: #FFFFFF; }
-.app-logo-badge.apple-outlook-calendar { background: #0078D4; color: #FFFFFF; }
-.app-logo-badge.zoho-books { background: #009688; color: #FFFFFF; }
-.app-logo-badge.zoho-crm { background: #2267B2; color: #FFFFFF; }
-.app-logo-badge.google-drive { background: #0F9D58; color: #FFFFFF; }
-.app-logo-badge.dropbox { background: #0061FF; color: #FFFFFF; }
-.app-logo-badge.meta-ads { background: #0668E1; color: #FFFFFF; }
+.app-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+}
 
 .app-compact-info {
   display: flex;
@@ -2811,6 +2804,194 @@ body{height:100dvh}
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Simplified Page Headers */
+.apps-section-container {
+  margin-bottom: 28px;
+}
+
+.apps-section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.apps-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #161817;
+  letter-spacing: -0.01em;
+}
+
+.apps-section-subtitle {
+  font-size: 12.5px;
+  color: #666660;
+  margin-top: 2px;
+}
+
+/* Needs Attention Banner */
+.apps-needs-attention-box {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.apps-needs-attention-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.apps-needs-attention-icon {
+  font-size: 18px;
+  color: #D97706;
+}
+
+.apps-needs-attention-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #92400E;
+  line-height: 1.4;
+}
+
+/* Manage Screen 4 Questions */
+.manage-four-q-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.manage-q-block {
+  background: #FAF9F5;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.manage-q-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888880;
+  margin-bottom: 6px;
+}
+
+.manage-q-content {
+  font-size: 13px;
+  color: #161817;
+  line-height: 1.45;
+}
+
+.manage-capability-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #166534;
+  background: #DCFCE7;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+}
+
+.manage-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.manage-activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(22, 24, 23, 0.08);
+}
+
+.manage-activity-row:last-child {
+  border-bottom: none;
+}
+
+/* Specific Failure Callout */
+.app-failure-callout {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  color: #991B1B;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* Connect Step Wizard */
+.connect-wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.08);
+  padding-bottom: 14px;
+}
+
+.connect-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #888880;
+}
+
+.connect-step-indicator.active {
+  color: #161817;
+}
+
+.connect-step-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E5E5E0;
+  color: #666660;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.connect-step-indicator.active .connect-step-circle {
+  background: #161817;
+  color: #FFFFFF;
+}
+
+.connect-step-indicator.completed .connect-step-circle {
+  background: #22C55E;
+  color: #FFFFFF;
+}
+
+/* Disconnect Impact Explanation */
+.app-disconnect-impact-box {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #92400E;
+  margin-top: 12px;
 }
 
 @media (max-width: 600px) {
