@@ -25,6 +25,9 @@ import {
   RefreshCw,
   Image as ImageIcon,
   ShieldCheck,
+  MessageSquare,
+  Mail,
+  Video,
   X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -65,6 +68,14 @@ export const Dashboard: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [selectedBookingModal, setSelectedBookingModal] = useState<any | null>(null);
+  const [showTikTokModal, setShowTikTokModal] = useState(false);
+  const [copiedTikTok, setCopiedTikTok] = useState(false);
+  const [showVideoBriefModal, setShowVideoBriefModal] = useState(false);
+  const [showStatusOfferModal, setShowStatusOfferModal] = useState(false);
+  const [inboxMode, setInboxMode] = useState<'draft' | 'routine' | 'manual'>('draft');
+  const [chukaStatus, setChukaStatus] = useState<'needs_approval' | 'approved' | 'manual'>('needs_approval');
+  const [babatundeStatus, setBabatundeStatus] = useState<'needs_approval' | 'approved'>('needs_approval');
+  const isInboxOpen = searchParams.get('inbox') === 'open';
 
   // Active conversation state
   const [activeTask, setActiveTask] = useState<ActiveTask | null>(() => {
@@ -167,7 +178,83 @@ export const Dashboard: React.FC = () => {
       startFillOpeningsTask();
     } else if (taskId === 'task-friday-shoot') {
       startFridayShootTask();
+    } else if (taskId === 'task-corp-quote') {
+      startCorporateQuoteTask();
+    } else if (taskId === 'task-find-customers') {
+      startFindCustomersTask();
     }
+  };
+
+  const startFindCustomersTask = () => {
+    const taskId = 'task-find-customers';
+    const initialTask: ActiveTask = {
+      id: taskId,
+      title: 'Find me customers',
+      category: 'Demand Generation',
+      updatedAt: 'Just now',
+      messages: [
+        {
+          id: 'm1',
+          sender: 'user',
+          text: 'Find me customers.',
+          timestamp: 'Just now'
+        },
+        {
+          id: 'm2',
+          sender: 'agent',
+          text: 'I checked your calendar, social reach, and past booking records.\n\nYou have three openings on Saturday (11:30 AM, 2:00 PM, 4:30 PM). Do you want to fill those, or attract new customers for next week?',
+          timestamp: 'Just now',
+          widgetType: 'general',
+          widgetData: {
+            isFindCustomersFlow: true
+          }
+        }
+      ]
+    };
+    setActiveTask(initialTask);
+    persistTask(initialTask);
+    setSearchParams({ task: taskId });
+  };
+
+  const startCorporateQuoteTask = () => {
+    const taskId = 'task-corp-quote';
+    const initialTask: ActiveTask = {
+      id: taskId,
+      title: 'Horizon Capital · Corporate quotation',
+      category: 'Quotation',
+      updatedAt: 'Just now',
+      messages: [
+        {
+          id: 'm1',
+          sender: 'user',
+          text: 'Review corporate quotation for Horizon Capital.',
+          timestamp: 'Just now'
+        },
+        {
+          id: 'm2',
+          sender: 'agent',
+          text: 'Inbound enquiry from Kemi (HR, Horizon Capital) for 18 staff executive headshots at their Victoria Island office:',
+          timestamp: 'Just now',
+          widgetType: 'wedding_quote',
+          widgetData: {
+            quoteNumber: 'VQ-2026-112',
+            clientName: 'Horizon Capital Partners (18 Staff)',
+            eventDate: 'Thursday, 3 Dec 2026',
+            venue: 'Victoria Island office',
+            coverage: 'Mobile studio setup · 18 executive staff',
+            deliverables: '2 looks per person · 36 retouched master files',
+            totalAmount: 350000,
+            depositPercent: 40,
+            depositAmount: 140000,
+            remainingBalance: 210000,
+            status: 'draft'
+          }
+        }
+      ]
+    };
+    setActiveTask(initialTask);
+    persistTask(initialTask);
+    setSearchParams({ task: taskId });
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -568,6 +655,16 @@ export const Dashboard: React.FC = () => {
       return;
     }
 
+    if (lower.includes('inbox') || (lower.includes('manage') && lower.includes('inbox'))) {
+      navigate('/dashboard?inbox=open');
+      return;
+    }
+
+    if (lower.includes('find') && (lower.includes('customer') || lower.includes('client'))) {
+      startFindCustomersTask();
+      return;
+    }
+
     // Add Walk-in
     if (lower.includes('walk-in') || lower.includes('walk in')) {
       const taskId = `task-walkin-${Date.now()}`;
@@ -711,10 +808,202 @@ export const Dashboard: React.FC = () => {
     <div className="flex-1 flex flex-col min-h-0 bg-[#F7F6F0] text-[#161817]">
       
       {/* ─────────────────────────────────────────────────────────────────────────
-          STATE A: HOME SCREEN (What do you need done?)
+          STATE A: HOME SCREEN OR UNIFIED INBOX
           ───────────────────────────────────────────────────────────────────────── */}
       {!activeTask ? (
-        <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:py-12 max-w-2xl mx-auto w-full animate-in fade-in duration-300">
+        isInboxOpen ? (
+          <div className="flex-1 flex flex-col p-4 sm:p-8 max-w-3xl mx-auto w-full animate-in fade-in duration-200">
+            {/* Inbox Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#161817]/10 mb-6">
+              <div>
+                <div className="text-[11px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                  Unified Channel Inbox
+                </div>
+                <h1 className="text-2xl font-bold text-[#161817] flex items-center gap-2.5">
+                  <span>Manage my inbox</span>
+                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#161817] text-[#C5F36A]">4 pending</span>
+                </h1>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-3 py-1.5 bg-[#161817]/5 hover:bg-[#161817]/10 text-[#161817] rounded-lg text-xs font-semibold transition-colors"
+              >
+                Back to workspace
+              </button>
+            </div>
+
+            {/* Connected Channels & Mode Selector Bar */}
+            <div className="bg-[#f4f4f1] rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[#161817]/10">
+              <div>
+                <div className="text-xs font-bold text-[#161817] mb-1">Connected Channels:</div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#e7f7ed] text-[#15803d] font-semibold">● WhatsApp (+234 803 123 4567)</span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#eff6ff] text-[#1d4ed8] font-semibold">● Email (hello@studioteni.ng)</span>
+                  <Link to="/dashboard/settings" className="text-xs text-[#285731] font-semibold underline self-center ml-1">Settings → Channels</Link>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-[#161817]/10">
+                <button
+                  onClick={() => setInboxMode('draft')}
+                  className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors', inboxMode === 'draft' ? 'bg-[#161817] text-[#F7F6F0]' : 'text-[#161817]/70 hover:text-[#161817]')}
+                >
+                  Draft for me
+                </button>
+                <button
+                  onClick={() => setInboxMode('routine')}
+                  className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors', inboxMode === 'routine' ? 'bg-[#161817] text-[#F7F6F0]' : 'text-[#161817]/70 hover:text-[#161817]')}
+                >
+                  Reply to routine
+                </button>
+                <button
+                  onClick={() => setInboxMode('manual')}
+                  className={cn('px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors', inboxMode === 'manual' ? 'bg-[#161817] text-[#F7F6F0]' : 'text-[#161817]/70 hover:text-[#161817]')}
+                >
+                  I'll handle this
+                </button>
+              </div>
+            </div>
+
+            {/* Conversations List */}
+            <div className="space-y-4">
+              {/* 1. Chuka on WhatsApp */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#e7f7ed] text-[#15803d]">WhatsApp</span>
+                    <span>Chuka Nnamdi</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· Just now</span>
+                  </div>
+                  <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full', chukaStatus === 'approved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800')}>
+                    {chukaStatus === 'approved' ? '✓ Reserved 4:15 PM' : chukaStatus === 'manual' ? 'Owner handling' : 'Needs approval'}
+                  </span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “Boss, can I come around 4 for haircut and beard? How much?”
+                </div>
+                <div className="text-xs text-[#161817]/60">
+                  <strong>Vela Context:</strong> First-time client · Chair 1 (Dele) has opening at 4:15 PM · Service: Haircut &amp; Beard (₦10,000)
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-dashed border-[#161817]/20 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">Vela Prepared Draft Reply</div>
+                  <p className="text-xs text-[#161817]">“Haircut and beard is ₦10,000. Dele is available at 4:15 today at our shop. Would that work for you?”</p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {chukaStatus === 'approved' ? (
+                    <div className="text-xs font-semibold text-[#16a34a] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>WhatsApp reply sent · Appointment confirmed for 4:15 PM with Dele</span>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setChukaStatus('approved')}
+                        className="px-4 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] flex items-center gap-1.5"
+                      >
+                        <Send className="w-3.5 h-3.5 text-[#C5F36A]" />
+                        <span>Approve &amp; send WhatsApp</span>
+                      </button>
+                      <button
+                        onClick={() => setChukaStatus('manual')}
+                        className="px-3 py-2 bg-white border border-[#161817]/15 rounded-xl text-xs font-semibold text-[#161817] hover:bg-[#161817]/5"
+                      >
+                        I'll handle this
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Horizon Capital on Email */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#eff6ff] text-[#1d4ed8]">Email</span>
+                    <span>Kemi Adeleke (HR · Horizon Capital)</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· 28m ago</span>
+                  </div>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Quotation ready</span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “We need headshots for 18 staff at our Victoria Island office. Can you send a quote?”
+                </div>
+                <div className="text-xs text-[#161817]/60">
+                  <strong>Vela Context:</strong> Corporate enquiry · 18 staff on-location · Package: ₦350,000 (40% deposit)
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-dashed border-[#161817]/20 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">Prepared Quotation Email</div>
+                  <p className="text-xs text-[#161817]">“Hello Kemi, attached is Quotation #VQ-2026-112 for 18 executive staff headshots on-location (₦350,000 total · ₦140,000 deposit to secure Thursday 3 Dec).”</p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    onClick={startCorporateQuoteTask}
+                    className="px-4 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#C5F36A]" />
+                    <span>Review quotation</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Ada on WhatsApp */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#e7f7ed] text-[#15803d]">WhatsApp</span>
+                    <span>Adaeze Obi</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· 1h ago</span>
+                  </div>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-800">Routine rule · Auto-replied</span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “What time do you close on Friday and where are you located?”
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-[#161817]/10 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#16a34a] uppercase tracking-wider font-mono">Vela Auto-Reply Sent</div>
+                  <p className="text-xs text-[#161817]">“We’re open until 7:00 PM on Friday! Studio Teni is located at 14 Bishop Oluwole St, Victoria Island. You can view open slots and book here: studioteni.vela.ng/book”</p>
+                </div>
+              </div>
+
+              {/* 4. Babatunde on WhatsApp */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#e7f7ed] text-[#15803d]">WhatsApp</span>
+                    <span>Babatunde Ojo</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· 2h ago</span>
+                  </div>
+                  <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full', babatundeStatus === 'approved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800')}>
+                    {babatundeStatus === 'approved' ? '✓ Shifted to 2:30 PM' : 'Reschedule request'}
+                  </span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “I'm stuck in traffic on Third Mainland, can we shift my 1:00 PM to 2:30 PM?”
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-dashed border-[#161817]/20 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">Vela Prepared Reply</div>
+                  <p className="text-xs text-[#161817]">“No problem Babatunde! Dele's 2:30 PM slot was free so we've shifted your appointment to 2:30 PM today. Drive safe, see you soon.”</p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {babatundeStatus === 'approved' ? (
+                    <div className="text-xs font-semibold text-[#16a34a] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Slot shifted to 2:30 PM and WhatsApp confirmation sent</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setBabatundeStatus('approved')}
+                      className="px-4 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] flex items-center gap-1.5"
+                    >
+                      <Check className="w-3.5 h-3.5 text-[#C5F36A]" />
+                      <span>Confirm shift &amp; reply</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:py-12 max-w-2xl mx-auto w-full animate-in fade-in duration-300">
           
           {/* Trade Context Switcher (Discreet & practical) */}
           <div className="flex items-center justify-between mb-8">
@@ -754,17 +1043,61 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Headline */}
-          <div className="mb-6 space-y-1">
+          <div className="mb-5 space-y-1">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#161817]">
-              What do you need done?
+              What do you want Vela to work on?
             </h1>
-            <p className="text-xs sm:text-sm text-[#161817]/60 font-normal">
-              Give Vela an instruction in everyday language. Inspect, approve, and track.
-            </p>
+          </div>
+
+          {/* Two Main Action Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <button
+              onClick={startFindCustomersTask}
+              className="p-4 rounded-2xl bg-[#F7F6F0] border border-[#161817]/15 hover:bg-white hover:border-[#161817] hover:shadow-sm transition-all text-left flex flex-col gap-1.5 group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="w-8 h-8 rounded-lg bg-[#C5F36A] border border-[#161817]/20 flex items-center justify-center text-[#161817]">
+                  <Sparkles className="w-4 h-4" />
+                </span>
+                <span className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                  Demand generation
+                </span>
+              </div>
+              <div className="font-bold text-sm text-[#161817] group-hover:text-black">
+                Find me customers
+              </div>
+              <div className="text-xs text-[#161817]/65">
+                Fill Saturday’s 3 openings or attract new clients
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard?inbox=open')}
+              className="p-4 rounded-2xl bg-[#F7F6F0] border border-[#161817]/15 hover:bg-white hover:border-[#161817] hover:shadow-sm transition-all text-left flex flex-col gap-1.5 group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="w-8 h-8 rounded-lg bg-white border border-[#161817]/15 flex items-center justify-center text-[#161817]">
+                  <MessageSquare className="w-4 h-4" />
+                </span>
+                <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#161817] text-[#C5F36A]">
+                  4 pending
+                </span>
+              </div>
+              <div className="font-bold text-sm text-[#161817] group-hover:text-black">
+                Manage my inbox · 4
+              </div>
+              <div className="text-xs text-[#161817]/65">
+                Turn incoming WhatsApp & email leads into paid bookings
+              </div>
+            </button>
+          </div>
+
+          <div className="text-xs text-[#161817]/55 italic mb-2">
+            Or give Vela an instruction…
           </div>
 
           {/* Large Prompt Input Box */}
-          <div className="relative bg-white border border-[#161817]/15 rounded-2xl shadow-sm focus-within:border-[#161817] focus-within:ring-2 focus-within:ring-[#161817]/10 transition-all p-3 sm:p-4 mb-4">
+          <div className="relative bg-white border border-[#161817]/15 rounded-2xl shadow-sm focus-within:border-[#161817] focus-within:ring-2 focus-within:ring-[#161817]/10 transition-all p-3 sm:p-4 mb-6">
             <textarea
               ref={inputRef}
               rows={3}
@@ -790,115 +1123,57 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* 3 Short Real Workflow Suggestions */}
-          <div className="space-y-2 mb-8">
-            <p className="text-[11px] font-semibold text-[#161817]/50 uppercase tracking-wider font-mono">
-              Suggested workflows
+          {/* Needs Your Decision List */}
+          <div className="space-y-2 mb-6">
+            <p className="text-[11px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+              Needs your decision
             </p>
-            <div className="flex flex-wrap gap-2">
-              {tradeContext === 'barber' ? (
-                <>
-                  <button
-                    onClick={startFillOpeningsTask}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Fill tomorrow’s open slots</span>
-                  </button>
-                  <button
-                    onClick={() => handleGenericSend('Add a walk-in for a haircut with Dele now.')}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Add a walk-in</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedBookingModal({
-                        clientName: 'Tobi Adebayo',
-                        phone: '+234 803 999 1122',
-                        service: 'Haircut and beard',
-                        time: '1:00 PM today',
-                        barber: 'Dele',
-                        chair: 'Chair 1',
-                        deposit: '₦2,000 paid · ₦8,000 balance at shop'
-                      });
-                    }}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Show my next client</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={startAmakaQuoteTask}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Prepare a quotation</span>
-                  </button>
-                  <button
-                    onClick={() => handleGenericSend('Follow up unpaid deposits')}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Follow up unpaid deposits</span>
-                  </button>
-                  <button
-                    onClick={startFridayShootTask}
-                    className="px-3.5 py-2 rounded-xl bg-white border border-[#161817]/10 text-xs font-medium text-[#161817] hover:border-[#161817]/30 hover:bg-[#161817]/5 transition-all flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <span>• Get Friday’s shoot ready</span>
-                  </button>
-                </>
-              )}
+
+            <div className="bg-white border border-[#161817]/10 rounded-2xl p-3.5 sm:px-4 sm:py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+              <div>
+                <p className="text-xs sm:text-[13.5px] text-[#161817] font-normal leading-snug">
+                  <strong>Two past clients asked about Saturday.</strong> Vela has prepared follow-ups.
+                </p>
+                <p className="text-[11.5px] text-[#161817]/55 mt-0.5">Tunde (11:30 AM) & Femi (2:00 PM) · WhatsApp drafts ready</p>
+              </div>
+              <button
+                onClick={startFillOpeningsTask}
+                className="px-3.5 py-1.5 bg-[#161817] hover:bg-[#282b29] text-[#F7F6F0] rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+              >
+                Review messages
+              </button>
+            </div>
+
+            <div className="bg-white border border-[#161817]/10 rounded-2xl p-3.5 sm:px-4 sm:py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+              <div>
+                <p className="text-xs sm:text-[13.5px] text-[#161817] font-normal leading-snug">
+                  <strong>A company wants headshots for 18 staff.</strong> The quotation is ready.
+                </p>
+                <p className="text-[11.5px] text-[#161817]/55 mt-0.5">Horizon Capital · Victoria Island office · ₦350,000 package</p>
+              </div>
+              <button
+                onClick={startCorporateQuoteTask}
+                className="px-3.5 py-1.5 bg-[#161817] hover:bg-[#282b29] text-[#F7F6F0] rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+              >
+                Review quote
+              </button>
+            </div>
+
+            <div className="bg-white border border-[#161817]/10 rounded-2xl p-3.5 sm:px-4 sm:py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+              <div>
+                <p className="text-xs sm:text-[13.5px] text-[#161817] font-normal leading-snug">
+                  <strong>Three people asked where your shop is on the same TikTok.</strong> Vela drafted a caption with your location and booking link.
+                </p>
+                <p className="text-[11.5px] text-[#161817]/55 mt-0.5">Low-taper transformation video · 3 comments without address</p>
+              </div>
+              <button
+                onClick={() => setShowTikTokModal(true)}
+                className="px-3.5 py-1.5 bg-white border border-[#161817]/15 hover:bg-[#161817]/5 text-[#161817] rounded-xl text-xs font-semibold whitespace-nowrap transition-colors flex-shrink-0"
+              >
+                View suggestion
+              </button>
             </div>
           </div>
-
-          {/* Two Compact Practical Question Rows */}
-          <div className="space-y-2 pt-2 border-t border-[#161817]/10">
-            <p className="text-[11px] font-semibold text-[#161817]/50 uppercase tracking-wider font-mono">
-              Live updates
-            </p>
-            
-            {/* Row 1: Up next */}
-            <div className="bg-white border border-[#161817]/10 rounded-xl p-3 sm:px-4 sm:py-3 flex items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-[#16a34a] flex-shrink-0"></span>
-                <p className="text-xs sm:text-[13px] text-[#161817] truncate font-medium">
-                  Up next · Tobi · Haircut and beard · 1:00 pm
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedBookingModal({
-                    clientName: 'Tobi Adebayo',
-                    phone: '+234 803 999 1122',
-                    service: 'Haircut and beard',
-                    time: '1:00 PM today',
-                    barber: 'Dele',
-                    chair: 'Chair 1',
-                    deposit: '₦2,000 paid · ₦8,000 balance at shop'
-                  });
-                }}
-                className="px-3 py-1.5 bg-[#161817]/5 hover:bg-[#161817]/10 text-[#161817] rounded-lg text-xs font-semibold whitespace-nowrap transition-colors"
-              >
-                Open booking
-              </button>
-            </div>
-
-            {/* Row 2: Friday's wedding shoot missing venue */}
-            <div className="bg-white border border-[#161817]/10 rounded-xl p-3 sm:px-4 sm:py-3 flex items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-2 h-2 rounded-full bg-[#f59e0b] flex-shrink-0"></span>
-                <p className="text-xs sm:text-[13px] text-[#161817] truncate font-medium">
-                  Friday’s wedding shoot is missing the venue address.
-                </p>
-              </div>
-              <button
-                onClick={startFridayShootTask}
-                className="px-3 py-1.5 bg-[#161817] hover:bg-[#282b29] text-[#F7F6F0] rounded-lg text-xs font-semibold whitespace-nowrap transition-colors"
-              >
-                Prepare message
-              </button>
-            </div>
 
             {/* Row 3 (Setup): For new merchant */}
             <div className="bg-[#C5F36A]/15 border border-[#C5F36A]/50 rounded-xl p-3 sm:px-4 sm:py-2.5 flex items-center justify-between gap-3 mt-1">
@@ -912,9 +1187,9 @@ export const Dashboard: React.FC = () => {
                 View gallery
               </Link>
             </div>
-          </div>
 
-        </div>
+          </div>
+        )
       ) : (
 
         /* ─────────────────────────────────────────────────────────────────────────
@@ -1364,6 +1639,127 @@ export const Dashboard: React.FC = () => {
                     </div>
                   )}
 
+                  {/* ─────────────────────────────────────────────────────────────
+                      INTERACTIVE WIDGET 6: Find Me Customers Flow
+                      ───────────────────────────────────────────────────────────── */}
+                  {msg.widgetType === 'general' && msg.widgetData?.isFindCustomersFlow && (
+                    <div className="bg-white border border-[#161817]/15 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+                      {!msg.widgetData.chosenOption ? (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold text-[#161817]">Select your focus for this week:</p>
+                          <div className="flex flex-wrap gap-2.5">
+                            <button
+                              onClick={() => {
+                                const updated = activeTask.messages.map(m => m.id === msg.id ? {
+                                  ...m,
+                                  widgetData: { ...m.widgetData, chosenOption: 'saturday' }
+                                } : m);
+                                setActiveTask({ ...activeTask, messages: updated });
+                              }}
+                              className="px-4 py-2 bg-[#161817] text-[#F7F6F0] hover:bg-[#282b29] rounded-xl text-xs font-semibold transition-all"
+                            >
+                              Fill Saturday (3 open slots)
+                            </button>
+                            <button
+                              onClick={() => {
+                                const updated = activeTask.messages.map(m => m.id === msg.id ? {
+                                  ...m,
+                                  widgetData: { ...m.widgetData, chosenOption: 'new_clients' }
+                                } : m);
+                                setActiveTask({ ...activeTask, messages: updated });
+                              }}
+                              className="px-4 py-2 bg-white border border-[#161817]/20 text-[#161817] hover:bg-[#161817]/5 rounded-xl text-xs font-semibold transition-all"
+                            >
+                              Find new customers for next week
+                            </button>
+                          </div>
+                        </div>
+                      ) : msg.widgetData.chosenOption === 'saturday' ? (
+                        <div className="space-y-3">
+                          <div className="text-[11px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                            4 Specific Demand Opportunities Observed by Vela
+                          </div>
+                          
+                          {/* Finding 1: Past clients */}
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#161817]">1. Two past clients enquired about Saturday</span>
+                              <span className="text-[10px] font-semibold bg-[#16a34a]/10 text-[#16a34a] px-2 py-0.5 rounded-md">Booking History</span>
+                            </div>
+                            <p className="text-xs text-[#161817]/70">Tunde and Femi previously enquired about Saturday appointments. Personalized WhatsApp messages prepared.</p>
+                            <button
+                              onClick={startFillOpeningsTask}
+                              className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold hover:bg-[#282b29] transition-all"
+                            >
+                              Review 2 messages
+                            </button>
+                          </div>
+
+                          {/* Finding 2: TikTok Finding */}
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#161817]">2. Viral TikTok video missing studio location</span>
+                              <span className="text-[10px] font-semibold bg-[#285731]/10 text-[#285731] px-2 py-0.5 rounded-md">TikTok (5 posts)</span>
+                            </div>
+                            <p className="text-xs text-[#161817]/70">Your low-taper transformation received 3 questions asking for your shop address. Reviewed caption left out location.</p>
+                            <button
+                              onClick={() => setShowTikTokModal(true)}
+                              className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold hover:bg-[#282b29] transition-all"
+                            >
+                              Use this caption
+                            </button>
+                          </div>
+
+                          {/* Finding 3: Video Idea */}
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#161817]">3. Low-taper video idea to sell Saturday openings</span>
+                              <span className="text-[10px] font-semibold bg-[#161817]/10 text-[#161817] px-2 py-0.5 rounded-md">Service Demand</span>
+                            </div>
+                            <p className="text-xs text-[#161817]/70">20-second video idea: Opening hook, 3 camera angles, on-screen text, and booking CTA.</p>
+                            <button
+                              onClick={() => setShowVideoBriefModal(true)}
+                              className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold hover:bg-[#282b29] transition-all"
+                            >
+                              Create video brief
+                            </button>
+                          </div>
+
+                          {/* Finding 4: WhatsApp Status */}
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#161817]">4. Saturday Flash WhatsApp Status Offer</span>
+                              <span className="text-[10px] font-semibold bg-[#C5F36A] text-[#161817] px-2 py-0.5 rounded-md">Live Calendar</span>
+                            </div>
+                            <p className="text-xs text-[#161817]/70">Ready-to-share WhatsApp Status with Saturday slots, ₦2,000 deposit requirement, and direct booking link.</p>
+                            <button
+                              onClick={() => setShowStatusOfferModal(true)}
+                              className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold hover:bg-[#282b29] transition-all"
+                            >
+                              Create booking offer
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="text-[11px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                            New Customer Acquisition Channels
+                          </div>
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <span className="text-xs font-bold text-[#161817]">1. VIP Client Referral Reward</span>
+                            <p className="text-xs text-[#161817]/70">Invite your top 10 loyal clients to gift friends 15% off their first cut or shoot, earning a ₦2,000 service credit.</p>
+                            <button className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold">Prepare referral campaign</button>
+                          </div>
+                          <div className="p-3.5 bg-[#F7F6F0] rounded-xl border border-[#161817]/10 space-y-2">
+                            <span className="text-xs font-bold text-[#161817]">2. Victoria Island Corporate Headshot Research</span>
+                            <p className="text-xs text-[#161817]/70">Identified 3 local companies with executive staff needing directory updates (Leadway, Eden Life, Paystack Hub). Drafted tailored pitch.</p>
+                            <button onClick={startCorporateQuoteTask} className="px-3 py-1.5 bg-[#161817] text-[#F7F6F0] rounded-lg text-xs font-semibold">Review corporate pitch</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               ))}
 
@@ -1446,6 +1842,177 @@ export const Dashboard: React.FC = () => {
               </a>
               <button
                 onClick={() => setSelectedBookingModal(null)}
+                className="px-4 py-2 bg-[#161817]/5 hover:bg-[#161817]/10 text-[#161817] rounded-xl text-xs font-semibold transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          TikTok Suggestion Modal
+          ───────────────────────────────────────────────────────────────────────── */}
+      {showTikTokModal && (
+        <div className="fixed inset-0 z-50 bg-[#161817]/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full border border-[#161817]/15 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#161817]/10 pb-3">
+              <div>
+                <span className="text-[10px] font-bold text-[#285731] uppercase tracking-wider font-mono">
+                  Content Finding · TikTok
+                </span>
+                <h3 className="text-base font-bold text-[#161817]">
+                  Location missing in viral transformation
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowTikTokModal(false)}
+                className="p-1 text-[#161817]/40 hover:text-[#161817] rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#161817]">
+              <div className="bg-[#f4f4f1] p-3 rounded-xl space-y-1.5">
+                <p className="font-semibold text-[#161817]">Observed from your last 5 reviewed posts:</p>
+                <p className="text-[#161817]/70">Video <em>"Low taper transformation fade"</em> (5,400 views) received 3 direct comments asking for location:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-[#161817]/80 pl-1">
+                  <li>“Where is your shop located bro?” — @chuks_99</li>
+                  <li>“Do you take walk-ins in Yaba or VI?” — @kene_o</li>
+                  <li>“Drop address abeg!” — @tayo_cuts</li>
+                </ul>
+              </div>
+
+              <div>
+                <p className="font-semibold mb-1">Suggested caption with shop address &amp; booking link:</p>
+                <div className="bg-white border border-[#161817] rounded-xl p-3 text-xs leading-relaxed font-sans select-all">
+                  Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victoria Island. Tap the link in bio to lock in your Saturday appointment! #LagosBarber #VictoriaIsland #TaperFade
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center gap-2 border-t border-[#161817]/10">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText("Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victoria Island. Tap the link in bio to lock in your Saturday appointment! #LagosBarber #VictoriaIsland #TaperFade");
+                  setCopiedTikTok(true);
+                  setTimeout(() => {
+                    setCopiedTikTok(false);
+                    setShowTikTokModal(false);
+                  }, 1200);
+                }}
+                className={cn(
+                  'flex-1 py-2 rounded-xl text-xs font-semibold text-center transition-all',
+                  copiedTikTok ? 'bg-green-700 text-white' : 'bg-[#161817] text-[#F7F6F0] hover:bg-[#282b29]'
+                )}
+              >
+                {copiedTikTok ? '✓ Copied to clipboard!' : 'Copy caption to clipboard'}
+              </button>
+              <button
+                onClick={() => setShowTikTokModal(false)}
+                className="px-4 py-2 bg-[#161817]/5 hover:bg-[#161817]/10 text-[#161817] rounded-xl text-xs font-semibold transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          Video Brief Modal
+          ───────────────────────────────────────────────────────────────────────── */}
+      {showVideoBriefModal && (
+        <div className="fixed inset-0 z-50 bg-[#161817]/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full border border-[#161817]/15 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#161817]/10 pb-3">
+              <div>
+                <span className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                  Content Idea · Video Brief
+                </span>
+                <h3 className="text-base font-bold text-[#161817]">
+                  20-Second Low Taper Transformation
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowVideoBriefModal(false)}
+                className="p-1 text-[#161817]/40 hover:text-[#161817] rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-[#161817] leading-relaxed">
+              <p><strong>Opening Hook (0–3s):</strong> "Stop letting people push your hairline back just to get a taper."</p>
+              <div className="bg-[#f4f4f1] p-3 rounded-xl space-y-1">
+                <p className="font-semibold text-[#161817]">Shot List:</p>
+                <ul className="list-disc list-inside space-y-1 pl-1 text-[#161817]/80">
+                  <li>Shot 1 (3–7s): Bulk hair before cut (macro angle).</li>
+                  <li>Shot 2 (7–14s): Guard #2 taper blend sweep + foil shaver work.</li>
+                  <li>Shot 3 (14–20s): Mirror spin reveal, razor finish &amp; styling sheen.</li>
+                </ul>
+              </div>
+              <p><strong>On-Screen Text:</strong> "Studio Teni · 14 Bishop Oluwole St, VI · Link in bio to book Saturday"</p>
+              <p><strong>Audio Recommendation:</strong> Trending afrobeat instrumental (high energy).</p>
+            </div>
+
+            <div className="pt-2 flex items-center gap-2 border-t border-[#161817]/10">
+              <button
+                onClick={() => setShowVideoBriefModal(false)}
+                className="w-full py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] transition-all"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          WhatsApp Status Offer Modal
+          ───────────────────────────────────────────────────────────────────────── */}
+      {showStatusOfferModal && (
+        <div className="fixed inset-0 z-50 bg-[#161817]/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full border border-[#161817]/15 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#161817]/10 pb-3">
+              <div>
+                <span className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">
+                  WhatsApp Status Offer
+                </span>
+                <h3 className="text-base font-bold text-[#161817]">
+                  Ready-to-Share Saturday Booking Offer
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowStatusOfferModal(false)}
+                className="p-1 text-[#161817]/40 hover:text-[#161817] rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 bg-[#F7F6F0] border border-[#161817]/10 rounded-xl text-xs sm:text-sm text-[#161817] leading-relaxed italic">
+              Saturday chairs opening up at Studio Teni! ✂️✨<br />
+              • 11:30 AM · Dele (Haircut &amp; Beard)<br />
+              • 2:00 PM · Dele (Fade &amp; Shave)<br /><br />
+              ₦2,000 deposit locks your slot. Tap to claim before they go: studioteni.vela.ng/book
+            </div>
+
+            <div className="pt-2 flex items-center gap-2 border-t border-[#161817]/10">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText("Saturday chairs opening up at Studio Teni! ✂️✨\n• 11:30 AM · Dele (Haircut & Beard)\n• 2:00 PM · Dele (Fade & Shave)\n\n₦2,000 deposit locks your slot. Tap to claim before they go: studioteni.vela.ng/book");
+                  alert('Copied status text & link to clipboard!');
+                  setShowStatusOfferModal(false);
+                }}
+                className="flex-1 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] transition-all"
+              >
+                Copy for WhatsApp Status
+              </button>
+              <button
+                onClick={() => setShowStatusOfferModal(false)}
                 className="px-4 py-2 bg-[#161817]/5 hover:bg-[#161817]/10 text-[#161817] rounded-xl text-xs font-semibold transition-all"
               >
                 Close

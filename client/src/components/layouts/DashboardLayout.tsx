@@ -80,7 +80,8 @@ export const DashboardLayout: React.FC = () => {
     window.dispatchEvent(new CustomEvent('vela_open_task', { detail: { taskId } }));
   };
 
-  const isAgentActive = location.pathname === '/dashboard';
+  const isInboxActive = location.pathname === '/dashboard' && location.search.includes('inbox=open');
+  const isAgentActive = location.pathname === '/dashboard' && !isInboxActive;
   const isBookingsActive = location.pathname.startsWith('/dashboard/bookings') || location.pathname.startsWith('/dashboard/calendar');
   const isClientsActive = location.pathname.startsWith('/dashboard/customers');
   const isMoneyActive = location.pathname.startsWith('/dashboard/invoices') || location.pathname.startsWith('/dashboard/financial');
@@ -161,6 +162,26 @@ export const DashboardLayout: React.FC = () => {
           >
             <Sparkles className={cn('h-4 w-4 flex-shrink-0', (sidebarExpanded || sidebarOpen) ? 'mr-3' : 'mx-auto', isAgentActive && 'text-[#C5F36A]')} />
             {(sidebarExpanded || sidebarOpen) && <span>Agent</span>}
+          </Link>
+
+          {/* Inbox */}
+          <Link
+            to="/dashboard?inbox=open"
+            onClick={() => setSidebarOpen(false)}
+            className={cn(
+              'flex items-center px-3 py-2 text-xs font-medium rounded-xl transition-colors',
+              isInboxActive
+                ? 'bg-[#161817] text-[#F7F6F0]'
+                : 'text-[#161817]/75 hover:bg-[#161817]/5 hover:text-[#161817]'
+            )}
+          >
+            <MessageSquare className={cn('h-4 w-4 flex-shrink-0', (sidebarExpanded || sidebarOpen) ? 'mr-3' : 'mx-auto', isInboxActive && 'text-[#C5F36A]')} />
+            {(sidebarExpanded || sidebarOpen) && (
+              <div className="flex items-center justify-between flex-1">
+                <span>Inbox</span>
+                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#161817] text-[#C5F36A] border border-[#C5F36A]/30">4</span>
+              </div>
+            )}
           </Link>
 
           {/* Bookings */}

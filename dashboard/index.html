@@ -636,6 +636,11 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12 2.1 12.5"></path><path d="m4.5 15 7.5-3"></path></svg>
           <span>Agent</span>
         </a>
+        <a href="#inbox" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Inbox</span>
+          <span class="nav-badge">4</span>
+        </a>
         <a href="#bookings" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           <span>Bookings</span>
@@ -696,8 +701,34 @@
       <!-- State 1: Home View -->
       <div class="home-view" id="homeView">
         
+        <h1 class="home-headline">What do you want Vela to work on?</h1>
 
-        <h1 class="home-headline">What do you need done?</h1>
+        <!-- Two Main Action Buttons -->
+        <div class="primary-actions-grid">
+          <button class="primary-action-card" onclick="runFindCustomersFlow()">
+            <div class="action-card-top">
+              <span class="action-icon-wrap spark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </span>
+              <span class="action-tag">Demand generation</span>
+            </div>
+            <div class="action-card-title">Find me customers</div>
+            <div class="action-card-desc">Fill Saturday’s 3 openings or attract new clients</div>
+          </button>
+
+          <button class="primary-action-card" onclick="location.hash = 'inbox'">
+            <div class="action-card-top">
+              <span class="action-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </span>
+              <span class="action-badge-count">4 pending</span>
+            </div>
+            <div class="action-card-title">Manage my inbox · 4</div>
+            <div class="action-card-desc">Turn incoming WhatsApp & email leads into paid bookings</div>
+          </button>
+        </div>
+
+        <div class="instruction-lead">Or give Vela an instruction…</div>
 
         <div class="prompt-box">
           <textarea class="prompt-input" id="homePromptInput" rows="3" placeholder="Ask Vela to do something for your business…"></textarea>
@@ -709,28 +740,37 @@
           </div>
         </div>
 
-        <div class="suggestions-row" id="suggestionsRow">
-          <!-- Populated by JS based on trade -->
+        <!-- Needs Your Decision List -->
+        <div class="decisions-section">
+          <div class="decisions-label">Needs your decision</div>
+          
+          <div class="decision-card">
+            <div class="decision-content">
+              <div class="decision-headline"><strong>Two past clients asked about Saturday.</strong> Vela has prepared follow-ups.</div>
+              <div class="decision-sub">Tunde (11:30 AM) & Femi (2:00 PM) · WhatsApp drafts ready</div>
+            </div>
+            <button class="btn-decision primary" onclick="runWorkflow('review_messages')">Review messages</button>
+          </div>
+
+          <div class="decision-card">
+            <div class="decision-content">
+              <div class="decision-headline"><strong>A company wants headshots for 18 staff.</strong> The quotation is ready.</div>
+              <div class="decision-sub">Horizon Capital · Victoria Island office · ₦350,000 package</div>
+            </div>
+            <button class="btn-decision primary" onclick="runWorkflow('review_quote')">Review quote</button>
+          </div>
+
+          <div class="decision-card">
+            <div class="decision-content">
+              <div class="decision-headline"><strong>Three people asked where your shop is on the same TikTok.</strong> Vela drafted a caption with your location and booking link.</div>
+              <div class="decision-sub">Low-taper video · 3 comments without address · Suggested caption ready</div>
+            </div>
+            <button class="btn-decision" onclick="openTikTokCaptionModal()">View suggestion</button>
+          </div>
         </div>
 
-        <div class="updates-section">
-          <div class="suggestions-label">Today</div>
-          
-          <div class="update-card">
-            <div class="update-text">
-              <span class="update-dot"></span>
-              <span>Up next · Tobi · Haircut and beard · 1:00 pm</span>
-            </div>
-            <button class="action-btn-sm" onclick="openBookingModal('Tobi Adebayo', 'Haircut and beard', '1:00 PM today', '₦2,000 paid · ₦8,000 balance')">Open booking</button>
-          </div>
-
-          <div class="update-card">
-            <div class="update-text">
-              <span class="update-dot amber"></span>
-              <span>Friday’s wedding shoot is missing the venue address.</span>
-            </div>
-            <button class="action-btn-sm primary" onclick="runWorkflow('friday_shoot')">Prepare message</button>
-          </div>
+        <div class="suggestions-row" id="suggestionsRow" style="margin-top:20px;">
+          <!-- Populated by JS based on trade -->
         </div>
 
       </div>
@@ -783,6 +823,38 @@
     </div>
   </div>
 
+  <!-- TikTok Suggestion Modal -->
+  <div class="modal-backdrop" id="tikTokModal" style="display:none;">
+    <div class="modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px; margin-bottom:14px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#285731; letter-spacing:0.04em;">Content Finding · TikTok</div>
+          <h3 style="margin:2px 0 0; font-size:16px; font-weight:700;">Location missing in viral transformation</h3>
+        </div>
+        <button onclick="closeTikTokModal()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
+      </div>
+      <div style="font-size:13px; line-height:1.5; margin-bottom:16px;">
+        <div style="background:#f4f4f1; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="font-weight:600; color:#161817; margin-bottom:6px;">Observed from your last 5 reviewed posts:</div>
+          <div style="font-size:12px; color:#555;">Video: <em>"Low taper transformation fade"</em> (5,400 views) received 3 direct comments asking where your shop is located:</div>
+          <ul style="margin:6px 0 0 18px; padding:0; font-size:12px; color:#333;">
+            <li>“Where is your shop located bro?” — @chuks_99</li>
+            <li>“Do you take walk-ins in Yaba or VI?” — @kene_o</li>
+            <li>“Drop address abeg!” — @tayo_cuts</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:8px; font-weight:600;">Suggested caption with address & booking link:</div>
+        <div style="background:#fff; border:1px solid #161817; border-radius:8px; padding:12px; font-size:12.5px; line-height:1.45;" id="suggestedCaptionText">
+Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victoria Island. Tap the link in bio to lock in your Saturday appointment! #LagosBarber #VictoriaIsland #TaperFade
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-approve" style="flex:1; justify-content:center;" onclick="copySuggestedCaption(this)">Copy caption to clipboard</button>
+        <button class="btn-secondary" onclick="closeTikTokModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentMode = 'barber';
 
@@ -813,7 +885,80 @@
       const container = document.getElementById('chatContainer');
       container.innerHTML = '';
 
-      if (type === 'fill_slots') {
+      if (type === 'review_messages') {
+        document.getElementById('chatTaskTitle').innerText = 'Saturday client follow-ups';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">Two past clients previously enquired about Saturday appointments and are eligible for WhatsApp follow-up:</div>
+            
+            <div class="record-card">
+              <div class="record-header">
+                <span style="font-weight:700; font-size:13px;">Saturday Openings (Dele · Chair 1)</span>
+                <span class="record-badge">Eligible Outreach</span>
+              </div>
+              <div style="display:grid; gap:10px; margin-top:8px;">
+                <div style="background:#F7F6F0; padding:12px; border-radius:10px; font-size:12.5px;">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong>Tunde Bakare</strong>
+                    <span style="color:#15803d; font-size:11px; font-weight:600;">Asked about Saturday haircut</span>
+                  </div>
+                  <div style="font-size:11.5px; color:#666; margin-bottom:6px;">Assigned slot: Saturday at 11:30 AM · Haircut & Beard (₦10,000)</div>
+                  <div style="background:#fff; border:1px solid #deded9; border-radius:8px; padding:8px 10px; font-style:italic; font-size:12px;">
+                    “Hi Tunde! You asked about Saturday haircuts at Studio Teni. Dele has an opening at 11:30 AM. Would you like me to hold this chair for you?”
+                  </div>
+                </div>
+
+                <div style="background:#F7F6F0; padding:12px; border-radius:10px; font-size:12.5px;">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <strong>Femi Adeleke</strong>
+                    <span style="color:#15803d; font-size:11px; font-weight:600;">Visited 21 days ago</span>
+                  </div>
+                  <div style="font-size:11.5px; color:#666; margin-bottom:6px;">Assigned slot: Saturday at 2:00 PM · Fade & Shave (₦8,000)</div>
+                  <div style="background:#fff; border:1px solid #deded9; border-radius:8px; padding:8px 10px; font-style:italic; font-size:12px;">
+                    “Good morning Femi! A 2:00 PM slot just opened up with Dele this Saturday. Tap here to lock it with a quick deposit: studioteni.vela.ng/book”
+                  </div>
+                </div>
+              </div>
+
+              <div class="record-actions" id="reviewMessagesActions" style="margin-top:14px;">
+                <button class="btn-approve" onclick="approveSaturdayOutreach()">Send to Tunde & Femi via WhatsApp</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'review_quote') {
+        document.getElementById('chatTaskTitle').innerText = 'Horizon Capital · Corporate quotation';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">Inbound enquiry from Kemi (HR, Horizon Capital) for 18 staff executive headshots at their Victoria Island office:</div>
+
+            <div class="record-card">
+              <div class="record-header">
+                <div>
+                  <div style="font-size:10px; font-family:'JetBrains Mono'; color:#777;">CORPORATE QUOTATION #VQ-2026-112</div>
+                  <strong style="font-size:14px;">Horizon Capital Partners</strong>
+                </div>
+                <span class="record-badge" id="corpQuoteBadge">Draft · Approval Required</span>
+              </div>
+              <div style="font-size:12.5px; line-height:1.5;">
+                <p style="margin:0 0 4px 0;"><strong>Scope:</strong> 18 staff executive headshots on-location (Victoria Island)</p>
+                <p style="margin:0 0 4px 0;"><strong>Deliverables:</strong> Mobile studio setup, 2 looks/person, 36 retouched master files</p>
+                <p style="margin:0 0 4px 0;"><strong>Proposed Date:</strong> Thursday, 3 Dec 2026 (9:00 AM – 3:00 PM)</p>
+              </div>
+              <div style="background:#F7F6F0; padding:12px; border-radius:12px; font-size:12.5px; line-height:1.6; margin-top:8px;">
+                <div style="display:flex; justify-content:space-between;"><span>Package Fee:</span> <strong>₦350,000</strong></div>
+                <div style="display:flex; justify-content:space-between; font-weight:600;"><span>Required Deposit (40%):</span> <strong>₦140,000</strong></div>
+                <div style="display:flex; justify-content:space-between; color:#666; border-top:1px solid rgba(0,0,0,0.06); padding-top:4px;"><span>Balance on gallery delivery:</span> <strong>₦210,000</strong></div>
+              </div>
+              <div class="record-actions" id="corpQuoteActions" style="margin-top:12px;">
+                <button class="btn-approve" onclick="approveCorporateQuote()">Approve & send quotation via Email</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'fill_slots') {
         document.getElementById('chatTaskTitle').innerText = 'Fill tomorrow’s open slots';
         container.innerHTML = `
           <div class="msg-block">
@@ -996,6 +1141,241 @@
           <span style="font-weight:400; color:#333;">Job Brief #VJ-394 updated. All checklist items ready for Friday!</span>
         </div>
       `;
+    }
+
+    function approveSaturdayOutreach() {
+      const actions = document.getElementById('reviewMessagesActions');
+      actions.innerHTML = `
+        <div style="background:#dcfce7; color:#166534; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:600; width:100%;">
+          ✓ Rechecked Saturday schedule. Outreach sent to Tunde (11:30 AM) and Femi (2:00 PM) via WhatsApp.
+          <div style="font-weight:400; color:#333; margin-top:4px;">Incoming replies will appear in your Inbox with auto-prepared bookings.</div>
+        </div>
+      `;
+    }
+
+    function approveCorporateQuote() {
+      const badge = document.getElementById('corpQuoteBadge');
+      if (badge) {
+        badge.innerText = 'Sent · Awaiting Approval';
+        badge.className = 'record-badge';
+      }
+      const actions = document.getElementById('corpQuoteActions');
+      actions.innerHTML = `
+        <div style="background:#dcfce7; color:#166534; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:600; width:100%;">
+          ✓ Quotation #VQ-2026-112 sent to Kemi at Horizon Capital via connected email.
+          <div style="font-weight:400; color:#333; margin-top:4px;">40% deposit link (₦140,000) active. Reminder scheduled for Monday if unanswered.</div>
+        </div>
+      `;
+    }
+
+    function runFindCustomersFlow() {
+      enterAgent();
+      closeDrawer();
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('chatView').style.display = 'flex';
+      document.getElementById('chatTaskTitle').innerText = 'Find me customers';
+      const container = document.getElementById('chatContainer');
+      container.innerHTML = `
+        <div class="msg-block">
+          <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+          <div class="msg-bubble user-msg">Find me customers.</div>
+        </div>
+        <div class="msg-block">
+          <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+          <div class="msg-bubble">
+            I checked your calendar, social reach, and past booking records.
+            <div style="margin-top:8px; font-weight:600;">You have three openings on Saturday (11:30 AM, 2:00 PM, 4:30 PM). Do you want to fill those, or attract new customers for next week?</div>
+            <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+              <button class="btn-approve" onclick="renderFindSaturdayFindings()">Fill Saturday (3 openings)</button>
+              <button class="btn-secondary" onclick="renderFindNewCustomers()">Find new customers for next week</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFindSaturdayFindings() {
+      const container = document.getElementById('chatContainer');
+      const block = document.createElement('div');
+      block.innerHTML = `
+        <div class="msg-block">
+          <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+          <div class="msg-bubble user-msg">Fill Saturday</div>
+        </div>
+        <div class="msg-block">
+          <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+          <div class="msg-bubble">Here are 4 specific demand opportunities Vela observed from your business:</div>
+
+          <div class="findings-container">
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">1. Two past clients eligible for Saturday follow-up</span>
+                <span class="finding-source">Booking History</span>
+              </div>
+              <div class="finding-detail">Tunde and Femi previously enquired about Saturday appointments. Personalized WhatsApp messages prepared.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="runWorkflow('review_messages')">Review 2 messages</button>
+              </div>
+            </div>
+
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">2. Viral TikTok video missing studio location</span>
+                <span class="finding-source">TikTok Analysis</span>
+              </div>
+              <div class="finding-detail">Your low-taper transformation video has 3 comments asking for shop address. Suggested caption with Yaba/VI location prepared.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="openTikTokCaptionModal()">Use this caption</button>
+              </div>
+            </div>
+
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">3. 20-second low-taper video brief</span>
+                <span class="finding-source">Service Demand</span>
+              </div>
+              <div class="finding-detail">A short video idea with opening hook ("Stop getting tapers that fade out in 2 days"), 3 shot angles, text overlay, and booking CTA.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="showVideoBrief(this)">Create video brief</button>
+              </div>
+            </div>
+
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">4. Saturday Flash WhatsApp Status Offer</span>
+                <span class="finding-source">Live Calendar</span>
+              </div>
+              <div class="finding-detail">Ready-to-share WhatsApp Status with Knotless Braids & Barber slots, ₦2,000 deposit requirement, and direct booking link.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="showStatusOffer(this)">Create booking offer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      container.append(block);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function renderFindNewCustomers() {
+      const container = document.getElementById('chatContainer');
+      const block = document.createElement('div');
+      block.innerHTML = `
+        <div class="msg-block">
+          <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+          <div class="msg-bubble user-msg">Find new customers for next week</div>
+        </div>
+        <div class="msg-block">
+          <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+          <div class="msg-bubble">Targeted customer acquisition based on your trade and location (Victoria Island · Lagos):</div>
+
+          <div class="findings-container">
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">1. VIP Client Referral Reward</span>
+                <span class="finding-source">Client Network</span>
+              </div>
+              <div class="finding-detail">Send an exclusive invite to your top 10 loyal clients giving their friends 15% off their first visit with a tracked referral credit.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="this.textContent='✓ Referral campaign ready'; this.disabled=true;">Prepare referral campaign</button>
+              </div>
+            </div>
+
+            <div class="finding-card">
+              <div class="finding-header">
+                <span class="finding-title">2. Corporate Headshot Outreach (3 local companies)</span>
+                <span class="finding-source">Permitted Business Research</span>
+              </div>
+              <div class="finding-detail">Identified 3 Victoria Island companies with executive teams and outdated team photos (Leadway, Eden Life, Paystack Hub). Drafted tailored email pitch for 15+ staff sessions.</div>
+              <div class="finding-actions">
+                <button class="btn-approve" onclick="this.textContent='✓ Pitch drafted for review'; this.disabled=true;">Review corporate pitches</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      container.append(block);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showVideoBrief(btn) {
+      btn.disabled = true;
+      btn.textContent = '✓ Video brief generated';
+      const container = document.getElementById('chatContainer');
+      const block = document.createElement('div');
+      block.innerHTML = `
+        <div class="msg-block">
+          <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+          <div class="record-card">
+            <div class="record-header">
+              <strong style="font-size:14px;">20-Second Video Brief: Low Taper Transformation</strong>
+              <span class="record-badge">Ready to Record</span>
+            </div>
+            <div style="font-size:12.5px; line-height:1.5;">
+              <p><strong>Opening Hook (0-3s):</strong> "Stop letting people push your hairline back just to get a taper."</p>
+              <p><strong>Shot List:</strong></p>
+              <ul style="margin:4px 0 8px 18px; padding:0;">
+                <li>Shot 1 (3-7s): Overgrown bulk before cut (close-up angle).</li>
+                <li>Shot 2 (7-14s): Clipper sweep with guard #2 + foil shaver blend.</li>
+                <li>Shot 3 (14-20s): Mirror reveal with razor finish and hair oil sheen.</li>
+              </ul>
+              <p><strong>On-Screen Text:</strong> "Studio Teni · 14 Bishop Oluwole St, VI · Link in bio to book Saturday"</p>
+              <p><strong>Audio:</strong> Trending afrobeat instrumental (Asake - Active tempo).</p>
+            </div>
+          </div>
+        </div>
+      `;
+      container.append(block);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showStatusOffer(btn) {
+      btn.disabled = true;
+      btn.textContent = '✓ Booking offer created';
+      const container = document.getElementById('chatContainer');
+      const block = document.createElement('div');
+      block.innerHTML = `
+        <div class="msg-block">
+          <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+          <div class="record-card">
+            <div class="record-header">
+              <strong style="font-size:14px;">WhatsApp Status Booking Offer</strong>
+              <span class="record-badge">Ready to Post</span>
+            </div>
+            <div style="background:#F7F6F0; padding:12px; border-radius:10px; font-size:12.5px; line-height:1.5; font-style:italic;">
+              "Saturday chairs opening up at Studio Teni! ✂️✨<br>
+              • 11:30 AM · Dele (Haircut & Beard)<br>
+              • 2:00 PM · Dele (Fade & Shave)<br><br>
+              ₦2,000 deposit locks your slot. Tap to claim before they go: studioteni.vela.ng/book"
+            </div>
+            <div class="record-actions" style="margin-top:10px;">
+              <button class="btn-approve" onclick="alert('Copied status text & link to clipboard!');">Copy for WhatsApp Status</button>
+            </div>
+          </div>
+        </div>
+      `;
+      container.append(block);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function openTikTokCaptionModal() {
+      document.getElementById('tikTokModal').style.display = 'flex';
+    }
+
+    function closeTikTokModal() {
+      document.getElementById('tikTokModal').style.display = 'none';
+    }
+
+    function copySuggestedCaption(btn) {
+      const text = document.getElementById('suggestedCaptionText').innerText;
+      navigator.clipboard.writeText(text);
+      btn.textContent = '✓ Copied to clipboard!';
+      btn.style.background = '#15803d';
+      setTimeout(() => {
+        closeTikTokModal();
+        btn.textContent = 'Copy caption to clipboard';
+        btn.style.background = '';
+      }, 1200);
     }
 
     function startFreshTask() {

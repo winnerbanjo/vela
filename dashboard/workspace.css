@@ -24,4 +24,64 @@ body{height:100dvh}
 .workspace-notice{position:fixed;bottom:22px;right:20px;background:#222;color:white;border-radius:10px;padding:12px 18px;z-index:120}
 .gallery-grid{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
 .gallery-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
-@media(max-width:768px){.home-view,.workspace-page{padding:32px 18px}.sidebar.open{box-shadow:6px 0 45px #0002}.suggestions-row{flex-wrap:wrap}.workspace-row{flex-wrap:wrap}.mobile-bar{flex-shrink:0}}
+
+/* Primary Action Buttons (Find me customers & Manage my inbox) */
+.primary-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.primary-action-card{background:#f7f6f0;border:1.5px solid rgba(22,24,23,.12);border-radius:14px;padding:14px 16px;text-align:left;cursor:pointer;transition:all .18s ease;display:flex;flex-direction:column;gap:5px}
+.primary-action-card:hover{background:#fff;border-color:#161817;transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,24,23,.06)}
+.action-card-top{display:flex;align-items:center;justify-content:space-between}
+.action-icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid rgba(22,24,23,.1);color:#161817}
+.action-icon-wrap.spark{background:#C5F36A;border-color:rgba(22,24,23,.2)}
+.action-badge-count{background:#161817;color:#C5F36A;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.02em}
+.action-tag{font-size:10px;font-weight:700;color:rgba(22,24,23,.55);text-transform:uppercase;letter-spacing:.04em}
+.action-card-title{font-size:15px;font-weight:700;color:#161817;letter-spacing:-.01em}
+.action-card-desc{font-size:12px;color:rgba(22,24,23,.65);line-height:1.35}
+
+/* Instruction lead */
+.instruction-lead{font-size:12.5px;color:rgba(22,24,23,.55);font-style:italic;margin-bottom:8px}
+
+/* Needs Your Decision */
+.decisions-section{margin-top:28px}
+.decisions-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(22,24,23,.5);margin-bottom:12px}
+.decision-card{background:#fff;border:1px solid rgba(22,24,23,.12);border-radius:12px;padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;transition:border-color .15s ease}
+.decision-card:hover{border-color:rgba(22,24,23,.3)}
+.decision-content{flex:1;min-width:0}
+.decision-headline{font-size:13.5px;color:#161817;line-height:1.4}
+.decision-headline strong{font-weight:600}
+.decision-sub{font-size:12px;color:rgba(22,24,23,.55);margin-top:3px}
+.btn-decision{border:1px solid rgba(22,24,23,.15);background:#fff;color:#161817;padding:7px 14px;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all .15s ease;flex-shrink:0}
+.btn-decision:hover{background:rgba(22,24,23,.05);border-color:#161817}
+.btn-decision.primary{background:#161817;color:#F7F6F0;border-color:#161817}
+.btn-decision.primary:hover{background:#2a2d2b}
+
+/* Nav Badge */
+.nav-badge{background:#161817;color:#C5F36A;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:auto}
+
+/* Findings & Modals */
+.findings-container{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.finding-card{background:#f7f6f0;border:1px solid rgba(22,24,23,.12);border-radius:12px;padding:14px}
+.finding-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.finding-title{font-size:13.5px;font-weight:600;color:#161817}
+.finding-source{font-size:11px;font-weight:600;color:#285731;background:rgba(40,87,49,.1);padding:2px 7px;border-radius:6px;white-space:nowrap}
+.finding-detail{font-size:12.5px;color:rgba(22,24,23,.7);line-height:1.4;margin-bottom:10px}
+.finding-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Inbox View */
+.inbox-modes-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f4f4f1;border-radius:10px;margin-bottom:20px;font-size:12.5px;flex-wrap:wrap}
+.inbox-mode-pill{border:1px solid rgba(22,24,23,.15);background:#fff;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer}
+.inbox-mode-pill.active{background:#161817;color:#fff;border-color:#161817}
+.inbox-item-card{background:#fff;border:1px solid rgba(22,24,23,.12);border-radius:12px;padding:16px;margin-bottom:14px;transition:all .15s ease}
+.inbox-item-card:hover{border-color:rgba(22,24,23,.3)}
+.inbox-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.inbox-customer-info{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.channel-pill{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600}
+.channel-pill.whatsapp{background:#e7f7ed;color:#15803d}
+.channel-pill.email{background:#eff6ff;color:#1d4ed8}
+.inbox-status-tag{font-size:11px;color:#854d0e;background:#fef9c3;padding:2px 8px;border-radius:12px;font-weight:600}
+.inbox-customer-msg{background:#f7f6f0;border-left:3px solid #161817;padding:10px 12px;font-size:13px;color:#161817;border-radius:0 8px 8px 0;margin-bottom:12px}
+.inbox-draft-box{background:#fafaf8;border:1px dashed rgba(22,24,23,.2);border-radius:8px;padding:12px;margin-bottom:12px}
+.inbox-draft-label{font-size:11px;font-weight:700;color:rgba(22,24,23,.5);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.inbox-draft-text{font-size:13px;color:#161817;line-height:1.45}
+.inbox-item-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+@media(max-width:768px){.home-view,.workspace-page{padding:32px 18px}.sidebar.open{box-shadow:6px 0 45px #0002}.suggestions-row{flex-wrap:wrap}.workspace-row{flex-wrap:wrap}.mobile-bar{flex-shrink:0}.primary-actions-grid{grid-template-columns:1fr}.decision-card{flex-direction:column;align-items:flex-start}}
