@@ -163,15 +163,37 @@
       white-space: nowrap;
     }
     .sidebar-footer {
-      padding: 14px 16px;
+      padding: 10px 0 16px 0;
       border-top: 1px solid var(--border-subtle);
       font-size: 12px;
     }
-    .owner-info {
+    .sidebar-footer .nav-item {
+      width: 100%;
+      border-radius: 0;
+      padding: 10px 20px;
+      box-sizing: border-box;
+      margin: 0;
+    }
+    .sidebar-footer .nav-item.active {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border-radius: 0;
+    }
+    .sidebar-footer .nav-item:hover {
+      background: rgba(22, 24, 23, 0.05);
+      border-radius: 0;
+    }
+    .sidebar-footer .nav-item.active:hover {
+      background: var(--text-ink);
+    }
+    .sidebar-footer .owner-info {
+      margin-top: 8px;
+      padding: 0 20px;
       font-weight: 600;
       color: var(--text-ink);
     }
-    .owner-role {
+    .sidebar-footer .owner-role {
+      padding: 2px 20px 0;
       font-size: 11px;
       color: rgba(22, 24, 23, 0.5);
     }

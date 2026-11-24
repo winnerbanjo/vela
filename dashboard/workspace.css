@@ -4,8 +4,51 @@ body{height:100dvh}
 .nav-list{align-items:stretch;flex-shrink:0}
 .nav-item{justify-content:flex-start;min-height:36px}
 .secondary-nav{padding-left:40px}
-.settings-link{padding:8px 0;margin-bottom:10px}
-.sidebar-footer{margin-top:auto}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 10px 0 16px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
+.sidebar-footer .nav-item {
+  width: 100%;
+  border-radius: 0;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  min-height: 38px;
+}
+.sidebar-footer .nav-item.active {
+  background: var(--text-ink);
+  color: #F7F6F0;
+  border-radius: 0;
+}
+.sidebar-footer .nav-item:hover {
+  background: rgba(22, 24, 23, 0.05);
+  border-radius: 0;
+}
+.sidebar-footer .nav-item.active:hover {
+  background: var(--text-ink);
+}
+.sidebar-footer .settings-link {
+  margin-bottom: 8px;
+  padding: 10px 20px;
+}
+.sidebar-footer .owner-info {
+  margin-top: 8px;
+  padding: 0 20px;
+  font-weight: 600;
+  color: var(--text-ink);
+}
+.sidebar-footer .owner-role {
+  padding: 2px 20px 0;
+  font-size: 11px;
+  color: rgba(22, 24, 23, 0.5);
+}
 .main-workspace{min-width:0;background:#fff}
 .home-view,.workspace-page{width:min(100%,860px);margin-inline:auto;box-sizing:border-box;padding:clamp(24px,6vh,72px) clamp(16px,4vw,44px) 32px}
 .home-view{justify-content:flex-start}
