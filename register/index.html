@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set up your Vela account · Vela AI</title>
+  <meta name="description" content="Set up your Vela AI account. Give clients a dedicated booking website and let Vela manage follow-up, reminders, and deposits.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Set up your Vela account · Vela AI">
+  <meta property="og:description" content="The AI agent for service businesses. Set up your booking website and automated reminders in under 3 minutes.">
+  <meta property="og:type" content="website">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Geist -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .auth-container {
+      max-width: 520px;
+      margin: 40px auto 60px;
+      padding: 0 20px;
+    }
+    .auth-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.08);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: 0 8px 30px rgba(22, 24, 23, 0.04);
+    }
+    .plan-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--color-lime-soft, #EDFCD4);
+      border: 1px solid var(--color-lime-border, rgba(197, 243, 106, 0.65));
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 13.5px;
+    }
+    .plan-banner-title {
+      font-weight: 700;
+      color: var(--color-ink);
+    }
+    .plan-banner-change {
+      color: var(--color-ink);
+      font-weight: 600;
+      text-decoration: underline;
+      font-size: 12.5px;
+    }
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono, monospace);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-ink-muted);
+      margin-bottom: 8px;
+    }
+    .auth-heading {
+      font-family: var(--font-display);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.03em;
+      margin: 0 0 8px;
+    }
+    .auth-sub {
+      font-size: 14.5px;
+      color: var(--color-ink-muted);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      font-family: var(--font-body);
+      font-size: 14.5px;
+      color: var(--color-ink);
+      background: #FAFAFA;
+      border: 1px solid rgba(22, 24, 23, 0.12);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-ink);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(22, 24, 23, 0.08);
+    }
+    .password-wrap {
+      position: relative;
+    }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-ink-muted);
+      padding: 4px;
+      font-size: 13px;
+    }
+    .auth-btn-primary {
+      width: 100%;
+      height: 48px;
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 13.5px;
+      color: var(--color-ink-muted);
+    }
+    .auth-footer a {
+      color: var(--color-ink);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .terms-note {
+      font-size: 12px;
+      color: var(--color-ink-muted);
+      text-align: center;
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="outer-frame">
+    <div class="inner-canvas">
+
+      <!-- Header Navigation -->
+      <header class="site-header">
+        <div class="header-inner content-container">
+          <a href="/" class="brand-link-ai" aria-label="Vela AI Homepage">
+            <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="100" height="34">
+            <span class="logo-ai-badge">AI</span>
+          </a>
+
+          <nav class="desktop-nav" aria-label="Main Navigation">
+            <ul class="nav-list">
+              <li><a href="/product" class="nav-link">Product</a></li>
+              <li><a href="/how-it-works" class="nav-link">How it works</a></li>
+              <li><a href="/pricing" class="nav-link">Pricing</a></li>
+              <li><a href="/faqs" class="nav-link">FAQs</a></li>
+            </ul>
+          </nav>
+
+          <div class="header-actions">
+            <a href="/login" class="login-link">Log in</a>
+            <button type="button" class="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+              <span class="menu-bar"></span>
+              <span class="menu-bar"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="mobile-menu" aria-hidden="true">
+          <div class="mobile-menu-backdrop"></div>
+          <div class="mobile-menu-panel">
+            <div class="mobile-menu-header">
+              <div class="brand-link-ai">
+                <img src="assets/vela-logo-black-opt.png" alt="vela" class="brand-logo" width="96" height="32">
+                <span class="logo-ai-badge">AI</span>
+              </div>
+              <button type="button" class="mobile-menu-close" aria-label="Close menu">&times;</button>
+            </div>
+            <nav class="mobile-nav" aria-label="Mobile Navigation">
+              <a href="/product" class="mobile-nav-link">Product</a>
+              <a href="/how-it-works" class="mobile-nav-link">How it works</a>
+              <a href="/pricing" class="mobile-nav-link">Pricing</a>
+              <a href="/faqs" class="mobile-nav-link">FAQs</a>
+              <div class="mobile-menu-divider"></div>
+              <a href="/login" class="mobile-nav-link">Log in</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <!-- Registration Form Area -->
+      <main id="main-content" class="auth-container">
+        <div class="auth-card">
+          <!-- Dynamic Plan Confirmation Banner -->
+          <div id="plan-banner" class="plan-banner" style="display:none;">
+            <div>
+              <span class="plan-banner-title" id="banner-plan-name">Selected Plan</span>
+              <div style="font-size:12px; color:rgba(22,24,23,0.7);" id="banner-plan-price">Quarterly subscription</div>
+            </div>
+            <a href="/pricing" class="plan-banner-change">Change</a>
+          </div>
+
+          <div class="step-indicator">Step 1 of 4 · Account details</div>
+          <h1 class="auth-heading">Set up your Vela account</h1>
+          <p class="auth-sub">
+            Create your merchant account to get your custom booking link and set up automated follow-ups.
+          </p>
+
+          <form id="register-form" onsubmit="event.preventDefault(); handleRegister();">
+            <div class="form-group">
+              <label for="business-name" class="form-label">Business / Brand Name</label>
+              <input type="text" id="business-name" class="form-input" placeholder="e.g. Studio Teni" required>
+            </div>
+
+            <div class="form-group">
+              <label for="full-name" class="form-label">Your Full Name</label>
+              <input type="text" id="full-name" class="form-input" placeholder="e.g. Teniola Adebayo" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" id="email" class="form-input" placeholder="alex@example.com" required>
+            </div>
+
+            <div class="form-group">
+              <label for="phone" class="form-label">WhatsApp Phone Number</label>
+              <input type="tel" id="phone" class="form-input" placeholder="0801 234 5678" required>
+            </div>
+
+            <div class="form-group">
+              <label for="password" class="form-label">Create Password</label>
+              <div class="password-wrap">
+                <input type="password" id="password" class="form-input" placeholder="At least 8 characters" required>
+                <button type="button" class="password-toggle" id="toggle-pw" aria-label="Toggle password visibility">Show</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-pill-ink auth-btn-primary" id="btn-submit">
+              Continue to Step 2 &rarr;
+            </button>
+
+            <p class="terms-note">
+              By creating an account, you agree to Vela's <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.
+            </p>
+          </form>
+
+          <div class="auth-footer">
+            Already have an account? <a href="/login">Log in here</a>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="site-footer">
+        <div class="content-container footer-container">
+          <div class="footer-top">
+            <div class="footer-brand-col">
+              <a href="/" class="brand-link-ai" aria-label="Vela AI Homepage">
+                <img src="assets/vela-logo-lime-opt.png" alt="vela" class="footer-logo" width="108" height="36">
+                <span class="logo-ai-badge footer-ai-badge">AI</span>
+              </a>
+              <p class="footer-descriptor">The AI agent for service businesses</p>
+            </div>
+            <div class="footer-links-group">
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Navigation</div>
+                <ul class="footer-list">
+                  <li><a href="/product">Product</a></li>
+                  <li><a href="/how-it-works">How it works</a></li>
+                  <li><a href="/pricing">Pricing</a></li>
+                  <li><a href="/faqs">FAQs</a></li>
+                </ul>
+              </div>
+              <div class="footer-nav-col">
+                <div class="footer-col-title">Legal</div>
+                <ul class="footer-list">
+                  <li><a href="/privacy">Privacy policy</a></li>
+                  <li><a href="/terms">Terms of service</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <p class="footer-copy">&copy; 2026 Vela Technologies. All rights reserved.</p>
+            <div class="footer-badges">
+              <span class="badge-lagos">Lagos, Nigeria (WAT)</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Plan detection and banner display
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const planParam = urlParams.get('plan') || sessionStorage.getItem('vela_selected_plan');
+      const planBanner = document.getElementById('plan-banner');
+      const planTitle = document.getElementById('banner-plan-name');
+      const planPrice = document.getElementById('banner-plan-price');
+
+      const planMap = {
+        starter: { name: 'Starter Plan', price: '₦10,000 / quarter' },
+        growth: { name: 'Growth Plan (Most popular)', price: '₦15,000 / quarter' },
+        scale: { name: 'Scale Plan', price: '₦25,000 / quarter' }
+      };
+
+      if (planParam && planMap[planParam.toLowerCase()]) {
+        sessionStorage.setItem('vela_selected_plan', planParam.toLowerCase());
+        planTitle.textContent = 'Selected: ' + planMap[planParam.toLowerCase()].name;
+        planPrice.textContent = planMap[planParam.toLowerCase()].price;
+        planBanner.style.display = 'flex';
+      }
+
+      // Password toggle
+      const pwInput = document.getElementById('password');
+      const pwToggle = document.getElementById('toggle-pw');
+      if (pwToggle && pwInput) {
+        pwToggle.addEventListener('click', function() {
+          const isPw = pwInput.type === 'password';
+          pwInput.type = isPw ? 'text' : 'password';
+          pwToggle.textContent = isPw ? 'Hide' : 'Show';
+        });
+      }
+    })();
+
+    function handleRegister() {
+      const btn = document.getElementById('btn-submit');
+      btn.textContent = 'Setting up your business profile...';
+      btn.disabled = true;
+      setTimeout(function() {
+        alert('Welcome to Vela AI! Your account setup is complete. Redirecting to your provider workspace...');
+        window.location.href = '/login';
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

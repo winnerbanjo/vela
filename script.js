@@ -151,12 +151,123 @@
     });
   }
 
+  // --- Dynamic Rotating Word in Hero ---
+  function initRotatingWord() {
+    const wordEl = document.getElementById('hero-rotating-word');
+    if (!wordEl) return;
+
+    const words = ['website', 'store', 'booking page', 'one link'];
+    let index = 0;
+
+    setInterval(() => {
+      wordEl.classList.add('fade-out');
+      setTimeout(() => {
+        index = (index + 1) % words.length;
+        wordEl.textContent = words[index];
+        wordEl.classList.remove('fade-out');
+        wordEl.classList.add('fade-in');
+        setTimeout(() => {
+          wordEl.classList.remove('fade-in');
+        }, 220);
+      }, 220);
+    }, 2600);
+  }
+
+  // --- Day with Vela Stepper & Simulations ---
+  function initDayStepper() {
+    const momentBtns = document.querySelectorAll('.day-moment-btn');
+    const momentViews = document.querySelectorAll('.day-moment-view');
+
+    momentBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        const momentNum = this.getAttribute('data-moment');
+
+        // Update tabs
+        momentBtns.forEach(b => {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        this.classList.add('is-active');
+        this.setAttribute('aria-selected', 'true');
+
+        // Switch views
+        momentViews.forEach(v => {
+          v.classList.remove('is-active');
+          v.hidden = true;
+        });
+
+        const targetView = document.getElementById('view-moment-' + momentNum);
+        if (targetView) {
+          targetView.hidden = false;
+          targetView.classList.add('is-active');
+        }
+
+        trackEvent('day_moment_switched', { moment: momentNum });
+      });
+    });
+
+    // 9:00 AM Confirm Attendance Simulation
+    const btnConfirm = document.getElementById('btn-confirm-reminder');
+    const feedbackConfirm = document.getElementById('reminder-feedback');
+    const labelConfirm = document.getElementById('confirm-reminder-label');
+    if (btnConfirm) {
+      btnConfirm.addEventListener('click', () => {
+        if (labelConfirm) labelConfirm.textContent = '✓ Confirmed';
+        btnConfirm.classList.add('btn-pill-lime');
+        if (feedbackConfirm) feedbackConfirm.hidden = false;
+        trackEvent('sim_attendance_confirmed', {});
+      });
+    }
+
+    // 12:30 PM Time Slot Chip Selection
+    const slotChips = document.querySelectorAll('.sim-chip-btn');
+    slotChips.forEach(chip => {
+      chip.addEventListener('click', function () {
+        slotChips.forEach(c => c.classList.remove('is-selected'));
+        this.classList.add('is-selected');
+        const slot = this.getAttribute('data-slot');
+        trackEvent('sim_slot_selected', { slot });
+      });
+    });
+
+    // 12:30 PM Pay Deposit Simulation
+    const btnDeposit = document.getElementById('btn-simulate-booking');
+    const textDeposit = document.getElementById('simulate-booking-text');
+    const syncDeposit = document.getElementById('booking-calendar-sync');
+    if (btnDeposit) {
+      btnDeposit.addEventListener('click', () => {
+        if (textDeposit) textDeposit.textContent = '✓ Paystack Deposit Paid';
+        btnDeposit.style.backgroundColor = '#15803d';
+        btnDeposit.style.color = '#FFFFFF';
+        if (syncDeposit) syncDeposit.hidden = false;
+        trackEvent('sim_deposit_paid', {});
+      });
+    }
+
+    // 4:00 PM Approve Outreach Simulation
+    const btnApprove = document.getElementById('btn-approve-outreach');
+    const labelApprove = document.getElementById('approve-outreach-label');
+    const outcomeApprove = document.getElementById('campaign-outcome-box');
+    if (btnApprove) {
+      btnApprove.addEventListener('click', () => {
+        if (labelApprove) labelApprove.textContent = '✓ Approved & Sent';
+        btnApprove.style.backgroundColor = '#15803d';
+        btnApprove.style.color = '#FFFFFF';
+        if (outcomeApprove) outcomeApprove.hidden = false;
+        trackEvent('sim_campaign_approved', {});
+      });
+    }
+  }
+
   // --- Document Ready ---
   document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initFaqAccordion();
+    initRotatingWord();
+    initDayStepper();
   });
 })();
+
 
 
 

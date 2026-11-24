@@ -50,8 +50,10 @@
           <!-- Desktop Navigation -->
           <nav class="desktop-nav" aria-label="Main Navigation">
             <ul class="nav-list">
-              <li><a href="#see-vela-at-work" class="nav-link">How it works</a></li>
-              <li><a href="#pricing" class="nav-link">Pricing</a></li>
+              <li><a href="/product" class="nav-link">Product</a></li>
+              <li><a href="/how-it-works" class="nav-link">How it works</a></li>
+              <li><a href="/pricing" class="nav-link">Pricing</a></li>
+              <li><a href="/faqs" class="nav-link">FAQs</a></li>
             </ul>
           </nav>
 
@@ -81,9 +83,10 @@
               <button type="button" class="mobile-menu-close" aria-label="Close menu">&times;</button>
             </div>
             <nav class="mobile-nav" aria-label="Mobile Navigation">
-              <a href="#see-vela-at-work" class="mobile-nav-link">How it works</a>
-              <a href="#pricing" class="mobile-nav-link">Pricing</a>
-              <a href="#faqs" class="mobile-nav-link">Questions?</a>
+              <a href="/product" class="mobile-nav-link">Product</a>
+              <a href="/how-it-works" class="mobile-nav-link">How it works</a>
+              <a href="/pricing" class="mobile-nav-link">Pricing</a>
+              <a href="/faqs" class="mobile-nav-link">FAQs</a>
               <div class="mobile-menu-divider"></div>
               <a href="/login" class="mobile-nav-link track-cta" data-cta-placement="mobile_drawer_login">Log in</a>
               <a href="/register" class="btn btn-pill-ink mobile-signup-btn track-cta" data-cta-placement="mobile_drawer_primary">Get started</a>
@@ -106,9 +109,9 @@
               You see the clients.<br class="desktop-break"> Vela follows up.
             </h1>
 
-            <!-- Supporting Body -->
+            <!-- Supporting Body with Rotating Word -->
             <p class="hero-subheading">
-              Give clients a website to book and pay a deposit. Vela sends reminders and helps you bring past clients back.
+              Give clients a <span class="dynamic-word-wrap"><strong class="dynamic-word" id="hero-rotating-word">website</strong></span> to book your services and pay deposits. Ask Vela AI to email reminders, follow up after appointments and invite past clients back when you have space.
             </p>
 
             <!-- Hero Actions -->
@@ -119,6 +122,19 @@
               <a href="#see-vela-at-work" class="hero-text-link">
                 See how it works
               </a>
+            </div>
+
+            <!-- Audience Strip with plain category labels and middots -->
+            <div class="audience-strip" aria-label="Industries served by Vela AI">
+              <span class="audience-item">Beauty &amp; wellness</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Barbers</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Photography</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Fitness</span>
+              <span class="audience-sep">·</span>
+              <span class="audience-item">Consulting</span>
             </div>
           </div>
         </section>
@@ -168,73 +184,217 @@
         </section>
 
         <!-- ==========================================================================
-             One Product Story ("While you’re with a client")
+             A Day with Vela (Interactive Day at Studio Teni)
              ========================================================================== -->
-        <section id="see-vela-at-work" class="product-story-section" aria-labelledby="story-heading">
-          <!-- Legacy anchor aliases -->
-          <div id="what-vela-does" style="position:relative; top:-20px;"></div>
+        <section id="see-vela-at-work" class="day-with-vela-section" aria-labelledby="day-heading">
           <div id="agent-demo" style="position:relative; top:-20px;"></div>
+          <div id="what-vela-does" style="position:relative; top:-20px;"></div>
           <div id="how-it-works" style="position:relative; top:-20px;"></div>
 
           <div class="content-container">
-            <div class="story-layout">
-              <!-- Left Column: Heading & Caption -->
-              <div class="story-left">
-                <div class="story-caption">An example day at Studio Teni</div>
-                <h2 id="story-heading" class="story-heading">While you’re with a client</h2>
+            <div class="day-panel">
+              <!-- Left Column: Header & Moment Tabs -->
+              <div class="day-left-col">
+                <div class="day-caption">An example day at Studio Teni</div>
+                <h2 id="day-heading" class="day-heading">While you’re with a client</h2>
+                <p class="day-lead-body">
+                  Follow how Vela keeps your business running in the background. Tap each time to see it work:
+                </p>
+
+                <!-- 3 Clean Step Tabs -->
+                <div class="day-moment-nav" role="tablist" aria-label="Day moments">
+                  <button type="button" class="day-moment-btn is-active" data-moment="1" role="tab" aria-selected="true">
+                    <span class="moment-time">9:00 AM</span>
+                    <span class="moment-label">Ada's reminder</span>
+                  </button>
+                  <button type="button" class="day-moment-btn" data-moment="2" role="tab" aria-selected="false">
+                    <span class="moment-time">12:30 PM</span>
+                    <span class="moment-label">Midday booking</span>
+                  </button>
+                  <button type="button" class="day-moment-btn" data-moment="3" role="tab" aria-selected="false">
+                    <span class="moment-time">4:00 PM</span>
+                    <span class="moment-label">Client rebooking</span>
+                  </button>
+                </div>
+
+                <!-- Sign up Action Button -->
+                <div class="day-cta-simple">
+                  <a href="/register" class="btn btn-primary day-signup-btn track-cta" data-cta-placement="day_stepper_primary">
+                    <span>Sign up for Vela</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </a>
+                  <div class="day-cta-note">
+                    <span class="day-pulse-dot"></span>
+                    <span>Free to start · Live in 3 mins</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- Right Column: Semantic List of All 3 Moments -->
-              <div class="story-right">
-                <ol class="story-moments-list">
-                  <!-- Moment 1: 9:00 AM -->
-                  <li class="story-moment-item">
-                    <div class="moment-marker">
-                      <span class="moment-dot"></span>
-                      <span class="moment-line"></span>
-                    </div>
-                    <div class="moment-body">
-                      <div class="moment-time-title">9:00 AM · Appointment reminder</div>
-                      <p class="moment-text">
-                        Ada receives her appointment time and studio address while Teni sets up.
-                      </p>
-                    </div>
-                  </li>
+              <!-- Right Column: Active Interactive Preview Card -->
+              <div class="day-preview-wrapper">
+                
+                <!-- View 1: 9:00 AM -->
+                <div class="day-moment-view is-active" id="view-moment-1">
+                  <div class="moment-tag">9:00 AM · Before the first appointment</div>
+                  <h3 class="moment-title">Ada gets a reminder</h3>
+                  <p class="moment-desc">
+                    Ada receives her appointment time and studio address. Teni is already setting up for the day.
+                  </p>
 
-                  <!-- Moment 2: 12:30 PM -->
-                  <li class="story-moment-item">
-                    <div class="moment-marker">
-                      <span class="moment-dot"></span>
-                      <span class="moment-line"></span>
+                  <div class="moment-card-box">
+                    <div class="card-box-top">
+                      <span class="wa-dot"></span>
+                      <span class="card-box-label">WhatsApp · Studio Teni via Vela</span>
                     </div>
-                    <div class="moment-body">
-                      <div class="moment-time-title">12:30 PM · Deposit received</div>
-                      <p class="moment-text">
-                        A client books through Teni’s website and pays her deposit. The appointment appears on the calendar.
-                      </p>
+                    <div class="card-box-content">
+                      “Good morning Ada! Knotless Braids appointment today at 10:00 AM at Studio Teni (14 Bishop Oluwole St, Victoria Island).”
                     </div>
-                  </li>
+                    <div class="card-box-action">
+                      <button type="button" class="btn btn-primary sim-action-primary" id="btn-confirm-reminder">
+                        <span id="confirm-reminder-label">Confirm attendance</span>
+                      </button>
+                      <span id="reminder-feedback" class="sim-feedback-inline" hidden>✓ Confirmed at 9:02 AM · Station prepped</span>
+                    </div>
+                  </div>
+                </div>
 
-                  <!-- Moment 3: 4:00 PM -->
-                  <li class="story-moment-item">
-                    <div class="moment-marker">
-                      <span class="moment-dot"></span>
+                <!-- View 2: 12:30 PM -->
+                <div class="day-moment-view" id="view-moment-2" hidden>
+                  <div class="moment-tag">12:30 PM · While Teni is working</div>
+                  <h3 class="moment-title">A client books &amp; pays deposit</h3>
+                  <p class="moment-desc">
+                    A new client opens the website, picks a time and pays her deposit. The booking appears on Teni’s calendar.
+                  </p>
+
+                  <div class="moment-card-box">
+                    <div class="card-box-top">
+                      <span class="booking-dot"></span>
+                      <span class="card-box-label">studio-teni.vela.ng · Boho Knotless Braids (₦35,000)</span>
                     </div>
-                    <div class="moment-body">
-                      <div class="moment-time-title">4:00 PM · Rebooking email drafted</div>
-                      <p class="moment-text">
-                        Teni asks Vela to fill Saturday’s gaps. Vela drafts an invite for past clients who opted in.
-                      </p>
-                      <div class="moment-control-note">
-                        Teni reviews the email before it goes out.
-                      </div>
+                    <div class="card-box-slots">
+                      <button type="button" class="sim-chip-btn" data-slot="1:30 PM">1:30 PM</button>
+                      <button type="button" class="sim-chip-btn is-selected" data-slot="3:30 PM">3:30 PM</button>
+                      <button type="button" class="sim-chip-btn" data-slot="5:00 PM">5:00 PM</button>
                     </div>
-                  </li>
-                </ol>
+                    <div class="card-box-action">
+                      <button type="button" class="btn btn-primary" id="btn-simulate-booking">
+                        <span id="simulate-booking-text">Pay ₦10,000 deposit</span>
+                      </button>
+                      <span id="booking-calendar-sync" class="sim-feedback-inline" hidden>✓ ₦10,000 deposit received · Added to calendar</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- View 3: 4:00 PM -->
+                <div class="day-moment-view" id="view-moment-3" hidden>
+                  <div class="moment-tag">4:00 PM · Before Teni heads home</div>
+                  <h3 class="moment-title">Teni fills Saturday openings</h3>
+                  <p class="moment-desc">
+                    Teni asks Vela to invite past clients back for Saturday. Vela picks eligible clients and drafts an invite.
+                  </p>
+
+                  <div class="moment-card-box">
+                    <div class="card-box-top">
+                      <span class="ai-dot"></span>
+                      <span class="card-box-label">Teni: “Invite past clients who booked braids before”</span>
+                    </div>
+                    <div class="card-box-content">
+                      Vela drafted an invite to 8 past clients with direct links to book Saturday's open slots.
+                    </div>
+                    <div class="card-box-action">
+                      <button type="button" class="btn btn-primary" id="btn-approve-outreach">
+                        <span id="approve-outreach-label">Approve &amp; send to 8 clients</span>
+                      </button>
+                      <span id="campaign-outcome-box" class="sim-feedback-inline" hidden>✓ 8 emails sent · 2 Saturday slots claimed!</span>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
         </section>
+
+        <!-- ==========================================================================
+             The Client Experience (Client-Facing & Outcome-Driven)
+             ========================================================================== -->
+        <section class="capabilities-section">
+          <div class="content-container">
+            <div class="cap-header-compact">
+              <div class="inner-badge">The Client Experience</div>
+              <h2 class="inner-title" style="font-size:clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom:8px;">Give every client a five-star booking experience.</h2>
+              <p class="inner-subtitle" style="margin-bottom:0; font-size:15px;">
+                No more “DM for price”, waiting for replies, or chasing bank transfers. Just a clean, effortless flow clients love.
+              </p>
+            </div>
+
+            <!-- 4 Client Experience Cards Grid -->
+            <div class="capabilities-grid-4">
+              <div class="cap-card">
+                <div class="cap-num">01 / FIRST IMPRESSION</div>
+                <h3 class="cap-heading">Clear services &amp; upfront pricing</h3>
+                <p class="cap-desc">
+                  Clients open your link, view photos, duration, and exact prices. Zero guesswork, zero awkward DMs.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">02 / INSTANT BOOKING</div>
+                <h3 class="cap-heading">Book &amp; pay deposits in seconds</h3>
+                <p class="cap-desc">
+                  Clients pick an open time on your live calendar and lock their slot with a quick Paystack deposit.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">03 / TIMELY REMINDERS</div>
+                <h3 class="cap-heading">Automatic reminders with directions</h3>
+                <p class="cap-desc">
+                  Clients get a WhatsApp reminder with the appointment time, studio address, and one-tap directions.
+                </p>
+              </div>
+
+              <div class="cap-card">
+                <div class="cap-num">04 / PRIORITY ACCESS</div>
+                <h3 class="cap-heading">Personal invites to rebook</h3>
+                <p class="cap-desc">
+                  Loyal clients receive early access to open weekend slots, making them feel valued, remembered, and cared for.
+                </p>
+              </div>
+            </div>
+
+            <!-- Compressed Owner Control Strip ("Your business. Your say.") -->
+            <div class="owner-control-strip">
+              <div class="control-strip-header">
+                <div class="control-strip-tag">
+                  <span class="control-shield-dot"></span>
+                  <span>Full Owner Oversight</span>
+                </div>
+                <h3 class="control-strip-title">Your business. Your say.</h3>
+                <p class="control-strip-sub">
+                  Vela only acts with your permission. You maintain complete veto power over every message, audience, and price.
+                </p>
+              </div>
+
+              <div class="control-guarantee-grid">
+                <div class="control-guarantee-card">
+                  <div class="guarantee-badge">1. Explicit Approval</div>
+                  <p class="guarantee-text">You review and approve campaigns before dispatch. Reminders pause anytime.</p>
+                </div>
+                <div class="control-guarantee-card">
+                  <div class="guarantee-badge">2. Smart Checks</div>
+                  <p class="guarantee-text">Flags missing prices or empty audiences before drafting — zero guessing.</p>
+                </div>
+                <div class="control-guarantee-card">
+                  <div class="guarantee-badge">3. Verified Delivery</div>
+                  <p class="guarantee-text">Tracks actual client delivery. Automatically retries failed sends.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
 
         <!-- ==========================================================================
              Pricing Section ("Simple quarterly plans")

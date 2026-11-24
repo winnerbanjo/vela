@@ -3255,8 +3255,322 @@ body {
   letter-spacing: 0.04em;
 }
 
+/* Dynamic Word Rotation in Hero */
+.dynamic-word-wrap {
+  display: inline-block;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.dynamic-word {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--color-lime);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 3px;
+  display: inline-block;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.dynamic-word.fade-out {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.dynamic-word.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ==========================================================================
-   One Product Story ("While you’re with a client")
+   A Day with Vela (Clean, Simple Interactive Day)
+   ========================================================================== */
+
+.day-with-vela-section {
+  padding: 64px 0 80px;
+  border-top: 1px solid rgba(22, 24, 23, 0.08);
+}
+
+.day-panel {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 28px;
+  padding: 48px 44px;
+  box-shadow: 0 4px 24px rgba(22, 24, 23, 0.03);
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.day-left-col {
+  position: sticky;
+  top: 96px;
+}
+
+.day-caption {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(22, 24, 23, 0.55);
+  margin-bottom: 8px;
+}
+
+.day-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.day-lead-body {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+  margin: 14px 0 22px;
+}
+
+/* Time Moment Navigation Pills */
+.day-moment-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.day-moment-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  background: rgba(22, 24, 23, 0.03);
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.day-moment-btn:hover {
+  background: rgba(22, 24, 23, 0.06);
+  border-color: rgba(22, 24, 23, 0.18);
+  transform: translateX(3px);
+}
+
+.day-moment-btn.is-active {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  box-shadow: 0 4px 14px rgba(22, 24, 23, 0.12);
+}
+
+.day-moment-btn .moment-time {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.day-moment-btn.is-active .moment-time {
+  color: var(--color-lime);
+}
+
+.day-moment-btn .moment-label {
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.day-moment-btn.is-active .moment-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Sign up Action Box inside Day Stepper */
+.day-cta-simple {
+  margin-top: 18px;
+}
+
+.day-signup-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: 12px;
+  text-decoration: none;
+  background: var(--color-ink);
+  color: #FFFFFF;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.day-signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(22, 24, 23, 0.16);
+}
+
+.day-cta-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.day-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  display: inline-block;
+}
+
+/* Interactive Preview Box */
+.day-preview-wrapper {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 22px;
+  padding: 32px 28px;
+  box-shadow: 0 4px 20px rgba(22, 24, 23, 0.03);
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.day-moment-view {
+  animation: fadeIn 0.22s ease-out;
+}
+
+.moment-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  margin-bottom: 6px;
+}
+
+.moment-title {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.moment-desc {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+  margin: 0 0 18px;
+  max-width: 520px;
+}
+
+.moment-card-box {
+  background: #F8F8F6;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.card-box-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  margin-bottom: 10px;
+}
+
+.card-box-top .wa-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #25D366;
+}
+
+.card-box-top .booking-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-lime);
+  border: 1px solid var(--color-ink);
+}
+
+.card-box-top .ai-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink);
+}
+
+.card-box-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-ink);
+  margin-bottom: 14px;
+}
+
+.card-box-slots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.sim-chip-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 24, 23, 0.15);
+  background: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sim-chip-btn:hover {
+  border-color: var(--color-ink);
+}
+
+.sim-chip-btn.is-selected {
+  background: var(--color-ink);
+  color: #FFFFFF;
+  border-color: var(--color-ink);
+}
+
+.card-box-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sim-feedback-inline {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #15803d;
+}
+
+/* ==========================================================================
+   One Product Story Semantic Fallback List
    ========================================================================== */
 
 .product-story-section {
@@ -3270,6 +3584,7 @@ body {
   gap: 56px;
   align-items: flex-start;
 }
+
 
 .story-left {
   position: sticky;
@@ -3519,5 +3834,22 @@ body {
   .pricing-grid {
     grid-template-columns: 1fr;
   }
+  .day-panel {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 24px 16px;
+    border-radius: 20px;
+  }
+  .capabilities-grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .control-guarantee-grid {
+    grid-template-columns: 1fr;
+  }
+  .owner-control-strip {
+    padding: 24px 16px;
+    border-radius: 18px;
+  }
 }
+
 
