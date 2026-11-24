@@ -4,18 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vela AI | The AI agent for service businesses</title>
-  <meta name="description" content="Give clients a website to book your services. Ask Vela AI to email reminders, follow up after appointments and invite past clients back when you have space.">
+  <meta name="description" content="Give clients a website to book and pay a deposit. Vela sends reminders and helps you bring past clients back.">
 
-  <!-- Open Graph / Meta -->
+  <!-- Open Graph / Social Sharing -->
   <meta property="og:title" content="Vela AI | The AI agent for service businesses">
-  <meta property="og:description" content="You handle the appointments. Vela handles the follow-up. The AI agent for independent Nigerian service businesses.">
+  <meta property="og:description" content="You see the clients. Vela follows up. The AI agent for service businesses.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vela.ng">
   <meta property="og:image" content="assets/vela-logo-black-opt.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Vela AI | The AI agent for service businesses">
+  <meta name="twitter:description" content="You see the clients. Vela follows up. The AI agent for service businesses.">
 
-  <!-- Google Fonts: Plus Jakarta Sans & Geist -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Google Fonts: Geist & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -27,21 +34,10 @@
   <!-- Accessibility Skip Link -->
   <a href="#main-content" class="sr-only">Skip to main content</a>
 
-  <!-- Outer Framing Container (Mint / Pale Lime Surround) -->
+  <!-- Outer Framing Container (Brand Lime Accent Border) -->
   <div class="outer-frame">
     <!-- Inner Warm-White Canvas -->
     <div class="inner-canvas">
-
-      <!-- Background Accent Curves -->
-      <div class="canvas-decorations" aria-hidden="true">
-        <div class="vertical-rule rule-left"></div>
-        <div class="vertical-rule rule-right"></div>
-        <svg class="concentric-curves" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="600" cy="50" rx="420" ry="240" stroke="#161817" stroke-width="1" stroke-opacity="0.04" />
-          <ellipse cx="600" cy="50" rx="580" ry="340" stroke="#161817" stroke-width="1" stroke-opacity="0.03" />
-          <ellipse cx="600" cy="50" rx="740" ry="440" stroke="#161817" stroke-width="1" stroke-opacity="0.02" />
-        </svg>
-      </div>
 
       <!-- Slim Header inside Canvas -->
       <header class="site-header">
@@ -52,25 +48,21 @@
           </a>
 
           <!-- Desktop Navigation -->
-          <!-- Desktop Navigation -->
           <nav class="desktop-nav" aria-label="Main Navigation">
             <ul class="nav-list">
-              <li><a href="#what-vela-does" class="nav-link">What Vela does</a></li>
-              <li><a href="#see-vela-at-work" class="nav-link">See Vela at work</a></li>
+              <li><a href="#see-vela-at-work" class="nav-link">How it works</a></li>
               <li><a href="#pricing" class="nav-link">Pricing</a></li>
-              <li><a href="/login" class="nav-link">Log in</a></li>
             </ul>
           </nav>
 
           <!-- Header Actions -->
           <div class="header-actions">
             <a href="/login" class="login-link track-cta" data-cta-placement="header_login">Log in</a>
-            <a href="/login" class="btn btn-pill-ink header-cta track-cta" data-cta-placement="header_primary">
-              <span class="desktop-text">Set up my agent</span>
-              <span class="mobile-text">Get started</span>
+            <a href="/register" class="btn btn-pill-ink header-cta track-cta" data-cta-placement="header_primary">
+              Get started
             </a>
             <!-- Mobile Menu Toggle Button -->
-            <button type="button" class="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+            <button type="button" class="mobile-menu-btn" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open navigation menu">
               <span class="menu-bar"></span>
               <span class="menu-bar"></span>
             </button>
@@ -89,13 +81,12 @@
               <button type="button" class="mobile-menu-close" aria-label="Close menu">&times;</button>
             </div>
             <nav class="mobile-nav" aria-label="Mobile Navigation">
-              <a href="#what-vela-does" class="mobile-nav-link">What Vela does</a>
-              <a href="#see-vela-at-work" class="mobile-nav-link">See Vela at work</a>
+              <a href="#see-vela-at-work" class="mobile-nav-link">How it works</a>
               <a href="#pricing" class="mobile-nav-link">Pricing</a>
-              <a href="/faqs" class="mobile-nav-link">FAQs</a>
+              <a href="#faqs" class="mobile-nav-link">Questions?</a>
               <div class="mobile-menu-divider"></div>
               <a href="/login" class="mobile-nav-link track-cta" data-cta-placement="mobile_drawer_login">Log in</a>
-              <a href="/login" class="btn btn-pill-ink mobile-signup-btn track-cta" data-cta-placement="mobile_drawer_primary">Set up my agent</a>
+              <a href="/register" class="btn btn-pill-ink mobile-signup-btn track-cta" data-cta-placement="mobile_drawer_primary">Get started</a>
             </nav>
           </div>
         </div>
@@ -107,387 +98,205 @@
         <!-- Hero Section -->
         <section class="hero-section">
           <div class="content-container hero-container">
-            <!-- Plain Descriptor Tag -->
-            <div class="hero-tagline-strip">
-              <span class="status-pulse-dot"></span>
-              <span class="tagline-text">The AI agent for service businesses</span>
-            </div>
+            <!-- Plain Descriptor -->
+            <div class="hero-descriptor">The AI agent for service businesses</div>
 
-            <!-- Two-line Headline with desktop break and natural wrap -->
+            <!-- Two-line Headline with separate lines when space permits -->
             <h1 class="hero-headline">
-              You handle the appointments.<br class="desktop-break"> Vela handles the <span style="white-space: nowrap;">follow-up.</span>
+              You see the clients.<br class="desktop-break"> Vela follows up.
             </h1>
 
-            <!-- Supporting Copy -->
+            <!-- Supporting Body -->
             <p class="hero-subheading">
-              Give clients a website to book your services. Ask Vela AI to email reminders, follow up after appointments and invite past clients back when you have space.
+              Give clients a website to book and pay a deposit. Vela sends reminders and helps you bring past clients back.
             </p>
 
-            <!-- Hero CTAs -->
+            <!-- Hero Actions -->
             <div class="hero-ctas">
-              <a href="#see-vela-at-work" class="btn btn-pill-ink hero-primary-cta" id="see-vela-hero-btn">
-                <span>See Vela at work</span>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cta-arrow" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+              <a href="/register" class="btn btn-pill-ink hero-primary-cta track-cta" data-cta-placement="hero_primary">
+                Get started
               </a>
-              <a href="/login" class="btn btn-pill-secondary hero-secondary-cta track-cta" data-cta-placement="hero_setup">
-                Set up my agent
+              <a href="#see-vela-at-work" class="hero-text-link">
+                See how it works
               </a>
-            </div>
-
-            <!-- Audience Strip with plain category labels and middots -->
-            <div class="audience-strip" aria-label="Industries served by Vela AI">
-              <span class="audience-item">Beauty &amp; wellness</span>
-              <span class="audience-sep">·</span>
-              <span class="audience-item">Barbers</span>
-              <span class="audience-sep">·</span>
-              <span class="audience-item">Photography</span>
-              <span class="audience-sep">·</span>
-              <span class="audience-item">Fitness</span>
-              <span class="audience-sep">·</span>
-              <span class="audience-item">Consulting</span>
             </div>
           </div>
         </section>
 
-        <!-- Editorial Photography Split (38:62) with Context Cards -->
+        <!-- Editorial Photography Split (38:62) -->
         <section class="photo-pair-section" aria-label="Studio Teni Story">
-          <div class="content-container photo-grid">
-            <!-- Left Photo (38% width): Owner checking her phone -->
-            <div class="photo-card photo-card-left">
-              <img 
-                src="assets/stylist-portrait.jpg" 
-                alt="Studio Teni owner checking her schedule between appointments on her smartphone" 
-                class="editorial-img"
-                loading="eager"
-                width="600"
-                height="800"
-              >
-              <!-- Story Label -->
-              <div class="story-badge-floating">
-                <span>Studio Teni · Sample business</span>
+          <div class="content-container">
+            <div class="photo-grid">
+              <!-- Left Photo (38% width): Stylist styling hair in a salon -->
+              <div class="photo-card photo-card-left">
+                <img 
+                  src="assets/stylist-portrait.jpg" 
+                  alt="Stylist styling hair in a salon" 
+                  class="editorial-img"
+                  loading="eager"
+                  width="600"
+                  height="800"
+                >
+                <!-- One restrained overlay -->
+                <div class="photo-overlay-tag">
+                  Saturday · 2 openings
+                </div>
               </div>
-              <!-- Card: Saturday · 2 appointments open -->
-              <div class="photo-overlay-openings">
-                <span class="dot"></span>
-                <strong>Saturday</strong>
-                <span>· 2 appointments open</span>
+
+              <!-- Right Photo (62% width): Barber consulting with a client -->
+              <div class="photo-card photo-card-right">
+                <img 
+                  src="assets/stylist-consultation.jpg" 
+                  alt="Barber consulting with a client in a studio" 
+                  class="editorial-img"
+                  loading="eager"
+                  width="1000"
+                  height="800"
+                >
+                <!-- One restrained overlay -->
+                <div class="photo-overlay-tag">
+                  Rebooking email ready to review
+                </div>
               </div>
             </div>
 
-            <!-- Right Photo (62% width): Working with client with email ready to review -->
-            <div class="photo-card photo-card-right">
-              <img 
-                src="assets/stylist-consultation.jpg" 
-                alt="Stylist consulting with a client in a modern Lagos salon" 
-                class="editorial-img"
-                loading="eager"
-                width="1000"
-                height="800"
-              >
-              <!-- Ink Overlay Card: Saturday email ready to review -->
-              <div class="photo-overlay-email">
-                <div class="email-status-pill">
-                  <span>● AI Draft Ready</span>
-                </div>
-                <div class="email-title">Saturday email ready to review</div>
-                <div class="email-sub">8 eligible clients · 2 available times</div>
-              </div>
+            <!-- Single clean caption below photos -->
+            <div class="photo-caption-bar">
+              <span>Studio Teni · Example business</span>
             </div>
           </div>
         </section>
 
         <!-- ==========================================================================
-             A Day with Vela (Clean, Simple Interactive Day)
+             One Product Story ("While you’re with a client")
              ========================================================================== -->
-        <section id="see-vela-at-work" class="day-with-vela-section" aria-labelledby="day-heading">
+        <section id="see-vela-at-work" class="product-story-section" aria-labelledby="story-heading">
+          <!-- Legacy anchor aliases -->
+          <div id="what-vela-does" style="position:relative; top:-20px;"></div>
           <div id="agent-demo" style="position:relative; top:-20px;"></div>
+          <div id="how-it-works" style="position:relative; top:-20px;"></div>
+
           <div class="content-container">
-            <div class="day-panel">
-              <!-- Left Column: Simple Header & Moment Tabs -->
-              <div class="day-left-col">
-                <div class="day-caption">An example day at Studio Teni</div>
-                <h2 id="day-heading" class="day-heading">While you’re with a client</h2>
-                <p class="day-lead-body">
-                  Follow how Vela keeps your business running in the background. Tap each time to see it work:
-                </p>
-
-                <!-- 3 Clean Step Tabs -->
-                <div class="day-moment-nav" role="tablist" aria-label="Day moments">
-                  <button type="button" class="day-moment-btn is-active" data-moment="1" role="tab" aria-selected="true">
-                    <span class="moment-time">9:00 AM</span>
-                    <span class="moment-label">Ada's reminder</span>
-                  </button>
-                  <button type="button" class="day-moment-btn" data-moment="2" role="tab" aria-selected="false">
-                    <span class="moment-time">12:30 PM</span>
-                    <span class="moment-label">Midday booking</span>
-                  </button>
-                  <button type="button" class="day-moment-btn" data-moment="3" role="tab" aria-selected="false">
-                    <span class="moment-time">4:00 PM</span>
-                    <span class="moment-label">Client rebooking</span>
-                  </button>
-                </div>
-
-                <!-- Sign up Action Button -->
-                <div class="day-cta-simple">
-                  <a href="https://app.vela.ng/login" class="btn btn-primary day-signup-btn">
-                    <span>Sign up for Vela</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  </a>
-                  <div class="day-cta-note">
-                    <span class="day-pulse-dot"></span>
-                    <span>Free to start · Live in 3 mins</span>
-                  </div>
-                </div>
+            <div class="story-layout">
+              <!-- Left Column: Heading & Caption -->
+              <div class="story-left">
+                <div class="story-caption">An example day at Studio Teni</div>
+                <h2 id="story-heading" class="story-heading">While you’re with a client</h2>
               </div>
 
-              <!-- Right Column: A Single Active Interactive Preview Card (switches on tab click) -->
-              <div class="day-preview-wrapper">
-                
-                <!-- View 1: 9:00 AM -->
-                <div class="day-moment-view is-active" id="view-moment-1">
-                  <div class="moment-tag">9:00 AM · Before the first appointment</div>
-                  <h3 class="moment-title">Ada gets a reminder</h3>
-                  <p class="moment-desc">
-                    Ada receives her appointment time and studio address. Teni is already setting up for the day.
-                  </p>
+              <!-- Right Column: Semantic List of All 3 Moments -->
+              <div class="story-right">
+                <ol class="story-moments-list">
+                  <!-- Moment 1: 9:00 AM -->
+                  <li class="story-moment-item">
+                    <div class="moment-marker">
+                      <span class="moment-dot"></span>
+                      <span class="moment-line"></span>
+                    </div>
+                    <div class="moment-body">
+                      <div class="moment-time-title">9:00 AM · Appointment reminder</div>
+                      <p class="moment-text">
+                        Ada receives her appointment time and studio address while Teni sets up.
+                      </p>
+                    </div>
+                  </li>
 
-                  <!-- Interactive Mini Card -->
-                  <div class="moment-card-box">
-                    <div class="card-box-top">
-                      <span class="wa-dot"></span>
-                      <span class="card-box-label">WhatsApp · Studio Teni via Vela</span>
+                  <!-- Moment 2: 12:30 PM -->
+                  <li class="story-moment-item">
+                    <div class="moment-marker">
+                      <span class="moment-dot"></span>
+                      <span class="moment-line"></span>
                     </div>
-                    <div class="card-box-content">
-                      “Good morning Ada! Knotless Braids appointment today at 10:00 AM at Studio Teni (14 Bishop Oluwole St, Victoria Island).”
+                    <div class="moment-body">
+                      <div class="moment-time-title">12:30 PM · Deposit received</div>
+                      <p class="moment-text">
+                        A client books through Teni’s website and pays her deposit. The appointment appears on the calendar.
+                      </p>
                     </div>
-                    <div class="card-box-action">
-                      <button type="button" class="btn btn-primary sim-action-primary" id="btn-confirm-reminder">
-                        <span id="confirm-reminder-label">Confirm attendance</span>
-                      </button>
-                      <span id="reminder-feedback" class="sim-feedback-inline" hidden>✓ Confirmed at 9:02 AM · Station prepped</span>
-                    </div>
-                  </div>
-                </div>
+                  </li>
 
-                <!-- View 2: 12:30 PM -->
-                <div class="day-moment-view" id="view-moment-2" hidden>
-                  <div class="moment-tag">12:30 PM · While Teni is working</div>
-                  <h3 class="moment-title">A client books & pays deposit</h3>
-                  <p class="moment-desc">
-                    A new client opens the website, picks a time and pays her deposit. The booking appears on Teni’s calendar.
-                  </p>
-
-                  <!-- Interactive Mini Card -->
-                  <div class="moment-card-box">
-                    <div class="card-box-top">
-                      <span class="booking-dot"></span>
-                      <span class="card-box-label">studio-teni.vela.ng · Boho Knotless Braids (₦35,000)</span>
+                  <!-- Moment 3: 4:00 PM -->
+                  <li class="story-moment-item">
+                    <div class="moment-marker">
+                      <span class="moment-dot"></span>
                     </div>
-                    <div class="card-box-slots">
-                      <button type="button" class="sim-chip-btn" data-slot="1:30 PM">1:30 PM</button>
-                      <button type="button" class="sim-chip-btn is-selected" data-slot="3:30 PM">3:30 PM</button>
-                      <button type="button" class="sim-chip-btn" data-slot="5:00 PM">5:00 PM</button>
+                    <div class="moment-body">
+                      <div class="moment-time-title">4:00 PM · Rebooking email drafted</div>
+                      <p class="moment-text">
+                        Teni asks Vela to fill Saturday’s gaps. Vela drafts an invite for past clients who opted in.
+                      </p>
+                      <div class="moment-control-note">
+                        Teni reviews the email before it goes out.
+                      </div>
                     </div>
-                    <div class="card-box-action">
-                      <button type="button" class="btn btn-primary" id="btn-simulate-booking">
-                        <span id="simulate-booking-text">Pay ₦10,000 deposit</span>
-                      </button>
-                      <span id="booking-calendar-sync" class="sim-feedback-inline" hidden>✓ ₦10,000 deposit received · Added to calendar</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- View 3: 4:00 PM -->
-                <div class="day-moment-view" id="view-moment-3" hidden>
-                  <div class="moment-tag">4:00 PM · Before Teni heads home</div>
-                  <h3 class="moment-title">Teni fills Saturday openings</h3>
-                  <p class="moment-desc">
-                    Teni asks Vela to invite past clients back for Saturday. Vela picks eligible clients and drafts an invite.
-                  </p>
-
-                  <!-- Interactive Mini Card -->
-                  <div class="moment-card-box">
-                    <div class="card-box-top">
-                      <span class="ai-dot"></span>
-                      <span class="card-box-label">Teni: “Invite past clients who booked braids before”</span>
-                    </div>
-                    <div class="card-box-content">
-                      Vela drafted an invite to 8 past clients with direct links to book Saturday's open slots.
-                    </div>
-                    <div class="card-box-action">
-                      <button type="button" class="btn btn-primary" id="btn-approve-outreach">
-                        <span id="approve-outreach-label">Approve & send to 8 clients</span>
-                      </button>
-                      <span id="campaign-outcome-box" class="sim-feedback-inline" hidden>✓ 8 emails sent · 2 Saturday slots claimed!</span>
-                    </div>
-                  </div>
-                </div>
-
+                  </li>
+                </ol>
               </div>
             </div>
           </div>
         </section>
 
         <!-- ==========================================================================
-             The Client Experience (Client-Facing & Outcome-Driven)
-             ========================================================================== -->
-        <section id="what-vela-does" class="capabilities-section">
-          <div class="content-container">
-            <div class="cap-header-compact">
-              <div class="inner-badge">The Client Experience</div>
-              <h2 class="inner-title" style="font-size:clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom:8px;">Give every client a five-star booking experience.</h2>
-              <p class="inner-subtitle" style="margin-bottom:0; font-size:15px;">
-                No more “DM for price”, waiting for replies, or chasing bank transfers. Just a clean, effortless flow clients love.
-              </p>
-            </div>
-
-            <!-- 4 Client Experience Cards Grid -->
-            <div class="capabilities-grid-4">
-              <div class="cap-card">
-                <div class="cap-num">01 / FIRST IMPRESSION</div>
-                <h3 class="cap-heading">Clear services &amp; upfront pricing</h3>
-                <p class="cap-desc">
-                  Clients open your link, view photos, duration, and exact prices. Zero guesswork, zero awkward DMs.
-                </p>
-              </div>
-
-              <div class="cap-card">
-                <div class="cap-num">02 / INSTANT BOOKING</div>
-                <h3 class="cap-heading">Book &amp; pay deposits in seconds</h3>
-                <p class="cap-desc">
-                  Clients pick an open time on your live calendar and lock their slot with a quick Paystack deposit.
-                </p>
-              </div>
-
-              <div class="cap-card">
-                <div class="cap-num">03 / TIMELY REMINDERS</div>
-                <h3 class="cap-heading">Automatic reminders with directions</h3>
-                <p class="cap-desc">
-                  Clients get a WhatsApp reminder with the appointment time, studio address, and one-tap directions.
-                </p>
-              </div>
-
-              <div class="cap-card">
-                <div class="cap-num">04 / PRIORITY ACCESS</div>
-                <h3 class="cap-heading">Personal invites to rebook</h3>
-                <p class="cap-desc">
-                  Loyal clients receive early access to open weekend slots, making them feel valued, remembered, and cared for.
-                </p>
-              </div>
-            </div>
-
-            <!-- Compressed Owner Control Strip ("Your business. Your say.") -->
-            <div class="owner-control-strip">
-              <div class="control-strip-header">
-                <div class="control-strip-tag">
-                  <span class="control-shield-dot"></span>
-                  <span>Full Owner Oversight</span>
-                </div>
-                <h3 class="control-strip-title">Your business. Your say.</h3>
-                <p class="control-strip-sub">
-                  Vela only acts with your permission. You maintain complete veto power over every message, audience, and price.
-                </p>
-              </div>
-
-              <div class="control-guarantee-grid">
-                <div class="control-guarantee-card">
-                  <div class="guarantee-badge">1. Explicit Approval</div>
-                  <p class="guarantee-text">You review and approve campaigns before dispatch. Reminders pause anytime.</p>
-                </div>
-                <div class="control-guarantee-card">
-                  <div class="guarantee-badge">2. Smart Checks</div>
-                  <p class="guarantee-text">Flags missing prices or empty audiences before drafting — zero guessing.</p>
-                </div>
-                <div class="control-guarantee-card">
-                  <div class="guarantee-badge">3. Verified Delivery</div>
-                  <p class="guarantee-text">Tracks actual client delivery. Automatically retries failed sends.</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- ==========================================================================
-             Pricing Section ("Choose the help your business needs.")
+             Pricing Section ("Simple quarterly plans")
              ========================================================================== -->
         <section id="pricing" class="pricing-section">
           <div class="content-container">
-            <div style="text-align:center; max-width:720px; margin:0 auto 48px;">
-              <div class="inner-badge">Transparent Pricing</div>
-              <h2 class="inner-title" style="font-size:clamp(2rem, 4vw, 3rem); margin-bottom:12px;">Choose the help your business needs.</h2>
-              <p class="inner-subtitle" style="margin-bottom:0;">
-                Clear quarterly plans designed for independent Nigerian service businesses. Zero hidden fees.
-              </p>
+            <div class="pricing-header">
+              <h2 class="pricing-title">Simple quarterly plans</h2>
             </div>
 
-            <!-- Pricing Cards -->
+            <!-- Pricing Grid -->
             <div class="pricing-grid">
               
               <!-- Starter Plan -->
               <div class="pricing-card">
                 <div class="plan-header">
                   <h3 class="plan-name">Starter</h3>
-                  <p class="plan-description">For solo operators starting out with streamlined client bookings.</p>
                   <div class="plan-price">
-                    <span class="currency">&#8358;</span>
-                    <span class="amount">10,000</span>
+                    <span class="currency">&#8358;</span><span class="amount">10,000</span>
                     <span class="period">/ quarter</span>
                   </div>
-                  <span class="billing-cycle">Billed quarterly</span>
                 </div>
                 <ul class="plan-features">
-                  <li><span class="check-mark">&#10003;</span> 1 provider profile &amp; unlimited client bookings</li>
-                  <li><span class="check-mark">&#10003;</span> Dedicated mobile booking site (vela.ng/p/yourname)</li>
-                  <li><span class="check-mark">&#10003;</span> 50 AI agent follow-up tasks / quarter</li>
-                  <li><span class="check-mark">&#10003;</span> Bank transfer verification &amp; instant receipts</li>
+                  <li><span class="check-mark">&#10003;</span> 1 provider profile &amp; unlimited bookings</li>
+                  <li><span class="check-mark">&#10003;</span> Dedicated booking website (vela.ng/p/yourname)</li>
+                  <li><span class="check-mark">&#10003;</span> Automated email confirmations &amp; receipts</li>
                 </ul>
-                <a href="/login" class="btn btn-outline-ink plan-cta track-cta" data-cta-placement="pricing_starter">Choose Starter</a>
+                <a href="/register?plan=starter" class="btn btn-pill-ink plan-cta track-cta" data-cta-placement="pricing_starter">Get started</a>
               </div>
 
-              <!-- Growth Plan (Featured) -->
-              <div class="pricing-card card-featured">
-                <div class="popular-pill">Most popular</div>
+              <!-- Growth Plan -->
+              <div class="pricing-card">
                 <div class="plan-header">
                   <h3 class="plan-name">Growth</h3>
-                  <p class="plan-description">For busy service providers with growing client volume.</p>
                   <div class="plan-price">
-                    <span class="currency">&#8358;</span>
-                    <span class="amount">15,000</span>
+                    <span class="currency">&#8358;</span><span class="amount">15,000</span>
                     <span class="period">/ quarter</span>
                   </div>
-                  <span class="billing-cycle">Billed quarterly</span>
                 </div>
                 <ul class="plan-features">
-                  <li><span class="check-mark">&#10003;</span> Up to 3 staff members &amp; calendar synchronization</li>
-                  <li><span class="check-mark">&#10003;</span> Automated SMS &amp; WhatsApp appointment reminders</li>
-                  <li><span class="check-mark">&#10003;</span> 250 AI agent follow-up &amp; rebooking tasks / quarter</li>
-                  <li><span class="check-mark">&#10003;</span> Paystack &amp; Moniepoint instant deposit collection</li>
+                  <li><span class="check-mark">&#10003;</span> Up to 3 staff members &amp; calendar sync</li>
+                  <li><span class="check-mark">&#10003;</span> Automated SMS &amp; WhatsApp reminders</li>
+                  <li><span class="check-mark">&#10003;</span> Instant Paystack &amp; Moniepoint deposits</li>
                 </ul>
-                <a href="/login" class="btn btn-pill-ink plan-cta track-cta" data-cta-placement="pricing_growth">Choose Growth</a>
+                <a href="/register?plan=growth" class="btn btn-pill-ink plan-cta track-cta" data-cta-placement="pricing_growth">Get started</a>
               </div>
 
               <!-- Scale Plan -->
               <div class="pricing-card">
                 <div class="plan-header">
                   <h3 class="plan-name">Scale</h3>
-                  <p class="plan-description">For multi-chair salons, studios, and expanding brands.</p>
                   <div class="plan-price">
-                    <span class="currency">&#8358;</span>
-                    <span class="amount">25,000</span>
+                    <span class="currency">&#8358;</span><span class="amount">25,000</span>
                     <span class="period">/ quarter</span>
                   </div>
-                  <span class="billing-cycle">Billed quarterly</span>
                 </div>
                 <ul class="plan-features">
-                  <li><span class="check-mark">&#10003;</span> Multiple salon/studio locations &amp; team permissions</li>
+                  <li><span class="check-mark">&#10003;</span> Multiple locations &amp; team permissions</li>
                   <li><span class="check-mark">&#10003;</span> Custom domain booking page (.biz eligible)</li>
-                  <li><span class="check-mark">&#10003;</span> Unlimited AI agent follow-up tasks &amp; campaign builder</li>
-                  <li><span class="check-mark">&#10003;</span> Priority dedicated WhatsApp concierge support</li>
+                  <li><span class="check-mark">&#10003;</span> Dedicated WhatsApp concierge support</li>
                 </ul>
-                <a href="/login" class="btn btn-outline-ink plan-cta track-cta" data-cta-placement="pricing_scale">Choose Scale</a>
+                <a href="/register?plan=scale" class="btn btn-pill-ink plan-cta track-cta" data-cta-placement="pricing_scale">Get started</a>
               </div>
 
             </div>
@@ -495,36 +304,30 @@
         </section>
 
         <!-- ==========================================================================
-             FAQs Section (Version 2 Themes)
+             FAQs Section ("Questions?")
              ========================================================================== -->
         <section id="faqs" class="faqs-section">
           <div class="content-container">
-            <div style="text-align:center; max-width:720px; margin:0 auto 48px;">
-              <div class="inner-badge">Frequently Asked Questions</div>
-              <h2 class="inner-title" style="font-size:clamp(2rem, 4vw, 3rem); margin-bottom:12px;">Frequently asked questions</h2>
-              <p class="inner-subtitle" style="margin-bottom:0;">
-                Everything you need to know about switching your business to Vela AI.
-              </p>
+            <div class="faqs-header">
+              <h2 class="faqs-title">Questions?</h2>
             </div>
 
-            <div class="faqs-wrapper" style="max-width:760px; margin:0 auto;">
+            <div class="faqs-wrapper">
               <div class="accordion-list">
 
                 <!-- FAQ 1 -->
                 <div class="accordion-item">
                   <h3>
                     <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-1" id="faq-btn-1">
-                      <span class="faq-question">Do I get a website?</span>
+                      <span class="faq-question">Do I get a booking website?</span>
                       <span class="accordion-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </span>
                     </button>
                   </h3>
                   <div id="faq-ans-1" class="accordion-panel" role="region" aria-labelledby="faq-btn-1" hidden>
                     <p class="faq-answer">
-                      Yes. Every plan includes your own dedicated merchant booking page (e.g. <code>vela.ng/p/yourname</code>). Clients use this site to view your services, check available times, book, and pay their deposit. On the Scale plan, you can connect your own custom domain (e.g. <code>yourbrand.biz</code>).
+                      Yes. Every plan includes your own dedicated booking page (e.g. <code>vela.ng/p/yourname</code>) where clients can view services, pick open times, and pay deposits. On the Scale plan, you can connect your own custom domain (e.g. <code>yourname.biz</code>).
                     </p>
                   </div>
                 </div>
@@ -533,17 +336,15 @@
                 <div class="accordion-item">
                   <h3>
                     <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-2" id="faq-btn-2">
-                      <span class="faq-question">Can Vela send emails for me?</span>
+                      <span class="faq-question">Which messages can Vela send?</span>
                       <span class="accordion-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </span>
                     </button>
                   </h3>
                   <div id="faq-ans-2" class="accordion-panel" role="region" aria-labelledby="faq-btn-2" hidden>
                     <p class="faq-answer">
-                      Yes, but only under your explicit instruction and oversight. Vela uses a verified business sender, filters eligible clients who have given marketing permission, and drafts the email. You review the wording and recipient count before giving approval.
+                      Vela sends automated booking confirmations, 24-hour appointment reminders with studio directions, and targeted rebooking invites to past clients who opted in.
                     </p>
                   </div>
                 </div>
@@ -552,55 +353,15 @@
                 <div class="accordion-item">
                   <h3>
                     <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-3" id="faq-btn-3">
-                      <span class="faq-question">Can I edit a campaign?</span>
+                      <span class="faq-question">Can I review campaigns first?</span>
                       <span class="accordion-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </span>
                     </button>
                   </h3>
                   <div id="faq-ans-3" class="accordion-panel" role="region" aria-labelledby="faq-btn-3" hidden>
                     <p class="faq-answer">
-                      Yes, completely. You can edit the subject line and message body directly in the preview workspace. If you decide not to proceed, you can discard the draft with a single click.
-                    </p>
-                  </div>
-                </div>
-
-                <!-- FAQ 4 -->
-                <div class="accordion-item">
-                  <h3>
-                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-4" id="faq-btn-4">
-                      <span class="faq-question">Does Vela message people on WhatsApp?</span>
-                      <span class="accordion-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </span>
-                    </button>
-                  </h3>
-                  <div id="faq-ans-4" class="accordion-panel" role="region" aria-labelledby="faq-btn-4" hidden>
-                    <p class="faq-answer">
-                      Vela allows you to share your booking link easily in any WhatsApp chat or Instagram bio. For routine appointment reminders, automated notification messages are dispatched to confirmed clients before their session.
-                    </p>
-                  </div>
-                </div>
-
-                <!-- FAQ 5 -->
-                <div class="accordion-item">
-                  <h3>
-                    <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-ans-5" id="faq-btn-5">
-                      <span class="faq-question">Can the agent spend money on ads?</span>
-                      <span class="accordion-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </span>
-                    </button>
-                  </h3>
-                  <div id="faq-ans-5" class="accordion-panel" role="region" aria-labelledby="faq-btn-5" hidden>
-                    <p class="faq-answer">
-                      No. Marketing in this release covers email campaigns and rebooking your past clients. Paid advertising requires separate integration and commercial scope, and Vela will never charge for ads without your explicit consent.
+                      Yes, always. Rebooking emails and marketing messages are drafted for your review. You have complete control to edit the text or discard the draft before anything is sent.
                     </p>
                   </div>
                 </div>
@@ -611,20 +372,16 @@
         </section>
 
         <!-- ==========================================================================
-             Dark Closing Card
+             Closing Card
              ========================================================================== -->
         <section class="closing-section">
           <div class="content-container">
             <div class="closing-card">
               <div class="closing-card-inner">
-                <h2 class="closing-headline">What would you ask Vela to handle first?</h2>
-                <p class="closing-subhead">Join independent service businesses across Nigeria letting AI handle their follow-up.</p>
+                <h2 class="closing-headline">Ready to set up Vela?</h2>
                 <div class="closing-cta-wrap">
-                  <a href="/login" class="btn btn-pill-lime track-cta" data-cta-placement="closing_setup">
-                    Set up my agent
-                  </a>
-                  <a href="#see-vela-at-work" class="btn btn-pill-ghost" style="border-color:rgba(255,255,255,0.3); color:#FFFFFF;">
-                    See Vela at work
+                  <a href="/register" class="btn btn-pill-lime track-cta" data-cta-placement="closing_setup">
+                    Get started
                   </a>
                 </div>
               </div>
@@ -650,11 +407,9 @@
               <div class="footer-nav-col">
                 <div class="footer-col-title">Product</div>
                 <ul class="footer-list">
-                  <li><a href="#what-vela-does">What Vela does</a></li>
-                  <li><a href="#see-vela-at-work">See Vela at work</a></li>
+                  <li><a href="#see-vela-at-work">How it works</a></li>
                   <li><a href="#pricing">Pricing</a></li>
-                  <li><a href="/faqs">FAQs</a></li>
-                  <li><a href="/login" class="track-cta" data-cta-placement="footer_login">Provider login</a></li>
+                  <li><a href="/login" class="track-cta" data-cta-placement="footer_login">Log in</a></li>
                 </ul>
               </div>
 
@@ -662,7 +417,7 @@
                 <div class="footer-col-title">Support &amp; Legal</div>
                 <ul class="footer-list">
                   <li><a href="mailto:support@vela.ng">Help &amp; support</a></li>
-                  <li><a href="https://wa.me/2348123843076?text=Hello%20Vela%20team,%20I'd%20like%20to%20learn%20more%20about%20setting%20up%20my%20agent" target="_blank" rel="noopener">WhatsApp concierge</a></li>
+                  <li><a href="https://wa.me/2348123843076" target="_blank" rel="noopener">WhatsApp concierge</a></li>
                   <li><a href="/privacy">Privacy policy</a></li>
                   <li><a href="/terms">Terms of service</a></li>
                 </ul>
@@ -671,7 +426,7 @@
           </div>
 
           <div class="footer-bottom">
-            <p class="footer-copy">&copy; 2026 Vela Technologies. Formerly Nile Booking. All rights reserved.</p>
+            <p class="footer-copy">&copy; 2026 Vela Technologies. All rights reserved.</p>
             <div class="footer-badges">
               <span class="badge-lagos">Lagos, Nigeria (WAT)</span>
             </div>
