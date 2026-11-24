@@ -3147,3 +3147,109 @@ body{height:100dvh}
   color: #92400E;
 }
 
+/* Directional Labels & Visual Badges */
+.wizard-direction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 4px 9px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+.wizard-direction-badge.inbound {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+.wizard-direction-badge.outbound {
+  background: #FDF2F8;
+  color: #9D174D;
+  border: 1px solid #FBCFE8;
+}
+.wizard-direction-badge.platform {
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+}
+
+/* Waiting For Provider Event Box */
+.wizard-waiting-box {
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.wizard-spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(180, 83, 9, 0.2);
+  border-radius: 50%;
+  border-top-color: #B45309;
+  animation: velaSpin 0.9s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes velaSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dual Health Checks (e.g. Zoho Mail) */
+.dual-health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dual-health-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(22, 24, 23, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.dual-health-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 4px;
+}
+.dual-health-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Manage Screen Action Grid */
+.manage-controls-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.manage-control-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(22, 24, 23, 0.15);
+  background: #FFFFFF;
+  color: #161817;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+.manage-control-btn:hover {
+  background: #F7F6F0;
+  border-color: rgba(22, 24, 23, 0.3);
+}
+
+

@@ -3113,6 +3113,8 @@ window.PROVIDER_REGISTRY = {
     id: 'paystack',
     name: 'Paystack',
     category: 'payments',
+    setupType: 'credentials',
+    requiresWebhook: true,
     assetPath: '/assets/integrations/paystack.svg',
     officialSource: 'Paystack Media Kit (paystack.com/contact)',
     permittedAsset: 'Official Paystack Mark',
@@ -3132,6 +3134,8 @@ window.PROVIDER_REGISTRY = {
     id: 'flutterwave',
     name: 'Flutterwave',
     category: 'payments',
+    setupType: 'credentials',
+    requiresWebhook: true,
     assetPath: '/assets/integrations/flutterwave.svg',
     officialSource: 'Flutterwave Brand Assets (flutterwave.com)',
     permittedAsset: 'Official Flutterwave Brand Wave',
@@ -3151,6 +3155,8 @@ window.PROVIDER_REGISTRY = {
     id: 'stripe',
     name: 'Stripe',
     category: 'payments',
+    setupType: 'business_onboarding',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/stripe.svg',
     officialSource: 'Stripe Marks Guidance (stripe.com/marks)',
     permittedAsset: 'Official Stripe Mark',
@@ -3170,6 +3176,8 @@ window.PROVIDER_REGISTRY = {
     id: 'whatsapp',
     name: 'WhatsApp Business',
     category: 'messaging',
+    setupType: 'business_onboarding',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/whatsapp-business.svg',
     officialSource: 'Meta Brand Resource Center',
     permittedAsset: 'Official WhatsApp Badge',
@@ -3189,6 +3197,8 @@ window.PROVIDER_REGISTRY = {
     id: 'zoho-mail',
     name: 'Zoho Mail',
     category: 'messaging',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/zoho-mail.svg',
     officialSource: 'Zoho Partner Branding Guidelines',
     permittedAsset: 'Zoho Mail Product Icon',
@@ -3208,6 +3218,8 @@ window.PROVIDER_REGISTRY = {
     id: 'instagram',
     name: 'Instagram Direct',
     category: 'messaging',
+    setupType: 'business_onboarding',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/instagram.svg',
     officialSource: 'Meta Brand Resource Center',
     permittedAsset: 'Official Instagram Camera Glyph',
@@ -3226,6 +3238,8 @@ window.PROVIDER_REGISTRY = {
     id: 'tiktok',
     name: 'TikTok for Business',
     category: 'messaging',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/tiktok.svg',
     officialSource: 'TikTok for Developers Design Guidelines',
     permittedAsset: 'Official TikTok Developer Note',
@@ -3244,6 +3258,8 @@ window.PROVIDER_REGISTRY = {
     id: 'google-calendar',
     name: 'Google Calendar',
     category: 'calendar',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/google-calendar.svg',
     officialSource: 'Google Workspace Brand Guidelines',
     permittedAsset: 'Google Calendar 2026 Refreshed Icon',
@@ -3263,6 +3279,8 @@ window.PROVIDER_REGISTRY = {
     id: 'outlook-calendar',
     name: 'Microsoft Outlook Calendar',
     category: 'calendar',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/outlook-calendar.svg',
     officialSource: 'Microsoft Brand Guidelines & Graph Developer Resources',
     permittedAsset: 'Microsoft Outlook Product Icon',
@@ -3282,6 +3300,8 @@ window.PROVIDER_REGISTRY = {
     id: 'apple-calendar',
     name: 'Apple Calendar',
     category: 'calendar',
+    setupType: 'subscription',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/apple-calendar.svg',
     officialSource: 'Apple Design Resources',
     permittedAsset: 'Apple Calendar Product Icon',
@@ -3300,6 +3320,8 @@ window.PROVIDER_REGISTRY = {
     id: 'zoho-books',
     name: 'Zoho Books',
     category: 'accounting',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/zoho-books.svg',
     officialSource: 'Zoho Partner Branding Guidelines',
     permittedAsset: 'Zoho Books Product Icon',
@@ -3319,6 +3341,8 @@ window.PROVIDER_REGISTRY = {
     id: 'zoho-crm',
     name: 'Zoho CRM',
     category: 'accounting',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/zoho-crm.svg',
     officialSource: 'Zoho Partner Branding Guidelines',
     permittedAsset: 'Zoho CRM Product Icon',
@@ -3338,6 +3362,8 @@ window.PROVIDER_REGISTRY = {
     id: 'google-drive',
     name: 'Google Drive',
     category: 'files',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/google-drive.svg',
     officialSource: 'Google Workspace Brand Guidelines',
     permittedAsset: 'Google Drive Triangle Icon',
@@ -3356,6 +3382,8 @@ window.PROVIDER_REGISTRY = {
     id: 'dropbox',
     name: 'Dropbox',
     category: 'files',
+    setupType: 'oauth',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/dropbox.svg',
     officialSource: 'Dropbox Brand Guidelines',
     permittedAsset: 'Official Dropbox Glyph',
@@ -3374,6 +3402,8 @@ window.PROVIDER_REGISTRY = {
     id: 'meta-ads',
     name: 'Meta Ads Manager',
     category: 'marketing',
+    setupType: 'business_onboarding',
+    requiresWebhook: false,
     assetPath: '/assets/integrations/meta-ads.svg',
     officialSource: 'Meta Brand Resource Center',
     permittedAsset: 'Official Meta Corporate Loop',
@@ -3990,9 +4020,10 @@ function openAppDetailModal(appId, returnTask) {
   if (app.status === 'connected' || app.status === 'needs_attention') {
     renderManageModal(app);
   } else if (app.status === 'continue_setup') {
-    currentConnectStep = 3;
+    const resumeStep = app.unfinishedStep || 3;
+    currentConnectStep = resumeStep;
     isWebhookEventReceived = (app.webhookStatus === 'verified');
-    renderConnectWizardModal(app, 3);
+    renderConnectWizardModal(app, resumeStep);
   } else {
     currentConnectStep = 1;
     isWebhookEventReceived = false;
@@ -4047,6 +4078,39 @@ function copyWizardWebhookUrl(appId) {
   });
 }
 
+function markWizardWaitingForEvent(appId) {
+  fetch('/api/apps/webhook-waiting', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId })
+  })
+  .then(r => r.json())
+  .then(res => {
+    const apps = getAppsState();
+    if (apps[appId]) {
+      apps[appId].status = 'continue_setup';
+      apps[appId].waitingForEvent = true;
+      apps[appId].unfinishedStep = 3;
+      apps[appId].webhookStatus = 'waiting_for_event';
+      apps[appId].health = 'Waiting for provider event';
+      save({ connectedApps: apps });
+    }
+    notify(`Listening for ${apps[appId]?.name || appId} webhook event. Status set to Continue setup.`);
+    renderConnectWizardModal(apps[appId], 3);
+  })
+  .catch(() => {
+    const apps = getAppsState();
+    if (apps[appId]) {
+      apps[appId].status = 'continue_setup';
+      apps[appId].waitingForEvent = true;
+      apps[appId].unfinishedStep = 3;
+      save({ connectedApps: apps });
+    }
+    notify(`Listening for ${apps[appId]?.name || appId} webhook event.`);
+    renderConnectWizardModal(apps[appId], 3);
+  });
+}
+
 function checkWizardTestWebhook(appId) {
   notify('Checking for test webhook event from server...');
   fetch('/api/webhooks/test-trigger', {
@@ -4062,6 +4126,7 @@ function checkWizardTestWebhook(appId) {
       if (apps[appId]) {
         apps[appId].status = 'connected';
         apps[appId].webhookStatus = 'verified';
+        apps[appId].waitingForEvent = false;
         apps[appId].health = 'Active · Verified';
         apps[appId].lastSync = 'Just now';
         save({ connectedApps: apps });
@@ -4113,17 +4178,6 @@ function saveWizardKeys(appId) {
       renderConnectWizardModal(app, 2);
       return;
     }
-  } else if (appId === 'stripe') {
-    if (currentWizardMode === 'live' && secretKey.startsWith('sk_test_')) {
-      currentWizardError = `You entered a Stripe test key. Switch to test mode or paste your live secret key (sk_live_...).`;
-      renderConnectWizardModal(app, 2);
-      return;
-    }
-    if (currentWizardMode === 'test' && secretKey.startsWith('sk_live_')) {
-      currentWizardError = `You entered a Stripe live key in test mode. Switch to live mode or enter a test key (sk_test_...).`;
-      renderConnectWizardModal(app, 2);
-      return;
-    }
   }
 
   notify('Verifying credentials on server...');
@@ -4152,6 +4206,7 @@ function saveWizardKeys(appId) {
     if (updatedApps[appId]) {
       updatedApps[appId].status = 'continue_setup';
       updatedApps[appId].webhookStatus = 'awaiting_event';
+      updatedApps[appId].unfinishedStep = 3;
       updatedApps[appId].health = 'Payment notifications awaiting verification';
       save({ connectedApps: updatedApps });
     }
@@ -4161,6 +4216,78 @@ function saveWizardKeys(appId) {
   .catch(err => {
     currentWizardError = 'Failed to connect to server. Please try again.';
     renderConnectWizardModal(app, 2);
+  });
+}
+
+function simulateOAuthConnect(appId) {
+  notify(`Authorising connection with ${window.PROVIDER_REGISTRY[appId]?.name || appId}...`);
+  setTimeout(() => {
+    const apps = getAppsState();
+    const app = apps[appId];
+    if (app) {
+      if (app.id === 'google-calendar') app.accountIdentity = 'dele.cuts@studioteni.ng (Google Workspace)';
+      else if (app.id === 'outlook-calendar') app.accountIdentity = 'studio@studioteni.onmicrosoft.com';
+      else if (app.id === 'zoho-mail') app.accountIdentity = 'hello@studioteni.ng (Zoho Professional)';
+      else if (app.id === 'zoho-books') app.accountIdentity = 'Studio Teni Services Ltd (Org #8029193)';
+      else if (app.id === 'zoho-crm') app.accountIdentity = 'Studio Teni CRM (zoho.com/crm)';
+      else if (app.id === 'whatsapp') app.accountIdentity = '+234 803 123 4567 (Meta Cloud API)';
+      else if (app.id === 'instagram') app.accountIdentity = '@studioteni_ng (Meta Graph API)';
+      else if (app.id === 'tiktok') app.accountIdentity = '@studioteni (TikTok API)';
+      else if (app.id === 'stripe') app.accountIdentity = 'Studio Teni Ltd (acct_1N92X)';
+      else if (app.id === 'meta-ads') app.accountIdentity = 'Studio Teni VI (act_882910)';
+      else if (app.id === 'google-drive') app.accountIdentity = 'dele.cuts@studioteni.ng Drive';
+      else if (app.id === 'dropbox') app.accountIdentity = 'Studio Teni Portfolio Dropbox';
+      save({ connectedApps: apps });
+    }
+    renderConnectWizardModal(app, 3);
+  }, 400);
+}
+
+function saveWizardConfiguration(appId) {
+  const apps = getAppsState();
+  const app = apps[appId];
+  if (!app) return;
+
+  const staffSelect = byId('wizardStaffSelect');
+  if (staffSelect && app.config) app.config.assignedStaff = staffSelect.value;
+
+  const replySelect = byId('wizardReplyMode');
+  if (replySelect && app.config) app.config.replyMode = replySelect.value;
+
+  const emailInput = byId('wizardEmailSelect');
+  if (emailInput && app.config) app.config.emailAddress = emailInput.value;
+
+  app.status = 'connected';
+  app.health = 'Active · Verified';
+  app.lastSync = 'Just now';
+  save({ connectedApps: apps });
+
+  renderConnectWizardModal(app, 4);
+  notify(`✓ Configuration saved for ${app.name}.`);
+}
+
+function regenerateAppleSubscription(appId = 'apple-calendar') {
+  notify('Regenerating private Apple Calendar subscription URL...');
+  fetch('/api/apps/regenerate-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.success) {
+      const apps = getAppsState();
+      if (apps[appId]) {
+        if (!apps[appId].config) apps[appId].config = {};
+        apps[appId].config.subscriptionUrl = res.subscriptionUrl;
+        save({ connectedApps: apps });
+      }
+      notify('✓ Apple Calendar link regenerated. Previous URL revoked.');
+      const feedInput = byId('appleFeedUrlInput');
+      if (feedInput) feedInput.value = res.subscriptionUrl;
+      const copyInput = byId('wizardAppleCopyInput');
+      if (copyInput) copyInput.value = res.subscriptionUrl;
+    }
   });
 }
 
@@ -4174,9 +4301,12 @@ function renderConnectWizardModal(app, step = 1) {
   const isPayment = app.category === 'payments';
   const isMail = app.id === 'zoho-mail';
   const isBooks = app.id === 'zoho-books';
-  const isOAuth = ['google-calendar', 'outlook-calendar', 'zoho-mail', 'zoho-books', 'zoho-crm', 'whatsapp', 'instagram', 'tiktok', 'meta-ads', 'google-drive', 'dropbox'].includes(app.id);
+  const isApple = app.id === 'apple-calendar';
+  const setupType = app.setupType || (app.requiresWebhook ? 'credentials' : (isApple ? 'subscription' : (['whatsapp', 'instagram', 'stripe', 'meta-ads'].includes(app.id) ? 'business_onboarding' : 'oauth')));
+  const requiresWebhook = Boolean(app.requiresWebhook);
 
   const webhookUrl = `${window.location.origin}/api/webhooks/${app.id}`;
+  const subscriptionUrl = app.config?.subscriptionUrl || `${window.location.origin.replace('http', 'webcal')}/api/calendar/subscribe?token=demo_token_8821`;
 
   card.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
@@ -4190,7 +4320,7 @@ function renderConnectWizardModal(app, step = 1) {
       <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
     </div>
 
-    <!-- 4-Step Focused Indicator -->
+    <!-- Step Indicator tailored to provider type -->
     <div class="connect-wizard-steps">
       <div class="connect-step-indicator ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}">
         <span class="connect-step-circle">${step > 1 ? '✓' : '1'}</span>
@@ -4198,14 +4328,21 @@ function renderConnectWizardModal(app, step = 1) {
       </div>
       <div class="connect-step-indicator ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}">
         <span class="connect-step-circle">${step > 2 ? '✓' : '2'}</span>
-        <span>Authorise</span>
+        <span>${setupType === 'credentials' ? 'Credentials' : setupType === 'subscription' ? 'Subscribe' : 'Authorise'}</span>
       </div>
-      <div class="connect-step-indicator ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}">
-        <span class="connect-step-circle">${step > 3 ? '✓' : '3'}</span>
-        <span>Webhooks</span>
-      </div>
+      ${requiresWebhook ? `
+        <div class="connect-step-indicator ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}">
+          <span class="connect-step-circle">${step > 3 ? '✓' : '3'}</span>
+          <span>Webhooks</span>
+        </div>
+      ` : setupType !== 'subscription' ? `
+        <div class="connect-step-indicator ${step >= 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}">
+          <span class="connect-step-circle">${step > 3 ? '✓' : '3'}</span>
+          <span>Configure</span>
+        </div>
+      ` : ''}
       <div class="connect-step-indicator ${step >= 4 ? 'active' : ''}">
-        <span class="connect-step-circle">4</span>
+        <span class="connect-step-circle">${requiresWebhook || setupType !== 'subscription' ? '4' : '3'}</span>
         <span>Verify &amp; Finish</span>
       </div>
     </div>
@@ -4218,7 +4355,7 @@ function renderConnectWizardModal(app, step = 1) {
             ${escapeHtml(app.outcomeExplanation || app.headline)}
           </div>
           <div style="font-size:12.5px; color:#555; line-height:1.5;">
-            Where this fits: When a client initiates a booking or message, Vela coordinates with ${escapeHtml(app.name)} without merchant friction.
+            Where this fits: When a client initiates a booking, inquiry or payment, Vela coordinates with ${escapeHtml(app.name)} automatically.
           </div>
         </div>
 
@@ -4235,13 +4372,13 @@ function renderConnectWizardModal(app, step = 1) {
         <div style="display:flex; justify-content:flex-end; gap:10px;">
           <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Cancel</button>
           <button type="button" class="btn-approve" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 2)">
-            ${isOAuth ? `Continue with ${escapeHtml(app.name)} →` : 'Enter API Keys →'}
+            ${setupType === 'credentials' ? 'Enter API Keys →' : setupType === 'subscription' ? 'View Subscription URL →' : setupType === 'business_onboarding' ? `Connect ${escapeHtml(app.name)} →` : `Connect with ${escapeHtml(app.name)} →`}
           </button>
         </div>
       </div>
     ` : ''}
 
-    <!-- STEP 2: Authorise account or enter required keys -->
+    <!-- STEP 2: Authorise or Enter credentials -->
     ${step === 2 ? `
       <div class="app-detail-section">
         ${currentWizardError ? `
@@ -4251,13 +4388,195 @@ function renderConnectWizardModal(app, step = 1) {
           </div>
         ` : ''}
 
-        ${isOAuth ? `
+        ${setupType === 'credentials' ? `
+          <!-- API Credentials Form with Directional Label -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span class="wizard-direction-badge inbound">From ${escapeHtml(app.name)} → paste into Vela</span>
+            <div class="wizard-mode-toggle" style="margin-bottom:0;">
+              <button type="button" class="wizard-mode-btn ${currentWizardMode === 'live' ? 'active' : ''}" onclick="setWizardMode('live')">Live Mode</button>
+              <button type="button" class="wizard-mode-btn ${currentWizardMode === 'test' ? 'active' : ''}" onclick="setWizardMode('test')">Test Mode</button>
+            </div>
+          </div>
+
           <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:18px; margin-bottom:16px;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+            <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
+              ${escapeHtml(app.name)} ${currentWizardMode === 'live' ? 'Live' : 'Test'} Secret Key · <span style="font-weight:normal; color:#666;">Required</span>
+            </label>
+            <div style="font-size:11.5px; color:#666; margin-bottom:8px;">
+              Used by Vela to initialize deposit checkouts and verify incoming client payments.
+            </div>
+
+            <div style="position:relative; margin-bottom:12px;">
+              <input type="password" id="wizardSecretInput" placeholder="${app.id === 'paystack' ? (currentWizardMode === 'live' ? 'sk_live_...' : 'sk_test_...') : (currentWizardMode === 'live' ? 'FLWSECK_LIVE-...' : 'FLWSECK_TEST-...')}" style="width:100%; box-sizing:border-box; padding:9px 50px 9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px;">
+              <button type="button" id="wizardToggleMaskBtn" onclick="toggleWizardKeyMask()" style="position:absolute; right:8px; top:8px; background:none; border:none; font-size:11.5px; color:#666; cursor:pointer;">Show</button>
+            </div>
+
+            <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
+              ${escapeHtml(app.name)} ${currentWizardMode === 'live' ? 'Live' : 'Test'} Public Key
+            </label>
+            <input type="text" id="wizardPublicInput" placeholder="${app.id === 'paystack' ? (currentWizardMode === 'live' ? 'pk_live_...' : 'pk_test_...') : (currentWizardMode === 'live' ? 'FLWPUBK_LIVE-...' : 'FLWPUBK_TEST-...')}" style="width:100%; box-sizing:border-box; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px; margin-bottom:12px;">
+
+            ${app.id === 'flutterwave' ? `
+              <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
+                Flutterwave Webhook Secret Hash
+              </label>
+              <input type="text" id="wizardSecretHashInput" placeholder="Enter custom secret hash" style="width:100%; box-sizing:border-box; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px; margin-bottom:12px;">
+            ` : ''}
+
+            <div style="font-size:11.5px; color:#0284c7; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:8px; padding:9px 12px;">
+              <strong>Where do I find this?</strong>
+              ${app.id === 'paystack' ? 'Log into Paystack Dashboard → Settings → API Keys &amp; Webhooks' : 'Log into Flutterwave Dashboard → Settings → API Keys'}
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
+            <button type="button" class="btn-approve" onclick="saveWizardKeys('${app.id}')">
+              Save &amp; verify key →
+            </button>
+          </div>
+        ` : setupType === 'subscription' ? `
+          <!-- Apple Calendar 1-Way Subscription -->
+          <div style="background:#FAF9F5; border:1px solid rgba(22,24,23,0.08); border-radius:12px; padding:16px; margin-bottom:16px;">
+            <div style="font-weight:700; font-size:14px; margin-bottom:6px;">1-Way Calendar Subscription</div>
+            <div style="font-size:12.5px; color:#555; line-height:1.5; margin-bottom:12px;">
+              This private feed gives Apple Calendar read-only access to your confirmed Vela bookings on iPhone, iPad and Mac. Two-way sync (reading personal busy times to block chairs) requires CalDAV or Google/Microsoft Calendar.
+            </div>
+
+            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;">Private Subscription URL:</label>
+            <div class="wizard-copy-box" style="margin-bottom:12px;">
+              <input type="text" class="wizard-copy-input" id="wizardAppleCopyInput" value="${escapeHtml(subscriptionUrl)}" readonly>
+              <button type="button" class="wizard-copy-btn" onclick="navigator.clipboard.writeText('${subscriptionUrl}'); notify('Subscription URL copied!');">Copy link</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:14px;">
+              <button type="button" class="btn-secondary" style="font-size:11.5px; padding:5px 12px;" onclick="regenerateAppleSubscription('${app.id}')">
+                Revoke or regenerate link
+              </button>
+            </div>
+
+            <div class="wizard-instruction-card">
+              <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:#161817;">How to add to Apple Calendar:</div>
+              <div class="wizard-instruction-step">
+                <span class="wizard-step-num">1</span>
+                <span><strong>On iPhone / iPad:</strong> Open Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar. Paste the link.</span>
+              </div>
+              <div class="wizard-instruction-step">
+                <span class="wizard-step-num">2</span>
+                <span><strong>On Mac:</strong> Open Calendar app → File → New Calendar Subscription. Paste the link and click Subscribe.</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
+            <button type="button" class="btn-approve" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 4)">
+              I've added the feed on my device →
+            </button>
+          </div>
+        ` : setupType === 'business_onboarding' ? `
+          <!-- Business Account Onboarding -->
+          <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:20px; text-align:center; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:8px;">
+              ${app.id === 'whatsapp' ? 'Connect verified WhatsApp Business number' : app.id === 'instagram' ? 'Connect Instagram Business Account' : app.id === 'stripe' ? 'Connect Stripe Account via Stripe Connect' : 'Select Meta Ad Account'}
+            </div>
+            <div style="font-size:12.5px; color:#666; margin-bottom:18px; max-width:420px; margin-left:auto; margin-right:auto;">
+              ${app.id === 'whatsapp' ? 'Authorises Vela to receive booking messages and send approved appointment confirmations from +234 803 123 4567.' : app.id === 'stripe' ? 'Connects your bank settlement and verifies card charge capability via Stripe Connect.' : 'Authorises Vela to coordinate inquiries and customer interactions securely.'}
+            </div>
+
+            <button type="button" class="btn-approve" style="padding:10px 22px; font-size:13.5px;" onclick="simulateOAuthConnect('${app.id}')">
+              ${app.id === 'whatsapp' ? 'Connect WhatsApp number' : app.id === 'instagram' ? 'Connect Instagram account' : app.id === 'stripe' ? 'Connect Stripe account' : 'Select Meta ad account'}
+            </button>
+          </div>
+
+          <div style="display:flex; justify-content:flex-start;">
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
+          </div>
+        ` : `
+          <!-- Sign in with Provider (OAuth) -->
+          <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:20px; text-align:center; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:700; margin-bottom:8px;">
+              Sign in with ${escapeHtml(app.name)}
+            </div>
+            <div style="font-size:12.5px; color:#666; margin-bottom:18px; max-width:420px; margin-left:auto; margin-right:auto;">
+              Authorises Vela to securely check availability, sync records or manage folders on your behalf.
+            </div>
+
+            <button type="button" class="btn-approve" style="padding:10px 22px; font-size:13.5px;" onclick="simulateOAuthConnect('${app.id}')">
+              ${app.id.includes('google') ? 'Connect with Google' : app.id.includes('zoho') ? 'Connect with Zoho' : app.id.includes('outlook') ? 'Connect with Microsoft' : app.id === 'dropbox' ? 'Connect Dropbox' : `Connect with ${escapeHtml(app.name)}`}
+            </button>
+          </div>
+
+          <div style="display:flex; justify-content:flex-start;">
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
+          </div>
+        `}
+      </div>
+    ` : ''}
+
+    <!-- STEP 3: Webhook Registration (FOR CREDENTIALS ONLY) OR Account & Options (FOR OAUTH / BUSINESS ONBOARDING) -->
+    ${step === 3 ? `
+      <div class="app-detail-section">
+        ${requiresWebhook ? `
+          <!-- Webhooks for Paystack & Flutterwave with Directional Label -->
+          <span class="wizard-direction-badge outbound">From Vela → paste into ${escapeHtml(app.name)}</span>
+          <div class="app-detail-section-title">Webhook Configuration</div>
+          <div style="font-size:12px; color:#666; margin-bottom:12px;">
+            Copy your unique Vela webhook URL into your ${escapeHtml(app.name)} dashboard to verify customer deposits:
+          </div>
+
+          <div class="wizard-copy-box" style="margin-bottom:12px;">
+            <input type="text" class="wizard-copy-input" value="${escapeHtml(webhookUrl)}" readonly>
+            <button type="button" class="wizard-copy-btn" id="wizardCopyBtn" onclick="copyWizardWebhookUrl('${app.id}')">Copy URL</button>
+          </div>
+
+          <div class="wizard-instruction-card" style="margin-bottom:14px;">
+            <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:#161817;">
+              Setup Instructions in ${escapeHtml(app.name)} Dashboard:
+            </div>
+            <div class="wizard-instruction-step">
+              <span class="wizard-step-num">1</span>
+              <span>Open <strong>${escapeHtml(app.name)} → Settings → ${app.id === 'paystack' ? 'API Keys & Webhooks' : 'Webhooks'}</strong></span>
+            </div>
+            <div class="wizard-instruction-step">
+              <span class="wizard-step-num">2</span>
+              <span>Paste the Vela Webhook URL above into the Webhook URL field</span>
+            </div>
+            <div class="wizard-instruction-step">
+              <span class="wizard-step-num">3</span>
+              <span>Subscribed events: <code>charge.success</code>, <code>transfer.success</code></span>
+            </div>
+          </div>
+
+          ${app.waitingForEvent ? `
+            <div class="wizard-waiting-box">
+              <div class="wizard-spinner"></div>
+              <div style="font-weight:700; color:#B45309; font-size:13px; margin-bottom:4px;">Waiting for provider event</div>
+              <div style="font-size:11.5px; color:#92400E; line-height:1.4;">
+                Vela is listening for the first event from ${escapeHtml(app.name)}. App status is set to <strong>Continue setup</strong>.
+              </div>
+            </div>
+          ` : ''}
+
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 2)">← Back</button>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn-secondary" onclick="markWizardWaitingForEvent('${app.id}')">
+                I've added the webhook
+              </button>
+              <button type="button" class="btn-approve" onclick="checkWizardTestWebhook('${app.id}')">
+                Check for test event
+              </button>
+            </div>
+          </div>
+        ` : `
+          <!-- Account & Options Configuration (SKIPS WEBHOOK SCREEN ENTIRELY) -->
+          <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:18px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
               <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22C55E;"></span>
               <div>
-                <strong style="font-size:13.5px; color:#161817;">Account identified: Studio Teni Enterprise</strong>
-                <div style="font-size:11.5px; color:#666;">Ready for OAuth authorization exchange</div>
+                <strong style="font-size:13.5px; color:#161817;">Account identified: ${escapeHtml(app.accountIdentity || 'Studio Teni')}</strong>
+                <div style="font-size:11.5px; color:#666;">Choose what Vela may use for this integration</div>
               </div>
             </div>
 
@@ -4270,153 +4589,92 @@ function renderConnectWizardModal(app, step = 1) {
             ` : isMail ? `
               <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Sending mailbox address:</label>
               <input type="text" value="hello@studioteni.ng" id="wizardEmailSelect" style="width:100%; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:14px;">
+              <div class="dual-health-grid" style="margin-bottom:14px;">
+                <div class="dual-health-card">
+                  <div class="dual-health-title">Incoming Mail</div>
+                  <div class="dual-health-status" style="color:#15803d;">● IMAP &amp; Inbound healthy</div>
+                </div>
+                <div class="dual-health-card">
+                  <div class="dual-health-title">Outgoing Replies</div>
+                  <div class="dual-health-status" style="color:#15803d;">● SPF, DKIM, DMARC passed</div>
+                </div>
+              </div>
             ` : isBooks ? `
               <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Zoho Books Organisation:</label>
               <select id="wizardOrgSelect" style="width:100%; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:14px;">
                 <option value="8029193" selected>Studio Teni Services Ltd (Org #8029193)</option>
               </select>
+            ` : app.id === 'whatsapp' ? `
+              <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">AI Reply Mode:</label>
+              <select id="wizardReplyMode" style="width:100%; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:14px;">
+                <option value="draft" selected>[Draft replies] (Every customer reply requires owner approval)</option>
+                <option value="auto">[Allow routine replies] (Auto-answer hours, location &amp; basic pricing)</option>
+              </select>
+            ` : app.id === 'tiktok' ? `
+              <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:12px; margin-bottom:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:6px;">TikTok Capability Verification:</div>
+                <div style="font-size:11.5px; color:#B45309; margin-bottom:4px;">⚠️ Direct messages: Pending developer approval. Automated outgoing DMs are paused.</div>
+                <div style="font-size:11.5px; color:#15803d; margin-bottom:4px;">✓ Video comment inquiries: Active</div>
+                <div style="font-size:11.5px; color:#15803d;">✓ Transformation lookbook content: Active</div>
+              </div>
+            ` : app.id === 'google-drive' || app.id === 'dropbox' ? `
+              <label style="display:block; font-size:12px; font-weight:700; margin-bottom:6px;">Select Photoshoot Deliverables Root Folder:</label>
+              <select id="wizardFolderSelect" style="width:100%; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:14px;">
+                <option value="Studio Teni Client Deliveries" selected>Studio Teni Client Deliveries (Recommended)</option>
+                <option value="Weddings & Commercial 2026">Weddings &amp; Commercial 2026</option>
+              </select>
+            ` : app.id === 'stripe' ? `
+              <div style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:8px; padding:12px; margin-bottom:14px;">
+                <div style="font-weight:700; font-size:12px; color:#166534; margin-bottom:4px;">✓ Charge Capability Verified</div>
+                <div style="font-size:11.5px; color:#166534;">Connected to acct_1N92X. Charges enabled: <strong>true</strong>. Apple Pay and global card checkout active.</div>
+              </div>
             ` : ''}
 
-            <div style="font-size:12px; color:#666; line-height:1.45;">
-              Vela will request access to manage appointments, messages and records on your behalf. You can revoke access at any time.
+            <div style="font-size:11.5px; color:#666; line-height:1.45;">
+              Vela coordinates with this tool using the permissions and limits you specify here.
             </div>
           </div>
 
           <div style="display:flex; justify-content:space-between; gap:10px;">
-            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
-            <button type="button" class="btn-approve" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 3)">
-              Continue to Webhooks &amp; Callbacks →
-            </button>
-          </div>
-        ` : `
-          <!-- API Keys Form -->
-          <div class="wizard-mode-toggle">
-            <button type="button" class="wizard-mode-btn ${currentWizardMode === 'live' ? 'active' : ''}" onclick="setWizardMode('live')">Live Mode</button>
-            <button type="button" class="wizard-mode-btn ${currentWizardMode === 'test' ? 'active' : ''}" onclick="setWizardMode('test')">Test Mode</button>
-          </div>
-
-          <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:18px; margin-bottom:16px;">
-            <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
-              ${escapeHtml(app.name)} ${currentWizardMode === 'live' ? 'Live' : 'Test'} Secret Key
-            </label>
-            <div style="font-size:11.5px; color:#666; margin-bottom:8px;">
-              Used by Vela to initialize checkout sessions and verify incoming customer deposits.
-            </div>
-
-            <div style="position:relative; margin-bottom:12px;">
-              <input type="password" id="wizardSecretInput" placeholder="${app.id === 'paystack' ? (currentWizardMode === 'live' ? 'sk_live_...' : 'sk_test_...') : app.id === 'flutterwave' ? (currentWizardMode === 'live' ? 'FLWSECK_LIVE-...' : 'FLWSECK_TEST-...') : 'sk_live_...'}" style="width:100%; box-sizing:border-box; padding:9px 50px 9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px;">
-              <button type="button" id="wizardToggleMaskBtn" onclick="toggleWizardKeyMask()" style="position:absolute; right:8px; top:8px; background:none; border:none; font-size:11.5px; color:#666; cursor:pointer;">Show</button>
-            </div>
-
-            ${app.id === 'paystack' || app.id === 'flutterwave' ? `
-              <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
-                ${escapeHtml(app.name)} ${currentWizardMode === 'live' ? 'Live' : 'Test'} Public Key
-              </label>
-              <input type="text" id="wizardPublicInput" placeholder="${app.id === 'paystack' ? (currentWizardMode === 'live' ? 'pk_live_...' : 'pk_test_...') : (currentWizardMode === 'live' ? 'FLWPUBK_LIVE-...' : 'FLWPUBK_TEST-...')}" style="width:100%; box-sizing:border-box; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px; margin-bottom:12px;">
-            ` : ''}
-
-            ${app.id === 'flutterwave' ? `
-              <label style="display:block; font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">
-                Flutterwave Webhook Secret Hash
-              </label>
-              <input type="text" id="wizardSecretHashInput" placeholder="Enter custom secret hash" style="width:100%; box-sizing:border-box; padding:9px 10px; border:1px solid #ccc; border-radius:8px; font-family:monospace; font-size:12px; margin-bottom:12px;">
-            ` : ''}
-
-            <div style="font-size:11.5px; color:#0284c7; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:8px; padding:9px 12px;">
-              <strong>Find this in ${escapeHtml(app.name)}:</strong>
-              ${app.id === 'paystack' ? 'Dashboard → Settings → API Keys &amp; Webhooks' : app.id === 'flutterwave' ? 'Dashboard → Settings → API Keys' : 'Dashboard → Developers → API keys'}
-            </div>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; gap:10px;">
-            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 1)">← Back</button>
-            <button type="button" class="btn-approve" onclick="saveWizardKeys('${app.id}')">
-              Save Keys &amp; Configure Webhooks →
+            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 2)">← Back</button>
+            <button type="button" class="btn-approve" onclick="saveWizardConfiguration('${app.id}')">
+              Save configuration &amp; verify →
             </button>
           </div>
         `}
       </div>
     ` : ''}
 
-    <!-- STEP 3: Configure callbacks and webhooks -->
-    ${step === 3 ? `
-      <div class="app-detail-section">
-        <div class="app-detail-section-title">Step 3: Webhook Registration</div>
-        <div style="font-size:12px; color:#666; margin-bottom:12px;">
-          Copy your unique Vela webhook URL into your ${escapeHtml(app.name)} dashboard to verify payments in real time:
-        </div>
-
-        <div class="wizard-copy-box">
-          <input type="text" class="wizard-copy-input" value="${escapeHtml(webhookUrl)}" readonly>
-          <button type="button" class="wizard-copy-btn" id="wizardCopyBtn" onclick="copyWizardWebhookUrl('${app.id}')">Copy</button>
-        </div>
-
-        <div class="wizard-instruction-card">
-          <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:#161817;">
-            Setup Instructions in ${escapeHtml(app.name)}:
-          </div>
-          <div class="wizard-instruction-step">
-            <span class="wizard-step-num">1</span>
-            <span>Open <strong>${escapeHtml(app.name)} Dashboard → Settings → API Keys &amp; Webhooks</strong></span>
-          </div>
-          <div class="wizard-instruction-step">
-            <span class="wizard-step-num">2</span>
-            <span>In the <strong>Webhook URL</strong> field, paste the Vela URL above</span>
-          </div>
-          <div class="wizard-instruction-step">
-            <span class="wizard-step-num">3</span>
-            <span>Subscribed events: <code>charge.success</code>, <code>transfer.success</code></span>
-          </div>
-          <div class="wizard-instruction-step">
-            <span class="wizard-step-num">4</span>
-            <span>Click <strong>Save Changes</strong></span>
-          </div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-          <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 2)">← Back</button>
-          <div style="display:flex; gap:8px;">
-            <button type="button" class="btn-secondary" onclick="renderConnectWizardModal(getAppsState()['${app.id}'], 4)">
-              Skip to Verification →
-            </button>
-            <button type="button" class="btn-approve" onclick="checkWizardTestWebhook('${app.id}')">
-              Check for test event
-            </button>
-          </div>
-        </div>
-      </div>
-    ` : ''}
-
     <!-- STEP 4: Verify and finish with a useful action -->
     ${step === 4 ? `
       <div class="app-detail-section">
-        <div class="app-detail-section-title">Step 4: Verification Milestones</div>
+        <div class="app-detail-section-title">Verification Milestones</div>
 
         <div style="margin-bottom:16px;">
           <div class="wizard-milestone-row done">
             <span>✓</span>
-            <div><strong>Credentials accepted:</strong> Verified for ${currentWizardMode.toUpperCase()} mode</div>
+            <div><strong>Authorization accepted:</strong> Verified for ${escapeHtml(app.name)}</div>
           </div>
           <div class="wizard-milestone-row done">
             <span>✓</span>
-            <div><strong>Account identified:</strong> ${escapeHtml(app.accountIdentity || 'Studio Teni Enterprise · GTBank (...4910)')}</div>
+            <div><strong>Account identified:</strong> ${escapeHtml(app.accountIdentity || 'Studio Teni Enterprise Account')}</div>
           </div>
-          <div class="wizard-milestone-row ${isWebhookEventReceived ? 'done' : 'pending'}">
-            <span>${isWebhookEventReceived ? '✓' : '⏳'}</span>
+          <div class="wizard-milestone-row ${requiresWebhook ? (isWebhookEventReceived ? 'done' : 'pending') : 'done'}">
+            <span>${requiresWebhook ? (isWebhookEventReceived ? '✓' : '⏳') : '✓'}</span>
             <div>
-              <strong>Webhook notification:</strong>
-              ${isWebhookEventReceived ? 'Verified &amp; HMAC signature authenticated' : 'Payment notifications awaiting verification'}
+              <strong>${requiresWebhook ? 'Webhook notification:' : 'Integration health:'}</strong>
+              ${requiresWebhook ? (isWebhookEventReceived ? 'Verified & HMAC signature authenticated' : 'Payment notifications awaiting verification') : 'Verified 100% operational'}
             </div>
           </div>
           <div class="wizard-milestone-row done">
             <span>✓</span>
-            <div><strong>Workflow tested:</strong> Ready for live merchant actions</div>
+            <div><strong>Workflow tested:</strong> Ready for business actions</div>
           </div>
         </div>
 
-        ${!isWebhookEventReceived ? `
+        ${requiresWebhook && !isWebhookEventReceived ? `
           <div style="background:#FFFBEB; border:1px solid #FCD34D; border-radius:10px; padding:12px; margin-bottom:16px; font-size:12px; color:#92400E;">
-            <strong>Partial setup:</strong> App status set to <em>Continue setup</em>. Payments will still function via API redirection while awaiting your first webhook.
+            <strong>Partial setup:</strong> Status set to <em>Continue setup</em>. Payments will function via API redirection while awaiting your first webhook.
           </div>
         ` : `
           <div style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:10px; padding:12px; margin-bottom:16px; font-size:12px; color:#166534;">
@@ -4461,7 +4719,7 @@ function renderConnectWizardModal(app, step = 1) {
 }
 
 // -------------------------------------------------------------
-// 2. COMPREHENSIVE MANAGE MODAL (Answers 4 Questions)
+// 2. COMPREHENSIVE MANAGE MODAL (Answers 4 Questions + Tailored Controls)
 // -------------------------------------------------------------
 function renderManageModal(app) {
   const modal = byId('appDetailModal');
@@ -4474,16 +4732,21 @@ function renderManageModal(app) {
   const isCalendar = app.category === 'calendar';
   const isBooks = app.id === 'zoho-books';
   const isMail = app.id === 'zoho-mail';
+  const isApple = app.id === 'apple-calendar';
+  const isTikTok = app.id === 'tiktok';
 
   // Specific failure messages
   let specificFailure = null;
   if (isNeedsAttention) {
-    if (isCalendar) specificFailure = "Vela can read Dele’s availability. Permission to add appointments has expired.";
+    if (isCalendar) specificFailure = "Vela can read Dele’s availability. Permission to add appointments has expired. Reauthorise connection to resume updates.";
     else if (isBooks) specificFailure = "The deposit was recorded in Vela. Zoho Books sync failed. Retry invoice sync.";
     else if (isMail) specificFailure = "Your quotation is saved. Reconnect Zoho Mail to send it from Studio Teni.";
     else if (isPayment) specificFailure = "This checkout was created with Paystack. Its payment will still be reconciled there even though Flutterwave is now your default.";
     else specificFailure = `${app.name} credentials need reconnecting.`;
   }
+
+  const webhookUrl = `${window.location.origin}/api/webhooks/${app.id}`;
+  const subscriptionUrl = app.config?.subscriptionUrl || `${window.location.origin.replace('http', 'webcal')}/api/calendar/subscribe?token=demo_token_8821`;
 
   card.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
@@ -4546,6 +4809,18 @@ function renderManageModal(app) {
               <input type="checkbox" ${app.isDefault ? 'checked' : ''} onchange="setDefaultPaymentGateway('${app.id}', this.checked)">
             </div>
           ` : ''}
+
+          ${isPayment ? `
+            <!-- Currency Defaults -->
+            <div style="margin-top:10px; background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:4px;">Default Payment Provider Per Currency:</div>
+              <div style="font-size:12px; color:#444; line-height:1.4;">
+                • <strong>NGN:</strong> ${app.id === 'paystack' ? 'Paystack (Direct Naira card & bank checkout)' : 'Flutterwave'}<br>
+                • <strong>USD / GBP / EUR:</strong> Flutterwave (International card processing)<br>
+                • <strong>Apple Pay / CAD:</strong> Stripe (1-Tap wallet checkout)
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -4557,6 +4832,28 @@ function renderManageModal(app) {
             <span>Last successful sync: <strong>${escapeHtml(app.lastSync || 'Just now')}</strong></span>
             <span style="font-size:11px; color:#15803d; font-weight:600;">${escapeHtml(app.health || 'Active')}</span>
           </div>
+
+          ${isMail ? `
+            <div class="dual-health-grid" style="margin-bottom:8px;">
+              <div class="dual-health-card">
+                <div class="dual-health-title">Incoming Mail</div>
+                <div class="dual-health-status" style="color:#15803d;">● IMAP &amp; Webhook healthy</div>
+              </div>
+              <div class="dual-health-card">
+                <div class="dual-health-title">Outgoing Replies</div>
+                <div class="dual-health-status" style="color:#15803d;">● SPF, DKIM, DMARC passed</div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${isTikTok ? `
+            <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:6px; padding:8px 10px; margin-bottom:8px; font-size:11.5px;">
+              <div style="color:#B45309; margin-bottom:3px;">⚠️ Direct messages: Pending review. Automated outgoing DMs paused.</div>
+              <div style="color:#15803d; margin-bottom:3px;">✓ Video comments: Active</div>
+              <div style="color:#15803d;">✓ Portfolio lookbooks: Active</div>
+            </div>
+          ` : ''}
+
           <div class="manage-activity-list">
             ${(app.activityLog && app.activityLog.length > 0 ? app.activityLog : [
               { timestamp: '10m ago', event: 'Health check passed', details: 'Webhooks and API token verified active' }
@@ -4603,6 +4900,68 @@ function renderManageModal(app) {
       </div>
     </div>
 
+    <!-- Provider-Tailored Controls Grid -->
+    <div style="margin-top:16px;">
+      <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:8px;">Manage &amp; Controls:</div>
+      <div class="manage-controls-grid">
+        ${app.requiresWebhook ? `
+          <button type="button" class="manage-control-btn" onclick="toggleInlineReplaceKey('${app.id}')">
+            <span>🔑</span> Replace key
+          </button>
+          <button type="button" class="manage-control-btn" onclick="copyWizardWebhookUrl('${app.id}')">
+            <span>🔗</span> Copy webhook URL
+          </button>
+          <button type="button" class="manage-control-btn" onclick="showSecretRotationModal('${app.id}')">
+            <span>🔄</span> Rotate signing secret
+          </button>
+        ` : ''}
+
+        ${app.setupType === 'oauth' || app.setupType === 'business_onboarding' ? `
+          <button type="button" class="manage-control-btn" onclick="connectAppPrompt('${app.id}')">
+            <span>🔄</span> Reauthorise
+          </button>
+          <button type="button" class="manage-control-btn" onclick="notify('Opening account switch for ' + '${app.name}...');">
+            <span>👤</span> Change selected account
+          </button>
+          ${isCalendar ? `
+            <button type="button" class="manage-control-btn" onclick="switchCalendarStaffPrompt('${app.id}')">
+              <span>📅</span> Change calendar (Dele / Segun)
+            </button>
+          ` : app.id === 'google-drive' || app.id === 'dropbox' ? `
+            <button type="button" class="manage-control-btn" onclick="notify('Select new delivery folder...');">
+              <span>📁</span> Change folder
+            </button>
+          ` : ''}
+        ` : ''}
+
+        ${isApple ? `
+          <button type="button" class="manage-control-btn" onclick="navigator.clipboard.writeText('${subscriptionUrl}'); notify('Subscription URL copied!');">
+            <span>🔗</span> Copy feed URL
+          </button>
+          <button type="button" class="manage-control-btn" onclick="regenerateAppleSubscription('${app.id}')">
+            <span>🔄</span> Revoke or regenerate link
+          </button>
+        ` : ''}
+      </div>
+
+      <!-- Inline Replace Key Form (Keeps existing key active until replacement passes validation) -->
+      <div id="inlineReplaceKeyBox" style="display:none; background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-top:12px;">
+        <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:4px;">Replace API Key Seamlessly</div>
+        <div style="font-size:11.5px; color:#666; margin-bottom:10px;">
+          Your current key remains active until the replacement key is validated by the server. Zero booking downtime.
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="inlineNewSecretKey" placeholder="Paste replacement secret key..." style="flex:1; padding:8px 10px; border:1px solid #ccc; border-radius:6px; font-family:monospace; font-size:12px;">
+          <button type="button" class="btn-approve" style="font-size:12px; padding:8px 14px;" onclick="submitInlineReplaceKey('${app.id}')">
+            Verify &amp; replace key
+          </button>
+          <button type="button" class="btn-secondary" style="font-size:12px; padding:8px 12px;" onclick="toggleInlineReplaceKey('${app.id}')">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Disconnect Zone with Full Explanation -->
     <div style="border-top:1px solid rgba(22,24,23,0.08); padding-top:16px; margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
       <div style="font-size:11.5px; color:#666;">
@@ -4615,6 +4974,54 @@ function renderManageModal(app) {
   `;
 
   modal.style.display = 'flex';
+}
+
+function toggleInlineReplaceKey(appId) {
+  const box = byId('inlineReplaceKeyBox');
+  if (box) box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+}
+
+function submitInlineReplaceKey(appId) {
+  const keyInput = byId('inlineNewSecretKey');
+  const newSecretKey = keyInput ? keyInput.value.trim() : '';
+  if (!newSecretKey) return notify('Please enter a new secret key.');
+
+  notify('Verifying replacement key while keeping existing key active...');
+  fetch('/api/apps/rotate-key', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId, newSecretKey })
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.error) return notify('⚠️ ' + res.error);
+    notify('✓ Replacement key verified and rotated with zero downtime.');
+    const apps = getAppsState();
+    if (apps[appId]) {
+      if (!apps[appId].config) apps[appId].config = {};
+      apps[appId].config.maskedSecretKey = newSecretKey.slice(0, 7) + '••••••••' + newSecretKey.slice(-4);
+      save({ connectedApps: apps });
+    }
+    renderManageModal(apps[appId]);
+  })
+  .catch(() => notify('Error rotating key. Existing key remains active.'));
+}
+
+function showSecretRotationModal(appId) {
+  alert(`Signing Secret Rotation Instructions for ${appId.toUpperCase()}:\n\n1. In your ${appId} dashboard, generate a secondary signing secret.\n2. In Vela Manage, enter the secondary secret.\n3. Vela will accept events signed with either secret during the rotation window.\n4. Deactivate the old secret in your provider dashboard once verified.`);
+}
+
+function switchCalendarStaffPrompt(appId) {
+  const choice = prompt('Assign calendar to:\n1 - Dele (Chair 1)\n2 - Segun (Chair 2)', '1');
+  const staff = (choice === '2') ? 'Segun (Chair 2)' : 'Dele (Chair 1)';
+  const apps = getAppsState();
+  if (apps[appId]) {
+    if (!apps[appId].config) apps[appId].config = {};
+    apps[appId].config.assignedStaff = staff;
+    save({ connectedApps: apps });
+    notify(`Calendar assigned to ${staff}. Availability synced.`);
+    renderManageModal(apps[appId]);
+  }
 }
 
 function retryAppAction(action) {
