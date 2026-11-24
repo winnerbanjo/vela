@@ -32,7 +32,8 @@ const server = http.createServer((req, res) => {
     '/legal/terms': '/terms.html',
     '/login': '/login.html',
     '/register': '/register.html',
-    '/signup': '/register.html'
+    '/signup': '/register.html',
+    '/dashboard': '/dashboard.html'
   };
 
   if (routeAliases[reqPath]) {

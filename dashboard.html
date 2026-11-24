@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Agent Workspace · Vela AI</title>
+  <meta name="description" content="Vela AI sales assistant workspace for service professionals.">
+  <link rel="icon" type="image/svg+xml" href="/assets/vela-logo-black-opt.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --bg-warm: #F7F6F0;
+      --text-ink: #161817;
+      --accent-lime: #C5F36A;
+      --border-subtle: rgba(22, 24, 23, 0.12);
+      --card-bg: #FFFFFF;
+    }
+    body {
+      background-color: var(--bg-warm);
+      color: var(--text-ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+    /* Layout */
+    .app-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: var(--bg-warm);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+      z-index: 40;
+    }
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text-ink);
+    }
+    .brand-logo-img {
+      height: 24px;
+      width: auto;
+    }
+    .ai-badge {
+      background: var(--text-ink);
+      color: var(--accent-lime);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .new-task-btn {
+      margin: 12px 14px;
+      padding: 10px 14px;
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+    .new-task-btn:hover {
+      background: #282a29;
+    }
+    .nav-list {
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      color: rgba(22, 24, 23, 0.75);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover {
+      background: rgba(22, 24, 23, 0.05);
+      color: var(--text-ink);
+    }
+    .nav-item.active {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      font-weight: 600;
+    }
+    .nav-item.active svg {
+      stroke: var(--accent-lime);
+    }
+    .recent-tasks-section {
+      padding: 16px 14px 8px;
+      border-top: 1px solid var(--border-subtle);
+      flex: 1;
+      overflow-y: auto;
+    }
+    .recent-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(22, 24, 23, 0.45);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding-left: 6px;
+    }
+    .task-history-btn {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(22, 24, 23, 0.85);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+    .task-history-btn:hover {
+      background: rgba(22, 24, 23, 0.05);
+      color: var(--text-ink);
+    }
+    .task-history-btn span.title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12px;
+    }
+    .owner-info {
+      font-weight: 600;
+      color: var(--text-ink);
+    }
+    .owner-role {
+      font-size: 11px;
+      color: rgba(22, 24, 23, 0.5);
+    }
+    /* Main Content */
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Mobile Header */
+    .mobile-bar {
+      display: none;
+      padding: 12px 16px;
+      background: var(--bg-warm);
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: center;
+      justify-content: space-between;
+    }
+    .menu-toggle-btn {
+      background: transparent;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+    }
+    /* Central Column (Home State) */
+    .home-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .trade-toggle-wrap {
+      display: inline-flex;
+      background: rgba(22, 24, 23, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 3px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      align-self: flex-start;
+    }
+    .trade-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 9px;
+      cursor: pointer;
+      color: rgba(22, 24, 23, 0.6);
+      transition: all 0.15s ease;
+    }
+    .trade-btn.active {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .home-headline {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px 0;
+      color: var(--text-ink);
+    }
+    .home-sub {
+      font-size: 14px;
+      color: rgba(22, 24, 23, 0.65);
+      margin: 0 0 24px 0;
+    }
+    .prompt-box {
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.15);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      margin-bottom: 16px;
+      transition: border 0.15s, box-shadow 0.15s;
+    }
+    .prompt-box:focus-within {
+      border-color: var(--text-ink);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .prompt-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text-ink);
+      box-sizing: border-box;
+      line-height: 1.5;
+    }
+    .prompt-bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(22, 24, 23, 0.05);
+    }
+    .enter-hint {
+      font-size: 11px;
+      color: rgba(22, 24, 23, 0.4);
+    }
+    .send-icon-btn {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .send-icon-btn:hover {
+      background: #2a2d2b;
+    }
+    .suggestions-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: rgba(22, 24, 23, 0.5);
+      margin-bottom: 8px;
+    }
+    .suggestions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .suggestion-chip {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      padding: 9px 15px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .suggestion-chip:hover {
+      border-color: rgba(22, 24, 23, 0.3);
+      background: rgba(22, 24, 23, 0.03);
+    }
+    .updates-section {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .update-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .update-text {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .update-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #16a34a;
+    }
+    .update-dot.amber {
+      background: #f59e0b;
+    }
+    .action-btn-sm {
+      background: rgba(22, 24, 23, 0.05);
+      border: none;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-ink);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .action-btn-sm:hover {
+      background: rgba(22, 24, 23, 0.1);
+    }
+    .action-btn-sm.primary {
+      background: var(--text-ink);
+      color: #F7F6F0;
+    }
+    .action-btn-sm.primary:hover {
+      background: #2a2d2b;
+    }
+    /* Conversation View */
+    .chat-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .chat-header-bar {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .chat-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-ink);
+    }
+    .chat-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 100px;
+    }
+    .chat-thread-container {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .msg-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg-sender-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(22, 24, 23, 0.45);
+    }
+    .user-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--text-ink);
+      color: #F7F6F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .msg-bubble {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .msg-bubble.user-msg {
+      font-weight: 500;
+      padding-left: 28px;
+    }
+    /* Interactive Cards */
+    .record-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.15);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .record-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+    .record-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      background: rgba(197, 243, 106, 0.35);
+      color: #161817;
+      border: 1px solid rgba(22, 24, 23, 0.15);
+    }
+    .record-badge.amber {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+    .item-pill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .item-pill {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+    }
+    .record-actions {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-approve {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+    .btn-approve:hover {
+      background: #2a2d2b;
+    }
+    .btn-secondary {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-ink);
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      background: rgba(22, 24, 23, 0.04);
+    }
+    /* Fixed Bottom Composer */
+    .docked-composer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(247, 246, 240, 0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border-subtle);
+      padding: 12px 20px;
+      z-index: 20;
+    }
+    .composer-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border: 1px solid rgba(22, 24, 23, 0.18);
+      border-radius: 16px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .composer-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--text-ink);
+    }
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(22, 24, 23, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-subtle);
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .mobile-bar {
+        display: flex;
+      }
+      .home-headline {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="/dashboard" class="brand-logo-wrap">
+          <img src="/assets/vela-logo-black-opt.png" alt="vela" class="brand-logo-img">
+          <span class="ai-badge">AI</span>
+        </a>
+        <button class="menu-toggle-btn" id="closeSidebarBtn" style="display:none;" aria-label="Close sidebar">✕</button>
+      </div>
+
+      <button class="new-task-btn" id="newTaskBtn">
+        <span style="font-size:16px; line-height:1; color:var(--accent-lime);">+</span>
+        <span>New task</span>
+      </button>
+
+      <nav class="nav-list">
+        <a href="/dashboard" class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12 2.1 12.5"></path><path d="m4.5 15 7.5-3"></path></svg>
+          <span>Agent</span>
+        </a>
+        <a href="/dashboard" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Bookings</span>
+        </a>
+        <a href="/dashboard" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Clients</span>
+        </a>
+        <a href="/dashboard" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <span>Money</span>
+        </a>
+        <a href="/dashboard" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Website</span>
+        </a>
+      </nav>
+
+      <div class="recent-tasks-section">
+        <div class="recent-title">Recent tasks</div>
+        <div id="recentTasksList">
+          <button class="task-history-btn" onclick="runWorkflow('wedding_quote')">
+            <span class="title">Amaka’s wedding quote</span>
+            <span style="font-size:10px; opacity:0.4;">10m</span>
+          </button>
+          <button class="task-history-btn" onclick="runWorkflow('fill_slots')">
+            <span class="title">Fill tomorrow’s slots</span>
+            <span style="font-size:10px; opacity:0.4;">1h</span>
+          </button>
+          <button class="task-history-btn" onclick="runWorkflow('friday_shoot')">
+            <span class="title">Friday shoot preparation</span>
+            <span style="font-size:10px; opacity:0.4;">3h</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="owner-info">Studio Teni</div>
+        <div class="owner-role">Victoria Island · Lagos</div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-workspace">
+      
+      <!-- Mobile Bar -->
+      <div class="mobile-bar">
+        <button class="menu-toggle-btn" id="openSidebarBtn" aria-label="Open navigation">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="brand-logo-wrap">
+          <img src="/assets/vela-logo-black-opt.png" alt="vela" class="brand-logo-img">
+          <span class="ai-badge">AI</span>
+        </div>
+        <button class="action-btn-sm primary" onclick="startFreshTask()">+ New</button>
+      </div>
+
+      <!-- State 1: Home View -->
+      <div class="home-view" id="homeView">
+        
+        <div class="trade-toggle-wrap">
+          <button class="trade-btn active" id="btnBarberMode" onclick="setMode('barber')">Barber</button>
+          <button class="trade-btn" id="btnPhotoMode" onclick="setMode('photographer')">Photographer</button>
+        </div>
+
+        <h1 class="home-headline">What do you need done?</h1>
+        <p class="home-sub">Ask Vela to do something for your business in everyday language.</p>
+
+        <div class="prompt-box">
+          <textarea class="prompt-input" id="homePromptInput" rows="3" placeholder="Ask Vela to do something for your business…"></textarea>
+          <div class="prompt-bottom-bar">
+            <span class="enter-hint">Press <strong>Enter</strong> to send</span>
+            <button class="send-icon-btn" id="homeSendBtn" aria-label="Send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="suggestions-label">Suggestions</div>
+        <div class="suggestions-row" id="suggestionsRow">
+          <!-- Populated by JS based on trade -->
+        </div>
+
+        <div class="updates-section">
+          <div class="suggestions-label">Live Updates</div>
+          
+          <div class="update-card">
+            <div class="update-text">
+              <span class="update-dot"></span>
+              <span>Up next · Tobi · Haircut and beard · 1:00 pm</span>
+            </div>
+            <button class="action-btn-sm" onclick="openBookingModal('Tobi Adebayo', 'Haircut and beard', '1:00 PM today', '₦2,000 paid · ₦8,000 balance')">Open booking</button>
+          </div>
+
+          <div class="update-card">
+            <div class="update-text">
+              <span class="update-dot amber"></span>
+              <span>Friday’s wedding shoot is missing the venue address.</span>
+            </div>
+            <button class="action-btn-sm primary" onclick="runWorkflow('friday_shoot')">Prepare message</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- State 2: Conversation View -->
+      <div class="chat-view" id="chatView">
+        
+        <div class="chat-header-bar">
+          <div class="chat-title" id="chatTaskTitle">Active Task</div>
+          <button class="action-btn-sm" onclick="startFreshTask()">Close task</button>
+        </div>
+
+        <div class="chat-scroll-area">
+          <div class="chat-thread-container" id="chatContainer">
+            <!-- Messages rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="docked-composer">
+          <div class="composer-inner">
+            <input type="text" class="composer-input" id="dockedInput" placeholder="Give Vela your next instruction…">
+            <button class="send-icon-btn" id="dockedSendBtn" aria-label="Send">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:16px; font-weight:700;" id="modalClientName">Tobi Adebayo</h3>
+        <button onclick="closeModal()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
+      </div>
+      <div style="font-size:13px; line-height:1.6; margin-bottom:18px;">
+        <p><strong>Service:</strong> <span id="modalService">Haircut & Beard</span></p>
+        <p><strong>Time:</strong> <span id="modalTime">1:00 PM</span></p>
+        <p><strong>Payment Status:</strong> <span id="modalPayment">₦2,000 paid · ₦8,000 balance</span></p>
+        <p><strong>Barber:</strong> Dele (Chair 1)</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-approve" style="flex:1; justify-content:center;" onclick="alert('Opening WhatsApp reminder thread with client.'); closeModal();">WhatsApp Client</button>
+        <button class="btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMode = 'barber';
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btnBarberMode').classList.toggle('active', mode === 'barber');
+      document.getElementById('btnPhotoMode').classList.toggle('active', mode === 'photographer');
+      renderSuggestions();
+    }
+
+    function renderSuggestions() {
+      const container = document.getElementById('suggestionsRow');
+      if (currentMode === 'barber') {
+        container.innerHTML = `
+          <button class="suggestion-chip" onclick="runWorkflow('fill_slots')">• Fill tomorrow’s open slots</button>
+          <button class="suggestion-chip" onclick="runWorkflow('walk_in')">• Add a walk-in</button>
+          <button class="suggestion-chip" onclick="openBookingModal('Tobi Adebayo', 'Haircut and beard', '1:00 PM today', '₦2,000 paid · ₦8,000 balance')">• Show my next client</button>
+        `;
+      } else {
+        container.innerHTML = `
+          <button class="suggestion-chip" onclick="runWorkflow('wedding_quote')">• Prepare a quotation</button>
+          <button class="suggestion-chip" onclick="runWorkflow('unpaid_deposits')">• Follow up unpaid deposits</button>
+          <button class="suggestion-chip" onclick="runWorkflow('friday_shoot')">• Get Friday’s shoot ready</button>
+        `;
+      }
+    }
+
+    renderSuggestions();
+
+    // Workflows execution
+    function runWorkflow(type) {
+      document.getElementById('homeView').style.display = 'none';
+      document.getElementById('chatView').style.display = 'flex';
+      const container = document.getElementById('chatContainer');
+      container.innerHTML = '';
+
+      if (type === 'fill_slots') {
+        document.getElementById('chatTaskTitle').innerText = 'Fill tomorrow’s open slots';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+            <div class="msg-bubble user-msg">Fill my empty slots tomorrow.</div>
+          </div>
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">I checked tomorrow’s schedule with Dele. You have two open appointment slots:</div>
+            
+            <div class="record-card">
+              <div class="record-header">
+                <span style="font-weight:700; font-size:13px;">Tomorrow's Openings (Dele)</span>
+                <span class="record-badge">Live Availability</span>
+              </div>
+              <div class="item-pill-grid">
+                <div class="item-pill"><strong>11:00 AM</strong><br><span style="color:#666;">Finishes 11:45 · Buffer to 11:55</span></div>
+                <div class="item-pill"><strong>2:30 PM</strong><br><span style="color:#666;">Finishes 3:15 · Buffer to 3:25</span></div>
+              </div>
+              
+              <div style="border-top:1px solid var(--border-subtle); padding-top:10px;">
+                <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#777; margin-bottom:8px;">Eligible Past Clients (2)</div>
+                <div style="background:#F7F6F0; padding:10px; border-radius:10px; margin-bottom:8px; font-size:12px;">
+                  <strong>Femi Adeleke</strong> · <span style="color:#16a34a; font-weight:600;">Last visited 22 days ago</span>
+                  <div style="background:#FFF; padding:8px; border-radius:6px; margin-top:5px; font-style:italic;">“Hi Femi! Dele has an opening tomorrow at 11:00 AM. Would you like me to hold it for you?”</div>
+                </div>
+                <div style="background:#F7F6F0; padding:10px; border-radius:10px; font-size:12px;">
+                  <strong>Chidi Nnamdi</strong> · <span style="color:#16a34a; font-weight:600;">Asked about open slots</span>
+                  <div style="background:#FFF; padding:8px; border-radius:6px; margin-top:5px; font-style:italic;">“Hi Chidi! A 2:30 PM slot just opened up with Dele tomorrow. Tap here to lock it with a quick deposit.”</div>
+                </div>
+              </div>
+
+              <div class="record-actions" id="fillSlotsActions">
+                <button class="btn-approve" onclick="approveSlotsOutreach()">Send to 2 customers via WhatsApp</button>
+                <button class="btn-secondary" onclick="alert('Copied shareable booking link: https://studioteni.vela.ng/book?date=tomorrow')">Create shareable link</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'wedding_quote') {
+        document.getElementById('chatTaskTitle').innerText = 'Amaka’s wedding quotation';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+            <div class="msg-bubble user-msg">Prepare a ₦450,000 wedding quote for Amaka with a 40% deposit.</div>
+          </div>
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">Found Amaka Okonkwo’s enquiry for her wedding on December 12 in Victoria Island. Here is the draft quote:</div>
+
+            <div class="record-card">
+              <div class="record-header">
+                <div>
+                  <div style="font-size:10px; font-family:'JetBrains Mono'; color:#777;">QUOTATION #VQ-2026-088</div>
+                  <strong style="font-size:14px;">Amaka Okonkwo</strong>
+                </div>
+                <span class="record-badge" id="quoteBadge">Draft · Approval Required</span>
+              </div>
+              <div style="font-size:12.5px; line-height:1.5;">
+                <p style="margin:0 0 4px 0;"><strong>Event:</strong> Saturday, 12 December 2026 (Victoria Island)</p>
+                <p style="margin:0 0 4px 0;"><strong>Coverage:</strong> 8 hours coverage · 2 photographers · Linen photobook</p>
+              </div>
+              <div style="background:#F7F6F0; padding:12px; border-radius:12px; font-size:12.5px; line-height:1.6;">
+                <div style="display:flex; justify-content:space-between;"><span>Total Agreed Fee:</span> <strong>₦450,000</strong></div>
+                <div style="display:flex; justify-content:space-between; font-weight:600;"><span>Initial Deposit (40%):</span> <strong>₦180,000</strong></div>
+                <div style="display:flex; justify-content:space-between; color:#666; border-top:1px solid rgba(0,0,0,0.06); padding-top:4px;"><span>Balance upon delivery:</span> <strong>₦270,000</strong></div>
+              </div>
+              <div class="record-actions" id="quoteActions">
+                <button class="btn-approve" onclick="approveQuote()">Approve and send</button>
+                <button class="btn-secondary" onclick="alert('Quote values unlocked for inline editing.')">Edit quote</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'friday_shoot') {
+        document.getElementById('chatTaskTitle').innerText = 'Friday shoot preparation';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+            <div class="msg-bubble user-msg">Get Friday’s shoot ready.</div>
+          </div>
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">Here is Friday's schedule for the Balogun Wedding Shoot. Deposit and shot list are confirmed, but the venue address is missing:</div>
+
+            <div class="record-card">
+              <div class="record-header">
+                <div>
+                  <div style="font-size:10px; font-family:'JetBrains Mono'; color:#777;">JOB #VJ-394 · WEDDING SHOOT</div>
+                  <strong style="font-size:14px;">Mrs. Yemi Balogun</strong>
+                </div>
+                <span class="record-badge amber" id="shootBadge">Missing Venue</span>
+              </div>
+              <div style="font-size:12.5px; line-height:1.5;">
+                <p style="margin:0 0 4px 0;"><strong>Time:</strong> Friday, 28 Nov · 10:00 AM</p>
+                <p style="margin:0 0 4px 0;"><strong>Team:</strong> Teni (Lead) + Samuel (Assistant)</p>
+                <p style="margin:0 0 4px 0;"><strong>Payment:</strong> ₦140,000 deposit verified · ₦210,000 balance remaining</p>
+              </div>
+              <div style="background:#fffbeb; border:1px solid #fef3c7; padding:10px; border-radius:10px; font-size:12px; color:#92400e;">
+                <strong>Prepared message for Mrs. Balogun:</strong><br>
+                “Good morning Mrs. Balogun! Just finalizing prep for Friday’s 10:00 AM shoot. Could you please share the exact church & reception address?”
+              </div>
+              <div class="record-actions" id="shootActions">
+                <button class="btn-approve" onclick="sendVenueMessage()">Send message via WhatsApp</button>
+                <button class="btn-secondary" onclick="simulateAddressReply()">Simulate client sends address</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (type === 'walk_in') {
+        document.getElementById('chatTaskTitle').innerText = 'Add walk-in';
+        container.innerHTML = `
+          <div class="msg-block">
+            <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+            <div class="msg-bubble user-msg">Add a walk-in for a haircut with Dele now.</div>
+          </div>
+          <div class="msg-block">
+            <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+            <div class="msg-bubble">Dele is available right now at Chair 1 until 2:00 PM. Here is the one-tap walk-in booking:</div>
+            <div class="record-card">
+              <div style="font-size:13px; line-height:1.6;">
+                <p><strong>Barber:</strong> Dele (Chair 1)</p>
+                <p><strong>Service:</strong> Haircut & Beard trim (₦10,000)</p>
+                <p><strong>Time:</strong> Immediate walk-in</p>
+              </div>
+              <div class="record-actions">
+                <button class="btn-approve" onclick="this.innerText='✓ Confirmed · Dele Notified'; this.style.background='#16a34a';">Confirm Walk-in Now</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function approveSlotsOutreach() {
+      const actions = document.getElementById('fillSlotsActions');
+      actions.innerHTML = `
+        <div style="background:#dcfce7; color:#166534; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:600; width:100%;">
+          ✓ Rechecked calendar. Invitations sent to 2 clients via WhatsApp. Slots remain bookable until confirmed.
+        </div>
+      `;
+    }
+
+    function approveQuote() {
+      document.getElementById('quoteBadge').innerText = 'Sent · Awaiting Deposit';
+      document.getElementById('quoteBadge').className = 'record-badge';
+      const actions = document.getElementById('quoteActions');
+      actions.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+          <div style="font-size:12px; color:#166534; font-weight:600;">✓ Quotation sent to Amaka with direct Paystack link.</div>
+          <button class="btn-approve" style="background:var(--accent-lime); color:#161817; font-weight:700;" onclick="simulateQuotePaid()">Simulate: Amaka accepts & pays ₦180,000 deposit</button>
+        </div>
+      `;
+    }
+
+    function simulateQuotePaid() {
+      const actions = document.getElementById('quoteActions');
+      actions.innerHTML = `
+        <div style="background:#dcfce7; color:#166534; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:600;">
+          ✓ ₦180,000 deposit verified via Paystack.<br>
+          <span style="font-weight:400; color:#333;">Job #VJ-402 created. Client welcome onboarding checklist opened for shot list.</span>
+        </div>
+      `;
+    }
+
+    function sendVenueMessage() {
+      document.getElementById('shootActions').innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+          <div style="font-size:12px; color:#166534; font-weight:600;">✓ WhatsApp message sent to Mrs. Balogun.</div>
+          <button class="btn-approve" style="background:var(--accent-lime); color:#161817; font-weight:700;" onclick="simulateAddressReply()">Simulate: Client replies with Lekki Church address</button>
+        </div>
+      `;
+    }
+
+    function simulateAddressReply() {
+      document.getElementById('shootBadge').innerText = 'Ready · All Clear';
+      document.getElementById('shootBadge').className = 'record-badge';
+      document.getElementById('shootBadge').style.background = '#C5F36A';
+      document.getElementById('shootActions').innerHTML = `
+        <div style="background:#dcfce7; color:#166534; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:600;">
+          ✓ Client replied: "Catholic Church of Divine Mercy, Admiralty Way, Lekki Phase 1."<br>
+          <span style="font-weight:400; color:#333;">Job Brief #VJ-394 updated. All checklist items ready for Friday!</span>
+        </div>
+      `;
+    }
+
+    function startFreshTask() {
+      document.getElementById('homeView').style.display = 'flex';
+      document.getElementById('chatView').style.display = 'none';
+      document.getElementById('homePromptInput').value = '';
+    }
+
+    function openBookingModal(name, service, time, payment) {
+      document.getElementById('modalClientName').innerText = name;
+      document.getElementById('modalService').innerText = service;
+      document.getElementById('modalTime').innerText = time;
+      document.getElementById('modalPayment').innerText = payment;
+      document.getElementById('bookingModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    // Input handlers
+    document.getElementById('homeSendBtn').addEventListener('click', function() {
+      const val = document.getElementById('homePromptInput').value.trim();
+      if (!val) return;
+      handleUserInput(val);
+    });
+
+    document.getElementById('homePromptInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const val = this.value.trim();
+        if (val) handleUserInput(val);
+      }
+    });
+
+    document.getElementById('dockedSendBtn').addEventListener('click', function() {
+      const val = document.getElementById('dockedInput').value.trim();
+      if (!val) return;
+      handleUserInput(val);
+      document.getElementById('dockedInput').value = '';
+    });
+
+    document.getElementById('dockedInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = this.value.trim();
+        if (val) {
+          handleUserInput(val);
+          this.value = '';
+        }
+      }
+    });
+
+    function handleUserInput(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('fill') || lower.includes('open') || lower.includes('slot')) {
+        runWorkflow('fill_slots');
+      } else if (lower.includes('quote') || lower.includes('amaka')) {
+        runWorkflow('wedding_quote');
+      } else if (lower.includes('friday') || lower.includes('shoot')) {
+        runWorkflow('friday_shoot');
+      } else if (lower.includes('walk-in') || lower.includes('walk in')) {
+        runWorkflow('walk_in');
+      } else {
+        runWorkflow('fill_slots');
+      }
+    }
+
+    document.getElementById('newTaskBtn').addEventListener('click', startFreshTask);
+
+    // Sidebar Mobile Toggle
+    document.getElementById('openSidebarBtn').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('closeSidebarBtn').style.display = 'block';
+    });
+    document.getElementById('closeSidebarBtn').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.remove('open');
+      this.style.display = 'none';
+    });
+  </script>
+
+</body>
+</html>
