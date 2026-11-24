@@ -282,45 +282,64 @@ function resumeAIForConversation(convId) {
   renderPage();
 }
 
+function getInitials(name) {
+  const clean = name.replace(/^@/, '').trim();
+  const parts = clean.split(/[\s·_()]+/);
+  if (parts.length >= 2 && parts[1]) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return clean.slice(0, 2).toUpperCase();
+}
+
 // -------------------------------------------------------------
-// RENDER INBOX
+// RENDER INBOX (Clean & Editorial Design)
 // -------------------------------------------------------------
 function renderInbox() {
-  const container = el('div');
-  
-  // Channels status bar
-  const modesBar = el('div', '', 'inbox-modes-bar');
-  modesBar.innerHTML = `
-    <div style="flex:1; min-width:280px;">
-      <div style="font-weight:700; color:#161817; margin-bottom:4px; font-size:12px;">Active Channel Connections:</div>
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span class="channel-pill whatsapp">● WhatsApp (${workspace.phone})</span>
-        <span class="channel-pill email">● Email (${workspace.email})</span>
-        <span class="channel-pill instagram">● IG (@studioteni_ng)</span>
-        <span class="channel-pill tiktok">● TikTok (@studioteni)</span>
+  const container = el('div', '', 'inbox-view-container');
+  const pendingCount = workspace.conversations.filter(c => c.status === 'needs_approval').length;
+
+  // Clean Header & Controls Bar
+  const heroBar = el('div', '', 'inbox-hero-bar');
+  heroBar.innerHTML = `
+    <div class="inbox-title-group">
+      <h1>Inbox</h1>
+      <div class="inbox-subtitle">
+        ${pendingCount > 0 ? `
+          <span class="inbox-pulse-indicator">
+            <span class="inbox-pulse-dot"></span>
+            ${pendingCount} decision${pendingCount === 1 ? '' : 's'} required
+          </span>
+        ` : `
+          <span style="color:#15803d; font-weight:600; font-size:12px;">✓ All enquiries up to date</span>
+        `}
+        <span style="color:#aaa;">·</span>
+        <span style="font-size:12px; color:#666;">Connected to WhatsApp, Email, Instagram, TikTok</span>
       </div>
     </div>
-    <div style="display:flex; gap:6px; align-items:center;">
-      <span style="font-size:11px; font-weight:600; color:#666;">Mode:</span>
-      <button class="inbox-mode-pill ${workspace.inboxMode === 'draft' ? 'active' : ''}" onclick="setInboxMode('draft')">Draft for me</button>
-      <button class="inbox-mode-pill ${workspace.inboxMode === 'routine' ? 'active' : ''}" onclick="setInboxMode('routine')">Reply to routine enquiries</button>
-      <button class="inbox-mode-pill ${workspace.inboxMode === 'manual' ? 'active' : ''}" onclick="setInboxMode('manual')">I'll handle this</button>
+
+    <div class="inbox-controls-group">
+      <div class="inbox-mode-dropdown-wrap">
+        <span style="color:#777; font-size:11.5px; font-weight:500;">AI Mode:</span>
+        <select onchange="setInboxMode(this.value)">
+          <option value="draft" ${workspace.inboxMode === 'draft' ? 'selected' : ''}>Draft for me</option>
+          <option value="routine" ${workspace.inboxMode === 'routine' ? 'selected' : ''}>Reply to routine</option>
+          <option value="manual" ${workspace.inboxMode === 'manual' ? 'selected' : ''}>Manual handling</option>
+        </select>
+      </div>
+      <a href="#settings" class="inbox-channels-link" title="Manage channel connections">Channels ⚙</a>
     </div>
   `;
-  container.append(modesBar);
+  container.append(heroBar);
 
-  // Channel & Status Filter Tabs
-  const pendingCount = workspace.conversations.filter(c => c.status === 'needs_approval').length;
-  const filterBar = el('div', '', 'inbox-filter-bar');
-  filterBar.innerHTML = `
-    <button class="inbox-filter-tab ${currentInboxFilter === 'all' ? 'active' : ''}" onclick="setInboxFilter('all')">All Messages (${workspace.conversations.length})</button>
-    <button class="inbox-filter-tab ${currentInboxFilter === 'pending' ? 'active' : ''}" onclick="setInboxFilter('pending')">Needs Approval (${pendingCount})</button>
-    <button class="inbox-filter-tab ${currentInboxFilter === 'whatsapp' ? 'active' : ''}" onclick="setInboxFilter('whatsapp')">WhatsApp (3)</button>
-    <button class="inbox-filter-tab ${currentInboxFilter === 'email' ? 'active' : ''}" onclick="setInboxFilter('email')">Email (1)</button>
-    <button class="inbox-filter-tab ${currentInboxFilter === 'instagram' ? 'active' : ''}" onclick="setInboxFilter('instagram')">Instagram (1)</button>
-    <button class="inbox-filter-tab ${currentInboxFilter === 'tiktok' ? 'active' : ''}" onclick="setInboxFilter('tiktok')">TikTok (1)</button>
+  // Minimal Pill Filters
+  const filterStrip = el('div', '', 'inbox-filter-strip');
+  filterStrip.innerHTML = `
+    <button class="inbox-filter-pill ${currentInboxFilter === 'all' ? 'active' : ''}" onclick="setInboxFilter('all')">All Messages (${workspace.conversations.length})</button>
+    <button class="inbox-filter-pill ${currentInboxFilter === 'pending' ? 'active' : ''}" onclick="setInboxFilter('pending')">Needs Decision (${pendingCount})</button>
+    <button class="inbox-filter-pill ${currentInboxFilter === 'whatsapp' ? 'active' : ''}" onclick="setInboxFilter('whatsapp')">WhatsApp (3)</button>
+    <button class="inbox-filter-pill ${currentInboxFilter === 'email' ? 'active' : ''}" onclick="setInboxFilter('email')">Email (1)</button>
+    <button class="inbox-filter-pill ${currentInboxFilter === 'instagram' ? 'active' : ''}" onclick="setInboxFilter('instagram')">Instagram (1)</button>
+    <button class="inbox-filter-pill ${currentInboxFilter === 'tiktok' ? 'active' : ''}" onclick="setInboxFilter('tiktok')">TikTok (1)</button>
   `;
-  container.append(filterBar);
+  container.append(filterStrip);
 
   const list = el('div');
   const filtered = workspace.conversations.filter(c => {
@@ -330,56 +349,93 @@ function renderInbox() {
   });
 
   if (filtered.length === 0) {
-    const empty = el('div', '', 'inbox-item-card');
+    const empty = el('div', '', 'inbox-thread-card');
     empty.style.textAlign = 'center';
-    empty.style.padding = '40px 20px';
-    empty.innerHTML = `<p style="font-weight:600; color:#555;">No messages in this filter.</p><p style="font-size:12px; color:#888;">All client enquiries are currently answered or resolved.</p>`;
+    empty.style.padding = '48px 20px';
+    empty.innerHTML = `
+      <div style="font-size:24px; margin-bottom:8px;">☕</div>
+      <div style="font-weight:700; font-size:15px; color:#161817; margin-bottom:4px;">No messages in this filter</div>
+      <p style="font-size:12.5px; color:#777; margin:0;">All client requests in this view have been reviewed or resolved.</p>
+    `;
     list.append(empty);
   }
 
+  const channelBadges = {
+    whatsapp: { name: 'WhatsApp', short: 'WA', cls: 'wa' },
+    email: { name: 'Email', short: '@', cls: 'em' },
+    instagram: { name: 'Instagram', short: 'IG', cls: 'ig' },
+    tiktok: { name: 'TikTok', short: 'TT', cls: 'tt' }
+  };
+
   for (const conv of filtered) {
-    const card = el('div', '', 'inbox-item-card');
+    const card = el('div', '', 'inbox-thread-card');
+    const ch = channelBadges[conv.channel] || { name: conv.channel, short: conv.channel[0].toUpperCase(), cls: 'wa' };
+    const initials = getInitials(conv.sender);
     const isPending = conv.status === 'needs_approval';
     const isManual = conv.status === 'manual_handling';
     const isSent = conv.status === 'sent';
+    const isRoutine = conv.status === 'routine_replied';
 
     card.innerHTML = `
-      <div class="inbox-item-header">
-        <div class="inbox-customer-info">
-          <span class="channel-pill ${conv.channel}">${conv.channel.toUpperCase()}</span>
-          <span>${conv.sender}</span>
-          <span style="font-size:11px; color:#666; font-weight:400;">· ${conv.time}</span>
+      <div class="thread-header">
+        <div class="thread-sender-group">
+          <div class="thread-avatar">
+            ${initials}
+            <span class="thread-channel-badge ${ch.cls}">${ch.short}</span>
+          </div>
+          <div>
+            <div class="thread-sender-name">
+              <span>${conv.sender}</span>
+              ${conv.isQuote ? '<span class="corporate-badge">B2B Quotation</span>' : ''}
+            </div>
+            <div class="thread-time-sub">${ch.name} · ${conv.time}</div>
+          </div>
         </div>
-        <span class="inbox-status-tag" style="${isSent ? 'background:#dcfce7; color:#15803d;' : isManual ? 'background:#f1f5f9; color:#475569;' : ''}">
-          ${isSent ? '✓ Sent' : isManual ? 'Owner handling' : conv.status === 'routine_replied' ? 'Routine · Auto-replied' : 'Needs your approval'}
+
+        <span class="thread-status-tag ${isSent ? 'sent' : isManual ? 'manual' : isRoutine ? 'routine' : 'decision'}">
+          ${isSent ? '✓ Sent' : isManual ? 'You\'re handling' : isRoutine ? 'Auto-replied' : 'Needs decision'}
         </span>
       </div>
 
-      <div class="inbox-customer-msg">${conv.message}</div>
-
-      <div style="font-size:11.5px; color:#555; margin-bottom:8px;">
-        <strong>Vela Context:</strong> ${conv.context}
+      <div class="thread-customer-quote">
+        ${conv.message}
       </div>
 
-      <div class="inbox-draft-box" style="${conv.status === 'routine_replied' ? 'background:#f8fafc; border-style:solid; border-color:#e2e8f0;' : ''}">
-        <div class="inbox-draft-label" style="${conv.status === 'routine_replied' ? 'color:#15803d;' : ''}">
-          ${conv.status === 'routine_replied' ? 'Vela Auto-Reply (Sent via Routine Rule)' : 'Vela Prepared Reply (Draft)'}
+      ${isRoutine ? `
+        <div class="thread-routine-box">
+          <div class="routine-meta-line">
+            <span class="routine-badge">✓ Auto-replied under Routine Rule</span>
+            <span class="routine-rule-tag">Hours &amp; Location Query</span>
+          </div>
+          <div class="routine-text">${conv.draftText}</div>
         </div>
-        <div class="inbox-draft-text">${conv.draftText}</div>
-      </div>
+      ` : isSent ? `
+        <div class="inline-sent-confirmation">
+          <span>✓ Sent via ${ch.name}</span>
+          <span style="font-weight:400; color:#14532d;">· Message delivered to client</span>
+        </div>
+      ` : isManual ? `
+        <div class="inline-manual-banner">
+          <span>AI replies paused for this client. Assigned to business owner.</span>
+          <button class="btn-inbox-secondary" onclick="resumeAIForConversation('${conv.id}')">Resume AI replies</button>
+        </div>
+      ` : `
+        <div class="thread-vela-action-box">
+          <div class="vela-action-meta-line">
+            <span class="vela-spark-label">✦ Proposed ${ch.name} ${conv.isQuote ? 'Quotation' : 'Reply'}</span>
+            <span class="vela-context-chip">${conv.context}</span>
+          </div>
+          <div class="vela-draft-text-body">${conv.draftText}</div>
 
-      <div class="inbox-item-actions">
-        ${isPending ? `
-          <button class="btn-approve" onclick="${conv.isQuote ? 'originatingScreen=\'inbox\'; runWorkflow(\'review_quote\')' : `approveConversation('${conv.id}', this)`}">
-            ${conv.actionLabel}
-          </button>
-          <button class="btn-secondary" onclick="pauseAIForConversation('${conv.id}', this)">I'll handle this</button>
-        ` : ''}
-        ${isManual ? `
-          <button class="btn-secondary" onclick="resumeAIForConversation('${conv.id}')">Resume AI replies</button>
-        ` : ''}
-        ${conv.phone ? `<a href="https://wa.me/${conv.phone.replace(/[^0-9]/g,'')}" target="_blank" class="section-link" style="align-self:center; margin-left:auto;">Open WhatsApp ↗</a>` : ''}
-      </div>
+          <div class="thread-actions-row">
+            <button class="btn-inbox-primary" onclick="${conv.isQuote ? `originatingScreen='inbox'; runWorkflow('review_quote')` : `approveConversation('${conv.id}', this)`}">
+              ${conv.actionLabel}
+            </button>
+            <button class="btn-inbox-secondary" onclick="pauseAIForConversation('${conv.id}', this)">I'll handle this</button>
+            ${conv.phone ? `<a href="https://wa.me/${conv.phone.replace(/[^0-9]/g,'')}" target="_blank" class="channel-direct-link">Open in WhatsApp ↗</a>` : ''}
+          </div>
+        </div>
+      `}
     `;
     list.append(card);
   }
@@ -1260,16 +1316,20 @@ function renderPage() {
   byId('homeView').style.display = 'none';
   byId('chatView').style.display = 'none';
   page.hidden = false;
-  page.replaceChildren(el('h1', sections[view]));
+  page.replaceChildren();
 
-  if (view === 'inbox') page.append(renderInbox());
-  else if (view === 'website') page.append(renderWebsite());
-  else if (view === 'services') page.append(renderServices());
-  else if (view === 'gallery') page.append(renderGallery());
-  else if (view === 'bookings') page.append(renderBookings());
-  else if (view === 'clients') page.append(renderClients());
-  else if (view === 'money') page.append(renderMoney());
-  else if (view === 'settings') page.append(renderSettings());
+  if (view === 'inbox') {
+    page.append(renderInbox());
+  } else {
+    page.append(el('h1', sections[view]));
+    if (view === 'website') page.append(renderWebsite());
+    else if (view === 'services') page.append(renderServices());
+    else if (view === 'gallery') page.append(renderGallery());
+    else if (view === 'bookings') page.append(renderBookings());
+    else if (view === 'clients') page.append(renderClients());
+    else if (view === 'money') page.append(renderMoney());
+    else if (view === 'settings') page.append(renderSettings());
+  }
 }
 
 // -------------------------------------------------------------
