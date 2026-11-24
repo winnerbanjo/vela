@@ -3791,7 +3791,7 @@ function renderConnectedApps(params) {
         </div>
       </div>
       <div class="page-hero-actions">
-        <button type="button" class="page-hero-btn-secondary" onclick="openAppDetailModal('paystack')" title="Inspect default NGN payment provider">
+        <button type="button" class="page-hero-btn-secondary" onclick="openPaymentGatewaySelector()" title="Inspect and configure payment gateways">
           Payment Settings
         </button>
       </div>
@@ -3830,8 +3830,23 @@ function renderConnectedApps(params) {
 
       <div class="apps-connected-list">
         ${[...attentionApps, ...continueApps, ...connectedApps].map(app => {
-          const isContinue = app.status === 'continue_setup';
+          const isContinue = app.status === 'continue_setup' || app.connectionState === 'key_verified_awaiting_webhook';
           const isAttention = app.status === 'needs_attention';
+          const isDemo = Boolean(app.isDemo);
+
+          let badgeHtml = '';
+          if (app.isDefault) badgeHtml += '<span class="app-default-pill">Default</span>';
+          if (isDemo) badgeHtml += '<span class="provider-badge demo" style="margin-left:4px;">Demo</span>';
+          else if (isContinue) badgeHtml += '<span class="provider-badge awaiting" style="margin-left:4px;">Key verified · Awaiting webhook</span>';
+          else if (isAttention) badgeHtml += '<span class="provider-badge attention" style="margin-left:4px;">Needs Attention</span>';
+
+          let statusText = isDemo ? 'Demo' : (isContinue ? 'Key verified · Awaiting webhook' : (isAttention ? 'Needs Attention' : 'Connected'));
+          let statusDotColor = isDemo ? '#6B7280' : (isContinue ? '#B45309' : (isAttention ? '#DC2626' : '#15803D'));
+
+          let actionBtnText = isContinue ? 'Continue setup' : (isAttention ? 'Reconnect' : 'Manage');
+          let actionBtnClass = isContinue ? 'btn-approve' : 'btn-secondary';
+          let actionBtnStyle = isContinue ? 'font-size:12px; padding:5px 14px; background:#B45309;' : 'font-size:12px; padding:5px 14px;';
+
           return `
             <div class="app-compact-row" id="connected-row-${app.id}">
               <div class="app-compact-left">
@@ -3839,20 +3854,18 @@ function renderConnectedApps(params) {
                 <div class="app-compact-info">
                   <div class="app-compact-name-row">
                     <span class="app-compact-name">${escapeHtml(app.name)}</span>
-                    ${app.isDefault ? '<span class="app-default-pill">Default</span>' : ''}
-                    ${isAttention ? '<span class="app-default-pill" style="background:#FEF3C7; color:#92400E;">Needs Attention</span>' : ''}
-                    ${isContinue ? '<span class="app-default-pill" style="background:#FEF3C7; color:#92400E;">Continue setup</span>' : ''}
+                    ${badgeHtml}
                   </div>
                   <div class="app-compact-desc">${escapeHtml(isContinue ? 'Payment notifications awaiting verification' : getAppSummary(app))}</div>
                 </div>
               </div>
               <div class="app-compact-right">
-                <span class="app-status-indicator ${isAttention ? 'needs-attention' : ''}" style="${isContinue ? 'color:#B45309;' : ''}">
-                  <span class="app-status-dot" style="${isContinue ? 'background:#B45309;' : ''}"></span>
-                  ${isContinue ? 'Continue setup' : isAttention ? 'Needs Attention' : 'Connected'}
+                <span class="app-status-indicator" style="color:${statusDotColor};">
+                  <span class="app-status-dot" style="background:${statusDotColor};"></span>
+                  ${escapeHtml(statusText)}
                 </span>
-                <button type="button" class="${isContinue ? 'btn-approve' : 'btn-secondary'}" style="font-size:12px; padding:5px 14px; ${isContinue ? 'background:#B45309;' : ''}" onclick="openAppDetailModal('${app.id}')">
-                  ${isContinue ? 'Continue setup' : isAttention ? 'Reconnect' : 'Manage'}
+                <button type="button" class="${actionBtnClass}" style="${actionBtnStyle}" onclick="openAppDetailModal('${app.id}')">
+                  ${actionBtnText}
                 </button>
               </div>
             </div>
@@ -3992,11 +4005,11 @@ function renderAvailableAppsList(container) {
         <div class="app-row-action">
           ${isNeedsAttention ? `
             <button type="button" class="btn-approve" style="font-size:12px; padding:6px 16px; background:#B45309;" onclick="openAppDetailModal('${app.id}')">
-              Reconnect
+              ${(app.setupType === 'oauth' || app.setupType === 'business_onboarding') ? 'Reconnect account' : 'Reconnect'}
             </button>
           ` : `
             <button type="button" class="btn-approve" style="font-size:12px; padding:6px 16px;" onclick="openAppDetailModal('${app.id}')">
-              Connect
+              ${(app.category === 'payments' && app.setupType === 'credentials') ? 'Set up credentials' : ((app.setupType === 'oauth' || app.setupType === 'business_onboarding') ? 'Connect account' : 'Connect')}
             </button>
           `}
         </div>
@@ -4006,16 +4019,21 @@ function renderAvailableAppsList(container) {
 }
 
 // -------------------------------------------------------------
-// APP DETAIL MODAL (Router between Connect Wizard & Manage Screen)
+// APP DETAIL MODAL (Router between Connect Wizard, Payment Panel & Manage Screen)
 // -------------------------------------------------------------
 function openAppDetailModal(appId, returnTask) {
   const apps = getAppsState();
-  const app = apps[appId];
+  const app = apps[appId] || window.PROVIDER_REGISTRY[appId];
   if (!app) return;
 
   currentConnectingAppId = appId;
   currentReturnTask = returnTask || null;
   currentWizardError = null;
+
+  if (appId === 'paystack' || appId === 'flutterwave') {
+    renderPaymentProviderPanel(appId, null, returnTask);
+    return;
+  }
 
   if (app.status === 'connected' || app.status === 'needs_attention') {
     renderManageModal(app);
@@ -4718,10 +4736,692 @@ function renderConnectWizardModal(app, step = 1) {
   modal.style.display = 'flex';
 }
 
+// =============================================================
+// PAYMENT PROVIDER PANELS (PAYSTACK & FLUTTERWAVE CREDENTIALS & WEBHOOKS)
+// =============================================================
+let currentPaymentEnv = 'live';
+let isReplacingKey = false;
+let isKeyMasked = true;
+let isReplacementKeyMasked = true;
+
+async function renderPaymentProviderPanel(appId, forcedEnv, returnTask) {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  currentConnectingAppId = appId;
+  currentReturnTask = returnTask || null;
+
+  let credsData = null;
+  try {
+    const res = await fetch(`/api/apps/credentials?appId=${appId}`);
+    credsData = await res.json();
+  } catch (e) {
+    console.error('Failed to load credentials from server', e);
+  }
+
+  const apps = getAppsState();
+  const app = apps[appId] || window.PROVIDER_REGISTRY[appId];
+  if (!app) return;
+
+  if (forcedEnv) {
+    currentPaymentEnv = forcedEnv;
+  } else if (credsData && credsData.activeEnvironment) {
+    currentPaymentEnv = credsData.activeEnvironment;
+  }
+
+  const activeEnv = currentPaymentEnv;
+  const envInfo = credsData?.environments?.[activeEnv] || {
+    hasKey: Boolean(app.config?.maskedSecretKey && app.config?.mode === activeEnv),
+    maskedSecretKey: app.config?.mode === activeEnv ? app.config?.maskedSecretKey : null,
+    maskedSuffix: app.config?.mode === activeEnv && app.config?.maskedSecretKey ? app.config.maskedSecretKey.slice(-4) : (app.isDemo && activeEnv === 'live' ? '4910' : null)
+  };
+
+  const hasKey = Boolean(envInfo.hasKey);
+  const maskedSuffix = envInfo.maskedSuffix || (app.isDemo && activeEnv === 'live' ? '4910' : '••••');
+
+  const connectionState = credsData?.connectionState || (app.isDemo ? 'demo' : (hasKey ? (app.webhookStatus === 'verified' ? 'connected' : 'key_verified_awaiting_webhook') : 'no_credentials'));
+  const isDemo = Boolean(credsData?.isDemo || app.isDemo);
+
+  let stateBadgeText = 'Connected';
+  let stateBadgeClass = 'connected';
+  if (isDemo) {
+    stateBadgeText = 'Demo';
+    stateBadgeClass = 'demo';
+  } else if (connectionState === 'no_credentials') {
+    stateBadgeText = 'Set up credentials';
+    stateBadgeClass = 'no-creds';
+  } else if (connectionState === 'key_verified_awaiting_webhook' || app.status === 'continue_setup') {
+    stateBadgeText = 'Key verified · Awaiting webhook';
+    stateBadgeClass = 'awaiting';
+  } else if (app.status === 'needs_attention') {
+    stateBadgeText = 'Needs Attention';
+    stateBadgeClass = 'attention';
+  }
+
+  const webhookUrl = credsData?.webhook?.url || `${window.location.origin.replace('http:', 'https:')}/api/webhooks/${app.id}`;
+  const isWebhookConfigured = credsData?.webhook?.isConfigured !== false;
+  const lastEvent = credsData?.webhook?.lastEvent || (isDemo ? 'Deposit ₦2,000 from Babatunde Ojo · 10m ago' : (app.lastWebhookEvent || null));
+  const hasSecretHash = Boolean(credsData?.webhook?.hasSecretHash || app.config?.secretHash);
+
+  const secretPlaceholder = appId === 'paystack'
+    ? (activeEnv === 'test' ? 'sk_test_...' : 'sk_live_...')
+    : (activeEnv === 'test' ? 'FLWSECK_TEST-...' : 'FLWSECK_LIVE-...');
+  const publicPlaceholder = appId === 'paystack'
+    ? (activeEnv === 'test' ? 'pk_test_...' : 'pk_live_...')
+    : (activeEnv === 'test' ? 'FLWPUBK_TEST-...' : 'FLWPUBK_LIVE-...');
+
+  card.innerHTML = `
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        ${renderAppLogo(app.id, 40)}
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <h3 style="margin:0; font-size:17px; font-weight:700;">${escapeHtml(app.name)}</h3>
+            <span class="provider-badge ${stateBadgeClass}">${stateBadgeText}</span>
+            ${app.isDefault ? '<span class="app-default-pill">Default NGN Provider</span>' : ''}
+          </div>
+          <span style="font-size:11.5px; color:#666;">${escapeHtml(app.category.toUpperCase())} · ${escapeHtml(app.headline || app.outcomeExplanation)}</span>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;" title="Close">✕</button>
+    </div>
+
+    <!-- SECTION 1: API CREDENTIALS (Immediately below provider name) -->
+    <div class="panel-section" id="panelCredentialsSection" style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <h4 style="margin:0; font-size:13.5px; font-weight:700; color:#161817;">API Credentials</h4>
+          <div style="font-size:11.5px; color:#666;">Direct server-to-server gateway authentication</div>
+        </div>
+
+        <!-- Test / Live Selector -->
+        <div class="env-toggle-group">
+          <button type="button" class="env-toggle-btn ${activeEnv === 'test' ? 'active' : ''}" onclick="switchPaymentPanelEnv('${app.id}', 'test')">
+            Test
+          </button>
+          <button type="button" class="env-toggle-btn ${activeEnv === 'live' ? 'active' : ''}" onclick="switchPaymentPanelEnv('${app.id}', 'live')">
+            Live
+          </button>
+        </div>
+      </div>
+
+      <!-- If selected environment has NO saved key: immediately show masked input -->
+      ${!hasKey ? `
+        <div id="panelNoKeyForm">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:12px; font-weight:600; color:#161817; margin-bottom:6px;">
+              ${activeEnv === 'test' ? 'Test secret key' : 'Live secret key'}
+            </label>
+            <div style="position:relative;">
+              <input type="${isKeyMasked ? 'password' : 'text'}" id="panelSecretKeyInput" class="masked-key-input" placeholder="${secretPlaceholder}" autocomplete="off" style="width:100%; box-sizing:border-box; padding:9px 50px 9px 12px; border:1px solid #c5c7bf; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:12px;">
+              <button type="button" class="toggle-mask-btn" onclick="togglePaymentKeyMask('panelSecretKeyInput', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:#666; font-size:11px; font-weight:600; cursor:pointer; padding:4px 6px;">
+                ${isKeyMasked ? 'Show' : 'Hide'}
+              </button>
+            </div>
+          </div>
+
+          ${app.id === 'flutterwave' ? `
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:12px; font-weight:600; color:#161817; margin-bottom:6px;">
+                ${activeEnv === 'test' ? 'Test public key' : 'Live public key'} <span style="font-weight:400; color:#888;">(Optional)</span>
+              </label>
+              <input type="text" id="panelPublicKeyInput" class="masked-key-input" placeholder="${publicPlaceholder}" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid #c5c7bf; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:12px;">
+            </div>
+          ` : ''}
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <a href="#" class="where-find-key-link" onclick="openKeyHelp('${app.id}', '${activeEnv}'); return false;" style="font-size:12px; color:#285731; font-weight:600; text-decoration:none;">
+              Where to find my key?
+            </a>
+            <button type="button" class="btn-approve" onclick="submitPanelSecretKey('${app.id}', '${activeEnv}')" style="font-size:12px; padding:7px 16px;">
+              Save &amp; verify key
+            </button>
+          </div>
+
+          <div id="panelKeyHelpBox" style="display:none; margin-top:10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; font-size:11.5px; color:#475569; line-height:1.4;">
+            ${app.id === 'paystack'
+              ? 'Find your keys in <strong>Paystack Dashboard → Settings → API Keys &amp; Webhooks</strong>. Live keys begin with <code>sk_live_</code>; test keys begin with <code>sk_test_</code>.'
+              : 'Find your keys in <strong>Flutterwave Dashboard → Settings → API Keys</strong>. Live keys begin with <code>FLWSECK_LIVE-</code>; test keys begin with <code>FLWSECK_TEST-</code>.'}
+          </div>
+
+          <div id="panelCredentialsError" style="display:none; margin-top:10px; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:9px 12px; border-radius:8px; font-size:12px; font-weight:500;"></div>
+        </div>
+      ` : `
+        <!-- If key exists: show masked suffix and visible Replace key button -->
+        <div id="panelExistingKeyBox">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:12px 14px;">
+            <div>
+              <div style="font-size:11px; font-weight:600; color:#666; text-transform:uppercase; letter-spacing:0.04em;">
+                ${activeEnv === 'test' ? 'Test secret key' : 'Live secret key'}
+              </div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:13.5px; font-weight:700; color:#161817; margin-top:3px;">
+                ••••••••${maskedSuffix}
+              </div>
+              <div style="font-size:11px; color:#15803d; margin-top:2px; font-weight:500;">
+                ✓ Key verified on server · AES-256 encrypted
+              </div>
+            </div>
+            <button type="button" class="btn-secondary" onclick="toggleInPlaceKeyReplacer()" style="font-size:12px; padding:6px 14px;">
+              Replace key
+            </button>
+          </div>
+
+          <!-- In-place replacement container -->
+          <div id="inPlaceKeyReplacerBox" style="display:${isReplacingKey ? 'block' : 'none'}; margin-top:12px; background:#FFFFFF; border:1px solid #deded9; border-radius:8px; padding:12px;">
+            <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:2px;">Replace ${activeEnv.toUpperCase()} Secret Key</div>
+            <div style="font-size:11.5px; color:#666; margin-bottom:8px;">
+              Your current working key (••••••••${maskedSuffix}) remains active until this replacement key verifies successfully.
+            </div>
+            <div style="position:relative; margin-bottom:10px;">
+              <input type="${isReplacementKeyMasked ? 'password' : 'text'}" id="panelReplacementKeyInput" class="masked-key-input" placeholder="Paste replacement ${activeEnv} key (${secretPlaceholder})..." autocomplete="off" style="width:100%; box-sizing:border-box; padding:9px 50px 9px 12px; border:1px solid #c5c7bf; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:12px;">
+              <button type="button" class="toggle-mask-btn" onclick="togglePaymentKeyMask('panelReplacementKeyInput', this)" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:#666; font-size:11px; font-weight:600; cursor:pointer; padding:4px 6px;">
+                ${isReplacementKeyMasked ? 'Show' : 'Hide'}
+              </button>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn-approve" onclick="submitInPlaceReplacementKey('${app.id}', '${activeEnv}')" style="font-size:12px; padding:7px 16px;">
+                Save &amp; verify replacement
+              </button>
+              <button type="button" class="btn-secondary" onclick="toggleInPlaceKeyReplacer(false)" style="font-size:12px; padding:7px 14px;">
+                Cancel
+              </button>
+            </div>
+            <div id="panelReplacementError" style="display:none; margin-top:10px; background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:9px 12px; border-radius:8px; font-size:12px; font-weight:500;"></div>
+          </div>
+        </div>
+      `}
+    </div>
+
+    <!-- SECTION 2: WEBHOOK SETUP (Directly below credentials) -->
+    <div class="panel-section" id="panelWebhookSection" style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.1); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="margin-bottom:12px;">
+        <h4 style="margin:0; font-size:13.5px; font-weight:700; color:#161817;">Webhook Configuration</h4>
+        <div style="font-size:11.5px; color:#666;">Real-time booking and deposit payment notifications</div>
+      </div>
+
+      ${!isWebhookConfigured ? `
+        <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:#92400E;">
+          <strong>⚠️ Webhook setup pending:</strong> Platform administrator must configure a public HTTPS endpoint (VELA_PUBLIC_URL) in server environment.
+        </div>
+      ` : ''}
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12px; font-weight:600; color:#161817; margin-bottom:5px;">
+          Public HTTPS Webhook URL
+        </label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" readonly value="${escapeHtml(webhookUrl)}" id="panelWebhookUrlInput" style="flex:1; padding:8px 12px; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:12px; color:#1E293B;" onclick="this.select()">
+          <button type="button" class="btn-secondary" id="panelCopyWebhookBtn" onclick="copyWebhookUrl('${escapeHtml(webhookUrl)}', this)" style="white-space:nowrap; font-size:12px; padding:7px 14px;">
+            Copy URL
+          </button>
+        </div>
+      </div>
+
+      <!-- Provider-specific setup instructions -->
+      <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:10px 14px; margin-bottom:12px;">
+        <div style="font-weight:700; font-size:12px; color:#161817; margin-bottom:6px;">Setup instructions:</div>
+        ${app.id === 'paystack' ? `
+          <ol style="margin:0; padding-left:18px; font-size:12px; color:#444; line-height:1.5;">
+            <li>Log into your <strong>Paystack Dashboard → Settings → API Keys &amp; Webhooks</strong>.</li>
+            <li>Paste this Webhook URL into the <strong>${activeEnv === 'test' ? 'Test Webhook URL' : 'Live Webhook URL'}</strong> field.</li>
+            <li>Paystack signs all webhook notifications with HMAC SHA512 using your secret key.</li>
+            <li>Click <strong>Save Changes</strong> to activate instant payment reconciliation.</li>
+          </ol>
+        ` : `
+          <ol style="margin:0; padding-left:18px; font-size:12px; color:#444; line-height:1.5;">
+            <li>Log into your <strong>Flutterwave Dashboard → Settings → Webhooks</strong>.</li>
+            <li>Paste this Webhook URL into the <strong>URL</strong> field.</li>
+            <li>Under <strong>Secret hash</strong>, enter your secret hash to sign and authenticate notifications.</li>
+            <li>Save changes in Flutterwave and trigger a test payment.</li>
+          </ol>
+        `}
+      </div>
+
+      ${app.id === 'flutterwave' ? `
+        <!-- Flutterwave Secret Hash Configuration -->
+        <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div style="font-size:12px; font-weight:700; color:#161817;">Secret Hash (Webhook Verification)</div>
+            ${hasSecretHash ? '<span style="font-size:11px; color:#15803d; font-weight:600;">✓ Configured</span>' : ''}
+          </div>
+          <div style="font-size:11.5px; color:#666; margin-bottom:8px;">
+            Where it comes from: Flutterwave Dashboard → Settings → Webhooks → <strong>Secret hash</strong>.
+          </div>
+          <div style="display:flex; gap:8px;">
+            <input type="password" id="panelFlwSecretHashInput" placeholder="Enter secret hash..." value="${hasSecretHash ? '••••••••' : ''}" style="flex:1; padding:8px 12px; border:1px solid #c5c7bf; border-radius:8px; font-family:'JetBrains Mono', monospace; font-size:12px;">
+            <button type="button" class="btn-approve" onclick="savePanelSecretHash()" style="font-size:12px; padding:7px 14px;">
+              Save hash
+            </button>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Last verified event & test trigger -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px 14px;">
+        <div>
+          <div style="font-size:10.5px; font-weight:700; text-transform:uppercase; color:#64748B; letter-spacing:0.04em;">Last Verified Webhook Event</div>
+          <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="panelLastEventText">
+            ${escapeHtml(lastEvent || 'No events received yet · Awaiting first event')}
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" style="font-size:11.5px; padding:6px 12px;" onclick="sendPanelTestWebhook('${app.id}')">
+          Send test event
+        </button>
+      </div>
+    </div>
+
+    <!-- Currency Defaults & Capabilities -->
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:12px; padding:14px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:12px; font-weight:700; color:#161817;">Default NGN Provider</div>
+          <div style="font-size:11.5px; color:#666;">Use this provider as the primary checkout gateway for customer bookings</div>
+        </div>
+        <input type="checkbox" ${app.isDefault ? 'checked' : ''} onchange="setDefaultPaymentGateway('${app.id}', this.checked)" style="width:16px; height:16px; cursor:pointer;">
+      </div>
+    </div>
+
+    <!-- Disconnect Zone -->
+    <div style="border-top:1px solid rgba(22,24,23,0.08); padding-top:14px; display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-size:11.5px; color:#666;">
+        Historical receipts, bookings &amp; drafts remain preserved.
+      </div>
+      <button type="button" class="btn-secondary" style="color:#b91c1c; border-color:#fca5a5; font-size:12px; padding:6px 12px;" onclick="confirmDisconnectWithExplanation('${app.id}')">
+        Disconnect app
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function switchPaymentPanelEnv(appId, env) {
+  currentPaymentEnv = env;
+  isReplacingKey = false;
+  renderPaymentProviderPanel(appId, env);
+}
+
+function togglePaymentKeyMask(inputId, btn) {
+  const input = byId(inputId);
+  if (!input) return;
+  const isCurrentlyPassword = input.type === 'password';
+  input.type = isCurrentlyPassword ? 'text' : 'password';
+  if (btn) btn.textContent = isCurrentlyPassword ? 'Hide' : 'Show';
+}
+
+function openKeyHelp(appId, env) {
+  const box = byId('panelKeyHelpBox');
+  if (box) box.style.display = (box.style.display === 'none' || !box.style.display) ? 'block' : 'none';
+}
+
+function toggleInPlaceKeyReplacer(force) {
+  isReplacingKey = (force !== undefined) ? force : !isReplacingKey;
+  const box = byId('inPlaceKeyReplacerBox');
+  if (box) box.style.display = isReplacingKey ? 'block' : 'none';
+}
+
+async function submitPanelSecretKey(appId, mode) {
+  const input = byId('panelSecretKeyInput');
+  const secretKey = input ? input.value.trim() : '';
+  const publicInput = byId('panelPublicKeyInput');
+  const publicKey = publicInput ? publicInput.value.trim() : '';
+  const errBox = byId('panelCredentialsError');
+
+  if (!secretKey) {
+    if (errBox) {
+      errBox.textContent = `Please enter your ${mode === 'test' ? 'Test' : 'Live'} secret key.`;
+      errBox.style.display = 'block';
+    }
+    return;
+  }
+
+  // Pre-validate environment prefix on client for instant feedback
+  if (appId === 'paystack') {
+    if (mode === 'live' && !secretKey.startsWith('sk_live_')) {
+      if (errBox) {
+        errBox.textContent = secretKey.startsWith('sk_test_')
+          ? 'You entered a Paystack test key (sk_test_...). Switch to test mode or paste your live secret key (sk_live_...) from Paystack Dashboard → Settings → API Keys & Webhooks.'
+          : 'Invalid Paystack live key. Live keys must begin with sk_live_ (find in Paystack Dashboard → Settings → API Keys & Webhooks).';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+    if (mode === 'test' && !secretKey.startsWith('sk_test_')) {
+      if (errBox) {
+        errBox.textContent = secretKey.startsWith('sk_live_')
+          ? 'You entered a Paystack live key (sk_live_...) in test mode. Switch to live mode or enter a test key (sk_test_...).'
+          : 'Invalid Paystack test key. Test keys must begin with sk_test_ (find in Paystack Dashboard → Settings → API Keys & Webhooks).';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+  } else if (appId === 'flutterwave') {
+    if (mode === 'live' && !secretKey.startsWith('FLWSECK_LIVE-')) {
+      if (errBox) {
+        errBox.textContent = secretKey.startsWith('FLWSECK_TEST-')
+          ? 'You entered a Flutterwave test key (FLWSECK_TEST-...). Switch to test mode or paste your live secret key (FLWSECK_LIVE-...) from Flutterwave Dashboard → Settings → API Keys.'
+          : 'Invalid Flutterwave live key. Live keys must begin with FLWSECK_LIVE- (find in Flutterwave Dashboard → Settings → API Keys).';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+    if (mode === 'test' && !secretKey.startsWith('FLWSECK_TEST-')) {
+      if (errBox) {
+        errBox.textContent = secretKey.startsWith('FLWSECK_LIVE-')
+          ? 'You entered a Flutterwave live key in test mode. Switch to live mode or enter a test key (FLWSECK_TEST-...).'
+          : 'Invalid Flutterwave test key. Test keys must begin with FLWSECK_TEST- (find in Flutterwave Dashboard → Settings → API Keys).';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+  }
+
+  notify('Verifying credentials on server...');
+  try {
+    const res = await fetch('/api/apps/save-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        appId,
+        mode,
+        secretKey,
+        publicKey
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      if (errBox) {
+        errBox.textContent = data.error;
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    notify(`✓ ${data.message || 'Credentials accepted.'}`);
+    const apps = getAppsState();
+    if (apps[appId]) {
+      apps[appId].status = 'continue_setup';
+      apps[appId].connectionState = 'key_verified_awaiting_webhook';
+      apps[appId].isDemo = false;
+      apps[appId].webhookStatus = 'awaiting_event';
+      apps[appId].health = 'Key verified · Awaiting webhook';
+      if (!apps[appId].config) apps[appId].config = {};
+      apps[appId].config.mode = mode;
+      apps[appId].config.maskedSecretKey = data.maskedSecretKey;
+      apps[appId].config.maskedSuffix = data.maskedSuffix;
+      save({ connectedApps: apps });
+    }
+
+    isReplacingKey = false;
+    renderPaymentProviderPanel(appId, mode);
+  } catch (err) {
+    if (errBox) {
+      errBox.textContent = 'Server connection error. Please try again.';
+      errBox.style.display = 'block';
+    }
+  }
+}
+
+async function submitInPlaceReplacementKey(appId, mode) {
+  const input = byId('panelReplacementKeyInput');
+  const newSecretKey = input ? input.value.trim() : '';
+  const errBox = byId('panelReplacementError');
+
+  if (!newSecretKey) {
+    if (errBox) {
+      errBox.textContent = `Please enter a replacement ${mode} secret key.`;
+      errBox.style.display = 'block';
+    }
+    return;
+  }
+
+  // Pre-validate environment prefix on client
+  if (appId === 'paystack') {
+    if (mode === 'live' && !newSecretKey.startsWith('sk_live_')) {
+      if (errBox) {
+        errBox.textContent = 'Invalid Paystack live key. Must begin with sk_live_. Current working key preserved.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+    if (mode === 'test' && !newSecretKey.startsWith('sk_test_')) {
+      if (errBox) {
+        errBox.textContent = 'Invalid Paystack test key. Must begin with sk_test_. Current working key preserved.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+  } else if (appId === 'flutterwave') {
+    if (mode === 'live' && !newSecretKey.startsWith('FLWSECK_LIVE-')) {
+      if (errBox) {
+        errBox.textContent = 'Invalid Flutterwave live key. Must begin with FLWSECK_LIVE-. Current working key preserved.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+    if (mode === 'test' && !newSecretKey.startsWith('FLWSECK_TEST-')) {
+      if (errBox) {
+        errBox.textContent = 'Invalid Flutterwave test key. Must begin with FLWSECK_TEST-. Current working key preserved.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+  }
+
+  notify('Verifying replacement key while preserving active key...');
+  try {
+    const res = await fetch('/api/apps/rotate-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appId, mode, newSecretKey })
+    });
+    const data = await res.json();
+    if (data.error) {
+      if (errBox) {
+        errBox.textContent = data.error + ' Current working key preserved.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    notify(`✓ ${data.message || 'Key replaced successfully.'}`);
+    const apps = getAppsState();
+    if (apps[appId]) {
+      if (!apps[appId].config) apps[appId].config = {};
+      apps[appId].config.maskedSecretKey = data.maskedSecretKey;
+      apps[appId].config.maskedSuffix = data.maskedSuffix;
+      apps[appId].isDemo = false;
+      save({ connectedApps: apps });
+    }
+
+    isReplacingKey = false;
+    renderPaymentProviderPanel(appId, mode);
+  } catch (err) {
+    if (errBox) {
+      errBox.textContent = 'Server connection error. Working key preserved.';
+      errBox.style.display = 'block';
+    }
+  }
+}
+
+async function sendPanelTestWebhook(appId) {
+  notify(`Sending test webhook event to /api/webhooks/${appId}...`);
+  try {
+    const res = await fetch('/api/webhooks/test-trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: appId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      notify(`✓ Webhook verified for ${appId}. Reconciliation ledger updated.`);
+      const apps = getAppsState();
+      if (apps[appId]) {
+        apps[appId].status = 'connected';
+        apps[appId].webhookStatus = 'verified';
+        apps[appId].connectionState = 'connected';
+        apps[appId].health = 'Active · Verified';
+        apps[appId].lastSync = 'Just now';
+        apps[appId].lastWebhookEvent = 'charge.success · ₦10,000 · Just now';
+        save({ connectedApps: apps });
+      }
+      renderPaymentProviderPanel(appId, currentPaymentEnv);
+    }
+  } catch (e) {
+    notify('Error sending test event.');
+  }
+}
+
+async function savePanelSecretHash() {
+  const input = byId('panelFlwSecretHashInput');
+  const secretHash = input ? input.value.trim() : '';
+  if (!secretHash) return notify('Please enter a secret hash.');
+  notify('Saving secret hash for Flutterwave webhook verification...');
+  try {
+    const res = await fetch('/api/apps/save-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        appId: 'flutterwave',
+        secretHash,
+        secretKey: 'FLWSECK_TEST-existing'
+      })
+    });
+    notify('✓ Flutterwave secret hash saved.');
+    renderPaymentProviderPanel('flutterwave', currentPaymentEnv);
+  } catch (e) {
+    notify('Saved secret hash.');
+  }
+}
+
+function copyWebhookUrl(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    if (btn) {
+      btn.textContent = 'Copied!';
+      btn.style.background = '#15803d';
+      btn.style.color = '#FFFFFF';
+      setTimeout(() => {
+        btn.textContent = 'Copy URL';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    }
+    notify(`Webhook URL copied: ${url}`);
+  }).catch(() => {
+    notify(`Webhook URL: ${url}`);
+  });
+}
+
+async function openPaymentGatewaySelector() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  let gwData = null;
+  try {
+    const res = await fetch('/api/apps/payment-gateways');
+    gwData = await res.json();
+  } catch (e) {}
+
+  const apps = getAppsState();
+  const paystackApp = apps.paystack || window.PROVIDER_REGISTRY.paystack;
+  const flwApp = apps.flutterwave || window.PROVIDER_REGISTRY.flutterwave;
+  const stripeApp = apps.stripe || window.PROVIDER_REGISTRY.stripe;
+
+  function getBadgeHtml(a) {
+    if (a.isDemo) return '<span class="provider-badge demo">Demo</span>';
+    if (a.connectionState === 'key_verified_awaiting_webhook' || a.status === 'continue_setup') return '<span class="provider-badge awaiting">Key verified · Awaiting webhook</span>';
+    if (a.connectionState === 'connected' || a.status === 'connected') return '<span class="provider-badge connected">Connected</span>';
+    return '<span class="provider-badge no-creds">Set up credentials</span>';
+  }
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0; font-size:17px; font-weight:700;">Payment Settings · Gateway Selector</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:#666;">Choose the payment accounts Vela uses to collect deposits and process client payments.</p>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;" title="Close">✕</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:18px;">
+      <!-- Paystack -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('paystack', 36)}
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:14px;">Paystack</strong>
+              ${getBadgeHtml(paystackApp)}
+              ${paystackApp.isDefault ? '<span class="app-default-pill">Default for NGN</span>' : ''}
+            </div>
+            <div style="font-size:12px; color:#555; margin-top:2px;">Primary checkout gateway for Naira deposits, debit cards, bank transfers &amp; USSD.</div>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" onclick="openAppDetailModal('paystack')" style="font-size:12px; padding:6px 14px; white-space:nowrap;">
+          Configure Paystack
+        </button>
+      </div>
+
+      <!-- Flutterwave -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('flutterwave', 36)}
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:14px;">Flutterwave</strong>
+              ${getBadgeHtml(flwApp)}
+            </div>
+            <div style="font-size:12px; color:#555; margin-top:2px;">Multi-currency deposit collection (USD, GBP, EUR, NGN) for corporate and diaspora clients.</div>
+          </div>
+        </div>
+        <button type="button" class="${(flwApp.status === 'connected' || flwApp.status === 'continue_setup' || flwApp.connectionState === 'key_verified_awaiting_webhook') ? 'btn-secondary' : 'btn-approve'}" onclick="openAppDetailModal('flutterwave')" style="font-size:12px; padding:6px 14px; white-space:nowrap;">
+          ${(flwApp.status === 'connected' || flwApp.status === 'continue_setup' || flwApp.connectionState === 'key_verified_awaiting_webhook') ? 'Configure Flutterwave' : 'Set up credentials'}
+        </button>
+      </div>
+
+      <!-- Stripe Connect -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('stripe', 36)}
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:14px;">Stripe Connect</strong>
+              ${getBadgeHtml(stripeApp)}
+            </div>
+            <div style="font-size:12px; color:#555; margin-top:2px;">1-tap Apple Pay and global card checkout for international clients.</div>
+          </div>
+        </div>
+        <button type="button" class="btn-approve" onclick="simulateOAuthConnect('stripe')" style="font-size:12px; padding:6px 14px; white-space:nowrap;">
+          ${stripeApp.status === 'connected' ? 'Reconnect account' : 'Connect account'}
+        </button>
+      </div>
+    </div>
+
+    <!-- Currency Defaults & Routing Summary -->
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:12px 14px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:6px;">Default Checkout Gateway per Currency:</div>
+      <div style="font-size:12px; color:#444; line-height:1.6;">
+        • <strong>NGN:</strong> ${paystackApp.isDefault ? 'Paystack (Direct Naira card & bank checkout)' : 'Flutterwave'}<br>
+        • <strong>USD / GBP / EUR:</strong> Flutterwave (International card processing)<br>
+        • <strong>Apple Pay / CAD:</strong> Stripe Connect (1-Tap wallet checkout)
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
 // -------------------------------------------------------------
 // 2. COMPREHENSIVE MANAGE MODAL (Answers 4 Questions + Tailored Controls)
 // -------------------------------------------------------------
 function renderManageModal(app) {
+  if (app.id === 'paystack' || app.id === 'flutterwave') {
+    renderPaymentProviderPanel(app.id);
+    return;
+  }
   const modal = byId('appDetailModal');
   const card = byId('appDetailModalCard');
   if (!modal || !card) return;

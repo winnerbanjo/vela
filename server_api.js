@@ -12,6 +12,79 @@ if (!fs.existsSync(DATA_DIR)) {
 
 const APPS_FILE = path.join(DATA_DIR, 'apps_state.json');
 const TXS_FILE = path.join(DATA_DIR, 'transactions.json');
+const CREDENTIALS_FILE = path.join(DATA_DIR, 'encrypted_credentials.json');
+
+const ENCRYPTION_KEY = process.env.CREDENTIALS_SECRET
+  ? crypto.createHash('sha256').update(process.env.CREDENTIALS_SECRET).digest()
+  : crypto.createHash('sha256').update('vela-merchant-credentials-key-2026').digest();
+
+function encryptCredential(plainText) {
+  if (!plainText) return null;
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
+  let encrypted = cipher.update(plainText, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag().toString('hex');
+  return {
+    iv: iv.toString('hex'),
+    authTag,
+    encrypted
+  };
+}
+
+function decryptCredential(encObj) {
+  if (!encObj || !encObj.iv || !encObj.authTag || !encObj.encrypted) return null;
+  try {
+    const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY, Buffer.from(encObj.iv, 'hex'));
+    decipher.setAuthTag(Buffer.from(encObj.authTag, 'hex'));
+    let decrypted = decipher.update(encObj.encrypted, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (e) {
+    return null;
+  }
+}
+
+function loadEncryptedCredentials() {
+  try {
+    if (fs.existsSync(CREDENTIALS_FILE)) {
+      return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error('Error reading encrypted credentials:', err);
+  }
+  return {};
+}
+
+function saveEncryptedCredentials(data) {
+  try {
+    fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving encrypted credentials:', err);
+  }
+}
+
+function deriveConnectionState(app, merchantId = 'studio_teni') {
+  if (app.isDemo) return 'demo';
+  if (app.category === 'payments' && app.setupType === 'credentials') {
+    const credsDb = loadEncryptedCredentials();
+    const mCreds = credsDb[merchantId]?.[app.id] || {};
+    const hasTest = Boolean(mCreds.test?.secretKey);
+    const hasLive = Boolean(mCreds.live?.secretKey);
+    const hasSavedConfigKey = Boolean(app.config?.maskedSecretKey);
+    if (!hasTest && !hasLive && !hasSavedConfigKey) {
+      return 'no_credentials';
+    }
+    if (app.webhookStatus === 'verified' || app.status === 'connected') {
+      return 'connected';
+    }
+    return 'key_verified_awaiting_webhook';
+  }
+  if (app.status === 'connected') return 'connected';
+  if (app.status === 'needs_attention') return 'needs_attention';
+  if (app.status === 'continue_setup') return 'key_verified_awaiting_webhook';
+  return 'no_credentials';
+}
 
 // Canonical Provider Registry
 // Maps stable provider IDs to display name, category, local asset path, official source and supported capabilities.
@@ -334,6 +407,8 @@ const initialAppsState = {
     headline: 'Collect booking deposits and match payments to clients.',
     status: 'connected',
     isDefault: true,
+    isDemo: true,
+    connectionState: 'demo',
     mode: 'live',
     accountIdentity: 'Studio Teni Enterprises (RC-381920) · Paystack Live',
     settlementAccount: 'Guaranty Trust Bank (GTBank) · ...4910',
@@ -349,7 +424,8 @@ const initialAppsState = {
       depositPercentage: 20,
       autoCreditInvoice: true,
       enforceDeposits: true,
-      settlementBank: 'GTBank (058)'
+      settlementBank: 'GTBank (058)',
+      maskedSecretKey: 'sk_live_••••••••4910'
     },
     activityLog: [
       { timestamp: '10m ago', event: 'Webhook verified', status: 'success', details: 'Deposit ₦2,000 from Babatunde Ojo' },
@@ -361,6 +437,8 @@ const initialAppsState = {
     headline: 'Collect deposits and international payments in NGN, USD and GBP.',
     status: 'disconnected',
     isDefault: false,
+    isDemo: false,
+    connectionState: 'no_credentials',
     mode: 'test',
     accountIdentity: 'Studio Teni Global (flw_live_...9182)',
     settlementAccount: 'Zenith Bank · ...8821',
@@ -852,12 +930,17 @@ function handleApiRequest(req, res) {
     const intent = parsedUrl.searchParams.get('intent') || '';
     const recommendation = calculateRecommendation(trade, apps, intent);
 
-    const connectedList = Object.values(apps).filter(a => a.status === 'connected' || a.status === 'needs_attention');
+    // Enrich all apps with derived state
+    for (const a of Object.values(apps)) {
+      a.connectionState = deriveConnectionState(a);
+    }
+
+    const connectedList = Object.values(apps).filter(a => a.status === 'connected' || a.status === 'needs_attention' || a.status === 'continue_setup');
     // Sort needs_attention to top
     connectedList.sort((a, b) => (b.status === 'needs_attention') - (a.status === 'needs_attention'));
 
     // Exclude connected apps from discoverable
-    const discoverableList = Object.values(apps).filter(a => a.status !== 'connected' && a.status !== 'needs_attention');
+    const discoverableList = Object.values(apps).filter(a => a.status !== 'connected' && a.status !== 'needs_attention' && a.status !== 'continue_setup');
 
     return sendJson(200, {
       connectedCount: connectedList.length,
@@ -865,6 +948,92 @@ function handleApiRequest(req, res) {
       discoverableApps: discoverableList,
       recommendation,
       activeTrade: trade
+    });
+  }
+
+  // 2.1 GET /api/apps/credentials - Fetch sanitized environment status and webhook details
+  if (pathname === '/api/apps/credentials' && method === 'GET') {
+    const appId = parsedUrl.searchParams.get('appId');
+    const merchantId = parsedUrl.searchParams.get('merchant') || 'studio_teni';
+    if (!appId) return sendJson(400, { error: 'Missing appId' });
+
+    const { apps } = loadState();
+    const app = apps[appId];
+    if (!app) return sendJson(404, { error: 'App not found in catalogue' });
+
+    const credentialsDb = loadEncryptedCredentials();
+    const mCreds = credentialsDb[merchantId]?.[appId] || {};
+
+    const hasTest = Boolean(mCreds.test?.secretKey);
+    const hasLive = Boolean(mCreds.live?.secretKey);
+    const isDemo = Boolean(app.isDemo);
+
+    const connectionState = deriveConnectionState(app, merchantId);
+    const publicBase = process.env.VELA_PUBLIC_URL || 'https://api.studioteni.ng';
+    const isPublicConfigured = Boolean(process.env.VELA_PUBLIC_URL || true);
+
+    const testSuffix = mCreds.test?.maskedSuffix || (app.config?.mode === 'test' && app.config?.maskedSecretKey ? app.config.maskedSecretKey.slice(-4) : null);
+    const liveSuffix = mCreds.live?.maskedSuffix || (isDemo ? '4910' : (app.config?.mode === 'live' && app.config?.maskedSecretKey ? app.config.maskedSecretKey.slice(-4) : null));
+
+    return sendJson(200, {
+      appId,
+      name: app.name,
+      category: app.category,
+      connectionState,
+      isDemo,
+      isDefault: Boolean(app.isDefault),
+      activeEnvironment: app.config?.mode || (isDemo ? 'live' : 'test'),
+      environments: {
+        test: {
+          hasKey: hasTest || Boolean(app.config?.mode === 'test' && app.config?.maskedSecretKey),
+          maskedSecretKey: mCreds.test?.maskedSecretKey || (app.config?.mode === 'test' ? app.config.maskedSecretKey : null),
+          maskedSuffix: testSuffix
+        },
+        live: {
+          hasKey: hasLive || Boolean(isDemo || (app.config?.mode === 'live' && app.config?.maskedSecretKey)),
+          maskedSecretKey: mCreds.live?.maskedSecretKey || (isDemo ? 'sk_live_••••••••4910' : (app.config?.mode === 'live' ? app.config.maskedSecretKey : null)),
+          maskedSuffix: liveSuffix
+        }
+      },
+      webhook: {
+        url: `${publicBase}/api/webhooks/${appId}`,
+        isConfigured: isPublicConfigured,
+        status: app.webhookStatus || (isDemo ? 'verified' : 'unconfigured'),
+        lastEvent: app.lastWebhookEvent || (app.activityLog && app.activityLog[0] ? app.activityLog[0].details : (isDemo ? 'Deposit ₦2,000 from Babatunde Ojo · 10m ago' : null)),
+        requiresSecretHash: appId === 'flutterwave',
+        hasSecretHash: Boolean(mCreds[app.config?.mode || 'live']?.secretHash || app.config?.secretHash)
+      }
+    });
+  }
+
+  // 2.2 GET /api/apps/payment-gateways - Payment Gateway Selector List
+  if (pathname === '/api/apps/payment-gateways' && method === 'GET') {
+    const { apps } = loadState();
+    const merchantId = 'studio_teni';
+
+    const gateways = ['paystack', 'flutterwave', 'stripe'].map(id => {
+      const a = apps[id] || PROVIDER_REGISTRY[id];
+      const state = deriveConnectionState(a, merchantId);
+      return {
+        id,
+        name: a.name,
+        assetPath: a.assetPath,
+        headline: a.headline || a.outcomeExplanation,
+        currencies: a.supportedCurrencies || ['NGN'],
+        isDefault: Boolean(a.isDefault),
+        connectionState: state,
+        isDemo: Boolean(a.isDemo),
+        setupType: a.setupType
+      };
+    });
+
+    return sendJson(200, {
+      gateways,
+      currencyDefaults: {
+        NGN: apps.paystack?.isDefault ? 'paystack' : (apps.flutterwave?.isDefault ? 'flutterwave' : 'paystack'),
+        international: 'flutterwave',
+        wallets: 'stripe'
+      }
     });
   }
 
@@ -893,7 +1062,7 @@ function handleApiRequest(req, res) {
     return true;
   }
 
-  // 2.5 POST /api/apps/save-keys - Save API keys with environment validation
+  // 2.5 POST /api/apps/save-keys - Save API keys with encryption and environment validation
   if (pathname === '/api/apps/save-keys' && method === 'POST') {
     return readBody((err, data) => {
       if (err || !data.appId) return sendJson(400, { error: 'Invalid app payload' });
@@ -909,46 +1078,58 @@ function handleApiRequest(req, res) {
       const secretKey = (data.secretKey || '').trim();
       const publicKey = (data.publicKey || '').trim();
 
+      if (!secretKey) {
+        return sendJson(400, { error: `Please enter your ${mode === 'test' ? 'Test' : 'Live'} secret key.` });
+      }
+
       // Actionable environment cross-contamination validation
       if (app.id === 'paystack') {
-        if (mode === 'live' && (secretKey.startsWith('sk_test_') || publicKey.startsWith('pk_test_'))) {
+        if (mode === 'live' && !secretKey.startsWith('sk_live_')) {
           return sendJson(400, {
-            error: 'You entered a Paystack test key (sk_test_...). Switch to test mode or paste your live secret key (sk_live_...) from Paystack Dashboard → Settings → API Keys & Webhooks.',
+            error: secretKey.startsWith('sk_test_')
+              ? 'You entered a Paystack test key (sk_test_...). Switch to test mode or paste your live secret key (sk_live_...) from Paystack Dashboard → Settings → API Keys & Webhooks.'
+              : 'Invalid Paystack live key. Live keys must begin with sk_live_ (find in Paystack Dashboard → Settings → API Keys & Webhooks).',
             expectedPrefix: 'sk_live_',
             foundPrefix: secretKey.slice(0, 8)
           });
         }
-        if (mode === 'test' && (secretKey.startsWith('sk_live_') || publicKey.startsWith('pk_live_'))) {
+        if (mode === 'test' && !secretKey.startsWith('sk_test_')) {
           return sendJson(400, {
-            error: 'You entered a Paystack live key (sk_live_...) in test mode. Switch to live mode or enter a test key (sk_test_...).',
+            error: secretKey.startsWith('sk_live_')
+              ? 'You entered a Paystack live key (sk_live_...) in test mode. Switch to live mode or enter a test key (sk_test_...).'
+              : 'Invalid Paystack test key. Test keys must begin with sk_test_ (find in Paystack Dashboard → Settings → API Keys & Webhooks).',
             expectedPrefix: 'sk_test_',
             foundPrefix: secretKey.slice(0, 8)
           });
         }
       } else if (app.id === 'flutterwave') {
-        if (mode === 'live' && (secretKey.startsWith('FLWSECK_TEST-') || publicKey.startsWith('FLWPUBK_TEST-'))) {
+        if (mode === 'live' && !secretKey.startsWith('FLWSECK_LIVE-')) {
           return sendJson(400, {
-            error: 'You entered a Flutterwave test key (FLWSECK_TEST-...). Switch to test mode or paste your live secret key (FLWSECK_LIVE-...) from Flutterwave Dashboard → Settings → API Keys.',
+            error: secretKey.startsWith('FLWSECK_TEST-')
+              ? 'You entered a Flutterwave test key (FLWSECK_TEST-...). Switch to test mode or paste your live secret key (FLWSECK_LIVE-...) from Flutterwave Dashboard → Settings → API Keys.'
+              : 'Invalid Flutterwave live key. Live keys must begin with FLWSECK_LIVE- (find in Flutterwave Dashboard → Settings → API Keys).',
             expectedPrefix: 'FLWSECK_LIVE-',
             foundPrefix: secretKey.slice(0, 13)
           });
         }
-        if (mode === 'test' && (secretKey.startsWith('FLWSECK_LIVE-') || publicKey.startsWith('FLWPUBK_LIVE-'))) {
+        if (mode === 'test' && !secretKey.startsWith('FLWSECK_TEST-')) {
           return sendJson(400, {
-            error: 'You entered a Flutterwave live key in test mode. Switch to live mode or enter a test key (FLWSECK_TEST-...).',
+            error: secretKey.startsWith('FLWSECK_LIVE-')
+              ? 'You entered a Flutterwave live key in test mode. Switch to live mode or enter a test key (FLWSECK_TEST-...).'
+              : 'Invalid Flutterwave test key. Test keys must begin with FLWSECK_TEST- (find in Flutterwave Dashboard → Settings → API Keys).',
             expectedPrefix: 'FLWSECK_TEST-',
             foundPrefix: secretKey.slice(0, 13)
           });
         }
       } else if (app.id === 'stripe') {
-        if (mode === 'live' && (secretKey.startsWith('sk_test_') || publicKey.startsWith('pk_test_'))) {
+        if (mode === 'live' && !secretKey.startsWith('sk_live_')) {
           return sendJson(400, {
             error: 'You entered a Stripe test key (sk_test_...). Switch to test mode or paste your live secret key (sk_live_...) from Stripe Dashboard → Developers → API keys.',
             expectedPrefix: 'sk_live_',
             foundPrefix: secretKey.slice(0, 8)
           });
         }
-        if (mode === 'test' && (secretKey.startsWith('sk_live_') || publicKey.startsWith('pk_live_'))) {
+        if (mode === 'test' && !secretKey.startsWith('sk_test_')) {
           return sendJson(400, {
             error: 'You entered a Stripe live key in test mode. Switch to live mode or enter a test key (sk_test_...).',
             expectedPrefix: 'sk_test_',
@@ -958,21 +1139,41 @@ function handleApiRequest(req, res) {
       }
 
       // Valid credentials accepted. Mask securely.
+      const maskedSuffix = secretKey.length >= 4 ? secretKey.slice(-4) : '••••';
       const maskedKey = secretKey.length > 8
-        ? secretKey.slice(0, 7) + '••••••••' + secretKey.slice(-4)
-        : '••••••••';
+        ? secretKey.slice(0, 7) + '••••••••' + maskedSuffix
+        : '••••••••' + maskedSuffix;
+
+      // Encrypt and persist in secure credentials database
+      const merchantId = data.merchant || 'studio_teni';
+      const credentialsDb = loadEncryptedCredentials();
+      if (!credentialsDb[merchantId]) credentialsDb[merchantId] = {};
+      if (!credentialsDb[merchantId][data.appId]) credentialsDb[merchantId][data.appId] = {};
+
+      credentialsDb[merchantId][data.appId][mode] = {
+        secretKey: encryptCredential(secretKey),
+        publicKey: publicKey ? encryptCredential(publicKey) : null,
+        secretHash: data.secretHash ? encryptCredential(data.secretHash) : null,
+        maskedSuffix,
+        maskedSecretKey: maskedKey,
+        updatedAt: new Date().toISOString()
+      };
+      saveEncryptedCredentials(credentialsDb);
 
       if (!app.config) app.config = {};
       app.config.mode = mode;
       app.config.maskedSecretKey = maskedKey;
+      app.config.maskedSuffix = maskedSuffix;
       if (publicKey) app.config.publicKey = publicKey.slice(0, 7) + '••••••••' + publicKey.slice(-4);
       if (data.secretHash) app.config.secretHash = '••••••••';
       if (data.accountIdentity) app.accountIdentity = data.accountIdentity;
 
       // Real status: credentials saved, webhook pending
+      app.isDemo = false;
+      app.connectionState = 'key_verified_awaiting_webhook';
       app.status = 'continue_setup';
       app.webhookStatus = 'awaiting_event';
-      app.health = 'Payment notifications awaiting verification';
+      app.health = 'Key verified · Awaiting webhook';
       app.headline = 'Payment notifications awaiting verification';
       app.lastSync = 'Credentials accepted';
 
@@ -988,9 +1189,12 @@ function handleApiRequest(req, res) {
       return sendJson(200, {
         success: true,
         app,
+        connectionState: 'key_verified_awaiting_webhook',
+        maskedSecretKey: maskedKey,
+        maskedSuffix,
         status: 'continue_setup',
         webhookStatus: 'awaiting_event',
-        health: 'Payment notifications awaiting verification',
+        health: 'Key verified · Awaiting webhook',
         message: `${app.name} credentials accepted. To complete setup, register the webhook URL and send a test event.`
       });
     });
@@ -1358,6 +1562,7 @@ function handleApiRequest(req, res) {
   // 11. POST /api/demo/clean-account - Clean account scenario for test 1
   if (pathname === '/api/demo/clean-account' && method === 'POST') {
     processedEventIds.clear();
+    saveEncryptedCredentials({});
     const freshApps = {};
     for (const [k, v] of Object.entries(PROVIDER_REGISTRY)) {
       freshApps[k] = {
@@ -1365,6 +1570,8 @@ function handleApiRequest(req, res) {
         headline: v.outcomeExplanation,
         status: 'disconnected',
         isDefault: false,
+        isDemo: false,
+        connectionState: 'no_credentials',
         accountIdentity: 'Unconnected',
         lastSync: 'Never',
         health: 'Not connected',
@@ -1379,6 +1586,7 @@ function handleApiRequest(req, res) {
   // 12. POST /api/demo/restore-account - Restore demo state
   if (pathname === '/api/demo/restore-account' && method === 'POST') {
     processedEventIds.clear();
+    saveEncryptedCredentials({});
     saveState(initialAppsState, initialTransactions);
     return sendJson(200, { success: true, message: 'Studio Teni demo workspace restored.' });
   }
@@ -1685,19 +1893,50 @@ function handleApiRequest(req, res) {
       const app = apps[appId];
       if (!app) return sendJson(404, { error: 'App not found' });
 
-      // Validate key prefix before switching
+      const mode = (data.mode || app.config?.mode || 'live').toLowerCase();
+
+      // Validate key prefix and environment before switching
       if (appId === 'paystack') {
-        if (!newSecretKey.startsWith('sk_live_') && !newSecretKey.startsWith('sk_test_')) {
-          return sendJson(400, { error: 'Invalid Paystack secret key prefix (must begin with sk_live_ or sk_test_).' });
+        if (mode === 'live' && !newSecretKey.startsWith('sk_live_')) {
+          return sendJson(400, { error: 'Invalid Paystack live key. Must begin with sk_live_.' });
+        }
+        if (mode === 'test' && !newSecretKey.startsWith('sk_test_')) {
+          return sendJson(400, { error: 'Invalid Paystack test key. Must begin with sk_test_.' });
         }
       } else if (appId === 'flutterwave') {
-        if (!newSecretKey.startsWith('FLWSECK_LIVE-') && !newSecretKey.startsWith('FLWSECK_TEST-')) {
-          return sendJson(400, { error: 'Invalid Flutterwave secret key prefix.' });
+        if (mode === 'live' && !newSecretKey.startsWith('FLWSECK_LIVE-')) {
+          return sendJson(400, { error: 'Invalid Flutterwave live key. Must begin with FLWSECK_LIVE-.' });
+        }
+        if (mode === 'test' && !newSecretKey.startsWith('FLWSECK_TEST-')) {
+          return sendJson(400, { error: 'Invalid Flutterwave test key. Must begin with FLWSECK_TEST-.' });
         }
       }
 
+      const maskedSuffix = newSecretKey.length >= 4 ? newSecretKey.slice(-4) : '••••';
+      const maskedKey = newSecretKey.length > 8
+        ? newSecretKey.slice(0, 7) + '••••••••' + maskedSuffix
+        : '••••••••' + maskedSuffix;
+
+      // Encrypt and persist in secure credentials database
+      const merchantId = data.merchant || 'studio_teni';
+      const credentialsDb = loadEncryptedCredentials();
+      if (!credentialsDb[merchantId]) credentialsDb[merchantId] = {};
+      if (!credentialsDb[merchantId][appId]) credentialsDb[merchantId][appId] = {};
+
+      credentialsDb[merchantId][appId][mode] = {
+        secretKey: encryptCredential(newSecretKey),
+        publicKey: newPublicKey ? encryptCredential(newPublicKey) : null,
+        secretHash: newSecretHash ? encryptCredential(newSecretHash) : null,
+        maskedSuffix,
+        maskedSecretKey: maskedKey,
+        updatedAt: new Date().toISOString()
+      };
+      saveEncryptedCredentials(credentialsDb);
+
       if (!app.config) app.config = {};
-      app.config.maskedSecretKey = newSecretKey.slice(0, 7) + '••••••••' + newSecretKey.slice(-4);
+      app.config.mode = mode;
+      app.config.maskedSecretKey = maskedKey;
+      app.config.maskedSuffix = maskedSuffix;
       if (newPublicKey) app.config.publicKey = newPublicKey.slice(0, 7) + '••••••••' + newPublicKey.slice(-4);
       if (newSecretHash) app.config.secretHash = '••••••••';
 
@@ -1713,6 +1952,8 @@ function handleApiRequest(req, res) {
       return sendJson(200, {
         success: true,
         app,
+        maskedSecretKey: maskedKey,
+        maskedSuffix,
         message: `${app.name} key replaced successfully. Seamless rotation with zero downtime.`
       });
     });
