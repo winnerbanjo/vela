@@ -522,27 +522,27 @@ function renderInbox() {
   const container = el('div', '', 'inbox-view-container');
   const pendingCount = workspace.conversations.filter(c => c.status === 'needs_approval').length;
 
-  // Clean Header & Controls Bar
-  const heroBar = el('div', '', 'inbox-hero-bar');
+  // Unified Clean Page Hero Header
+  const heroBar = el('div', '', 'page-hero-header');
   heroBar.innerHTML = `
-    <div class="inbox-title-group">
-      <div class="inbox-title-row">
-        <h1>Inbox</h1>
-        ${pendingCount > 0 ? `
-          <span class="inbox-status-pill pending">
-            <span class="inbox-status-dot"></span>
-            ${pendingCount} decision${pendingCount === 1 ? '' : 's'} waiting
-          </span>
-        ` : `
-          <span class="inbox-status-pill clean">✓ All clear</span>
-        `}
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Inbox</h1>
+          ${pendingCount > 0 ? `
+            <span class="page-hero-status-pill amber" onclick="openDecisionTriage()" style="cursor:pointer;" title="Click to triage decisions">
+              ● ${pendingCount} decision${pendingCount === 1 ? '' : 's'} waiting
+            </span>
+          ` : `
+            <span class="page-hero-status-pill green">✓ All clear</span>
+          `}
+        </div>
+        <div class="page-hero-subtitle">
+          WhatsApp · Email · Instagram · TikTok
+        </div>
       </div>
-      <div class="inbox-subtitle">
-        WhatsApp · Email · Instagram · TikTok
-      </div>
-    </div>
 
-    <div class="inbox-controls-group">
+    <div class="page-hero-actions">
       <div class="inbox-mode-control">
         <span class="inbox-mode-label">Mode:</span>
         <div class="inbox-select-wrapper">
@@ -554,7 +554,7 @@ function renderInbox() {
           <svg class="inbox-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
       </div>
-      <a href="#settings" class="inbox-channels-btn" title="Manage channel connections">
+      <a href="#settings" class="page-hero-btn-secondary" title="Manage channel connections">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>Channels</span>
       </a>
@@ -562,15 +562,16 @@ function renderInbox() {
   `;
   container.append(heroBar);
 
-  // Minimal Pill Filters
-  const filterStrip = el('div', '', 'inbox-filter-strip');
+  // Modern Header Pill Filters
+  const filterStrip = el('div', '', 'page-hero-tabs');
+  filterStrip.style.marginBottom = '20px';
   filterStrip.innerHTML = `
-    <button class="inbox-filter-pill ${currentInboxFilter === 'all' ? 'active' : ''}" onclick="setInboxFilter('all')">All Messages (${workspace.conversations.length})</button>
-    <button class="inbox-filter-pill ${currentInboxFilter === 'pending' ? 'active' : ''}" onclick="setInboxFilter('pending')">Needs Decision (${pendingCount})</button>
-    <button class="inbox-filter-pill ${currentInboxFilter === 'whatsapp' ? 'active' : ''}" onclick="setInboxFilter('whatsapp')">WhatsApp (3)</button>
-    <button class="inbox-filter-pill ${currentInboxFilter === 'email' ? 'active' : ''}" onclick="setInboxFilter('email')">Email (1)</button>
-    <button class="inbox-filter-pill ${currentInboxFilter === 'instagram' ? 'active' : ''}" onclick="setInboxFilter('instagram')">Instagram (1)</button>
-    <button class="inbox-filter-pill ${currentInboxFilter === 'tiktok' ? 'active' : ''}" onclick="setInboxFilter('tiktok')">TikTok (1)</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'all' ? 'active' : ''}" onclick="setInboxFilter('all')">All Messages (${workspace.conversations.length})</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'pending' ? 'active' : ''}" onclick="setInboxFilter('pending')">Needs Decision (${pendingCount})</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'whatsapp' ? 'active' : ''}" onclick="setInboxFilter('whatsapp')">WhatsApp (3)</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'email' ? 'active' : ''}" onclick="setInboxFilter('email')">Email (1)</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'instagram' ? 'active' : ''}" onclick="setInboxFilter('instagram')">Instagram (1)</button>
+    <button class="page-hero-tab ${currentInboxFilter === 'tiktok' ? 'active' : ''}" onclick="setInboxFilter('tiktok')">TikTok (1)</button>
   `;
   container.append(filterStrip);
 
@@ -759,51 +760,56 @@ function togglePreviewDevice(mode) {
 function renderWebsite() {
   const container = el('div');
 
-  // Top Channel Header
-  const headerCard = el('div', '', 'website-channel-card');
-  headerCard.innerHTML = `
-    <div class="website-header-row">
-      <div>
-        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:4px;">Public Storefront Address</div>
-        <div class="website-url-badge">
-          <span>https://${workspace.slug}.vela.ng</span>
-          <span class="website-status-tag ${workspace.hasUnpublishedChanges ? 'draft' : 'published'}">
-            ${workspace.hasUnpublishedChanges ? 'Draft Edits' : 'Published'}
+  // Unified Clean Page Hero Header
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Website</h1>
+          <span class="page-hero-status-pill ${workspace.hasUnpublishedChanges ? 'amber' : 'green'}">
+            ${workspace.hasUnpublishedChanges ? '● Draft edits' : '✓ Live storefront'}
           </span>
         </div>
+        <div class="page-hero-subtitle">
+          <span>Public address:</span>
+          <a href="https://${workspace.slug}.vela.ng" target="_blank" style="color:#161817; font-weight:600; text-decoration:underline;">https://${workspace.slug}.vela.ng</a>
+          <span>·</span>
+          <span>${workspace.hasUnpublishedChanges ? 'Unpublished changes pending' : 'Last published ' + workspace.lastPublishedAt}</span>
+        </div>
       </div>
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button class="btn-secondary" onclick="openLivePreviewModal('mobile')">Preview</button>
-        <button class="btn-approve" onclick="publishWebsiteChanges()">Publish changes</button>
-        <a href="/p/${workspace.slug}" target="_blank" class="btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+
+      <div class="page-hero-actions">
+        <button class="page-hero-btn-secondary" onclick="openLivePreviewModal('mobile')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span>Preview</span>
+        </button>
+        <button class="page-hero-btn-primary" onclick="publishWebsiteChanges()">
+          Publish changes
+        </button>
+        <a href="/p/${workspace.slug}" target="_blank" class="page-hero-btn-secondary">
           <span>Open live site</span>
           <span>↗</span>
         </a>
       </div>
     </div>
-    ${workspace.hasUnpublishedChanges ? `
-      <div class="unpublished-alert-banner">
-        <span>⚠️ You have unpublished draft edits. The live site will remain on revision from ${workspace.lastPublishedAt} until published.</span>
-        <button class="btn-approve" style="padding:4px 10px; font-size:11px;" onclick="publishWebsiteChanges()">Publish now</button>
-      </div>
-    ` : `
-      <div style="font-size:11.5px; color:#666; margin-top:10px;">
-        ✓ Live site is up to date · Last published: <strong>${workspace.lastPublishedAt}</strong>
-      </div>
-    `}
-  `;
-  container.append(headerCard);
 
-  // Section Tabs (Phone friendly)
-  const tabs = el('div', '', 'website-section-tabs');
-  tabs.innerHTML = `
-    <button class="website-tab-btn ${activeWebsiteSection === 'details' ? 'active' : ''}" onclick="setWebsiteSection('details')">Business details</button>
-    <button class="website-tab-btn ${activeWebsiteSection === 'services' ? 'active' : ''}" onclick="setWebsiteSection('services')">Services & Pricing</button>
-    <button class="website-tab-btn ${activeWebsiteSection === 'booking' ? 'active' : ''}" onclick="setWebsiteSection('booking')">Booking policy</button>
-    <button class="website-tab-btn ${activeWebsiteSection === 'gallery' ? 'active' : ''}" onclick="setWebsiteSection('gallery')">Gallery & Looks</button>
-    <button class="website-tab-btn ${activeWebsiteSection === 'domain' ? 'active' : ''}" onclick="setWebsiteSection('domain')">Domain & Links</button>
+    ${workspace.hasUnpublishedChanges ? `
+      <div class="page-hero-notice">
+        <span>⚠️ You have unpublished draft edits. The live site will remain on revision from ${workspace.lastPublishedAt} until published.</span>
+        <button class="page-hero-btn-primary" style="padding:4px 12px; font-size:11.5px;" onclick="publishWebsiteChanges()">Publish now</button>
+      </div>
+    ` : ''}
+
+    <div class="page-hero-tabs">
+      <button class="page-hero-tab ${activeWebsiteSection === 'details' ? 'active' : ''}" onclick="setWebsiteSection('details')">Business details</button>
+      <button class="page-hero-tab ${activeWebsiteSection === 'services' ? 'active' : ''}" onclick="setWebsiteSection('services')">Services & Pricing</button>
+      <button class="page-hero-tab ${activeWebsiteSection === 'booking' ? 'active' : ''}" onclick="setWebsiteSection('booking')">Booking policy</button>
+      <button class="page-hero-tab ${activeWebsiteSection === 'gallery' ? 'active' : ''}" onclick="setWebsiteSection('gallery')">Gallery & Looks</button>
+      <button class="page-hero-tab ${activeWebsiteSection === 'domain' ? 'active' : ''}" onclick="setWebsiteSection('domain')">Domain & Links</button>
+    </div>
   `;
-  container.append(tabs);
+  container.append(heroBar);
 
   // Active Section Body
   const content = el('div');
@@ -984,18 +990,26 @@ function verifyCustomDomain() {
 function renderServices() {
   const container = el('div');
   
-  const header = el('div');
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-  header.style.marginBottom = '20px';
-  header.innerHTML = `
-    <div>
-      <div style="font-size:13px; color:#666;">Single source of truth for prices, durations, and deposit policies</div>
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Services</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Pricing, durations, and booking deposit policies
+        </div>
+      </div>
+      <div class="page-hero-actions">
+        <button class="page-hero-btn-primary" onclick="openAddServiceModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Add service</span>
+        </button>
+      </div>
     </div>
-    <button class="btn-approve" onclick="openAddServiceModal()">+ Add New Service</button>
   `;
-  container.append(header);
+  container.append(heroBar);
 
   const list = el('div', '', 'services-manager-list');
   for (const s of workspace.servicesList) {
@@ -1075,6 +1089,21 @@ function archiveService(id) {
 function renderGallery() {
   const container = el('div');
   
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Gallery</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Portfolio looks connected directly to bookable services
+        </div>
+      </div>
+    </div>
+  `;
+  container.append(heroBar);
+
   // Upload header
   const uploader = el('div', '', 'website-channel-card');
   uploader.innerHTML = `
@@ -1199,22 +1228,31 @@ let bookingFilter = 'all';
 function renderBookings() {
   const container = el('div');
 
-  const topBar = el('div');
-  topBar.style.display = 'flex';
-  topBar.style.justifyContent = 'space-between';
-  topBar.style.alignItems = 'center';
-  topBar.style.marginBottom = '18px';
-  topBar.style.flexWrap = 'wrap';
-  topBar.style.gap = '10px';
-  topBar.innerHTML = `
-    <div style="display:flex; gap:6px;">
-      <button class="inbox-filter-tab ${bookingFilter === 'all' ? 'active' : ''}" onclick="bookingFilter='all'; renderPage();">All Staff</button>
-      <button class="inbox-filter-tab ${bookingFilter === 'dele' ? 'active' : ''}" onclick="bookingFilter='dele'; renderPage();">Dele (Chair 1)</button>
-      <button class="inbox-filter-tab ${bookingFilter === 'walkin' ? 'active' : ''}" onclick="bookingFilter='walkin'; renderPage();">Walk-ins</button>
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Bookings</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Today’s schedule, reserved chairs, and walk-in arrivals
+        </div>
+      </div>
+      <div class="page-hero-actions">
+        <button class="page-hero-btn-primary" onclick="runWorkflow('walk_in')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Add a walk-in</span>
+        </button>
+      </div>
     </div>
-    <button class="btn-approve" onclick="runWorkflow('walk_in')">+ Add a walk-in</button>
+    <div class="page-hero-tabs">
+      <button class="page-hero-tab ${bookingFilter === 'all' ? 'active' : ''}" onclick="bookingFilter='all'; renderPage();">All Staff</button>
+      <button class="page-hero-tab ${bookingFilter === 'dele' ? 'active' : ''}" onclick="bookingFilter='dele'; renderPage();">Dele (Chair 1)</button>
+      <button class="page-hero-tab ${bookingFilter === 'walkin' ? 'active' : ''}" onclick="bookingFilter='walkin'; renderPage();">Walk-ins</button>
+    </div>
   `;
-  container.append(topBar);
+  container.append(heroBar);
 
   const list = el('div');
   const items = workspace.bookingsList.filter(b => {
@@ -1265,11 +1303,22 @@ const clientsDirectory = [
 
 function renderClients() {
   const container = el('div');
-  container.innerHTML = `
-    <div style="font-size:13px; color:#666; margin-bottom:16px;">
-      Connected client directory with contact channels, appointment history, and lifetime value:
+  
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Clients</h1>
+          <span class="page-hero-status-pill neutral">${clientsDirectory.length} clients</span>
+        </div>
+        <div class="page-hero-subtitle">
+          Contact channels, appointment history, and lifetime client spend
+        </div>
+      </div>
     </div>
   `;
+  container.append(heroBar);
 
   for (const c of clientsDirectory) {
     const card = el('div', '', 'client-profile-card');
@@ -1308,6 +1357,24 @@ function renderClients() {
 // -------------------------------------------------------------
 function renderMoney() {
   const container = el('div');
+
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Money</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Invoicing, verified deposits, and outstanding client balances
+        </div>
+      </div>
+      <div class="page-hero-actions">
+        <a href="#inbox" class="page-hero-btn-secondary">Review quote enquiries</a>
+      </div>
+    </div>
+  `;
+  container.append(heroBar);
 
   const stats = el('div', '', 'money-stats-grid');
   stats.innerHTML = `
@@ -1401,6 +1468,21 @@ function renderMoney() {
 // -------------------------------------------------------------
 function renderSettings() {
   const container = el('div');
+
+  const heroBar = el('div', '', 'page-hero-header');
+  heroBar.innerHTML = `
+    <div class="page-hero-main">
+      <div class="page-hero-title-group">
+        <div class="page-hero-title-row">
+          <h1 class="page-hero-title">Settings</h1>
+        </div>
+        <div class="page-hero-subtitle">
+          Business profile, connected channels, and booking policies
+        </div>
+      </div>
+    </div>
+  `;
+  container.append(heroBar);
 
   // Channels Section (Requested by user: WhatsApp, Email, Instagram, TikTok)
   const channelsHeader = el('div');
@@ -1617,16 +1699,13 @@ function renderPage() {
         mainWorkspace.scrollTop = savedInboxScrollTop;
       });
     }
-  } else {
-    page.append(el('h1', sections[view]));
-    if (view === 'website') page.append(renderWebsite());
-    else if (view === 'services') page.append(renderServices());
-    else if (view === 'gallery') page.append(renderGallery());
-    else if (view === 'bookings') page.append(renderBookings());
-    else if (view === 'clients') page.append(renderClients());
-    else if (view === 'money') page.append(renderMoney());
-    else if (view === 'settings') page.append(renderSettings());
-  }
+  } else if (view === 'website') page.append(renderWebsite());
+  else if (view === 'services') page.append(renderServices());
+  else if (view === 'gallery') page.append(renderGallery());
+  else if (view === 'bookings') page.append(renderBookings());
+  else if (view === 'clients') page.append(renderClients());
+  else if (view === 'money') page.append(renderMoney());
+  else if (view === 'settings') page.append(renderSettings());
 }
 
 // -------------------------------------------------------------
