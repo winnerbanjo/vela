@@ -1088,20 +1088,17 @@
           <button type="button" class="home-shortcut-btn secondary" onclick="location.hash = 'inbox'">Review inbox</button>
         </div>
 
-        <!-- Decisions Review Panel (Inline Expandable Drawer) -->
-        <div class="quiet-decision-panel" id="quietReviewRow" style="display:none;">
-          <div class="quiet-decision-header" id="quietReviewHeader" onclick="toggleReviewDropdown()">
+        <!-- Decisions Review Row -->
+        <div class="quiet-decision-panel" id="quietReviewRow" style="display:none;" onclick="openDecisionTriage()">
+          <div class="quiet-decision-header" id="quietReviewHeader" onclick="openDecisionTriage()">
             <div class="quiet-decision-header-left">
               <span class="quiet-pulse-dot"></span>
-              <span id="quietReviewCountText" class="quiet-decision-title">5 decisions need your review</span>
+              <span id="quietReviewCountText" class="quiet-decision-title">4 decisions need your review</span>
             </div>
-            <button type="button" class="quiet-review-toggle-btn" id="quietReviewBtn" onclick="event.stopPropagation(); toggleReviewDropdown()">
+            <button type="button" class="quiet-review-toggle-btn" id="quietReviewBtn" onclick="event.stopPropagation(); openDecisionTriage()">
               <span id="quietReviewBtnLabel">Review</span>
-              <svg class="quiet-review-chevron" id="quietReviewChevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
-          </div>
-          <div class="quiet-decision-list" id="quietReviewDropdown" style="display:none;">
-            <!-- Decisions populated dynamically with generous spacing -->
           </div>
         </div>
       </div>
@@ -1135,25 +1132,11 @@
     </main>
   </div>
 
-  <!-- Decision Triage Modal / Bottom Sheet -->
-  <div class="triage-backdrop" id="decisionTriageModal" style="display:none;" onclick="if(event.target===this)closeDecisionTriage()">
-    <div class="triage-card">
-      <div class="triage-drag-handle"></div>
-      <div class="triage-header">
-        <div class="triage-title-group">
-          <div class="triage-badge-line">
-            <span class="triage-pill" id="triageCountPill">5 decisions</span>
-            <span class="triage-pill-sub">Vela prepared actions</span>
-          </div>
-          <h3 class="triage-title">Needs your decision</h3>
-        </div>
-        <div class="triage-actions-group">
-          <a href="#inbox" class="triage-inbox-link" onclick="closeDecisionTriage()">Open Inbox →</a>
-          <button type="button" class="triage-close-btn" onclick="closeDecisionTriage()" aria-label="Close modal">✕</button>
-        </div>
-      </div>
-      <div class="triage-scroll-body" id="triageListContainer">
-        <!-- Rendered dynamically -->
+  <!-- Needs Your Decision Panel (Compact List View & Focused Review View) -->
+  <div class="decision-panel-backdrop" id="decisionTriageModal" style="display:none;" onclick="if(event.target===this)closeDecisionTriage()">
+    <div class="decision-panel-sheet" id="decisionPanelSheet">
+      <div id="decisionPanelContent">
+        <!-- Rendered dynamically by renderDecisionPanel() -->
       </div>
     </div>
   </div>

@@ -416,10 +416,130 @@ function quietItemDismiss(convId, btn) {
 }
 
 
+// ============================================================
+// NEEDS YOUR DECISION PANEL (Compact List & Focused Review Views)
+// ============================================================
+let currentDecisionView = 'list'; // 'list' | 'review'
+let currentReviewConvId = null;
+let savedListScrollTop = 0;
+
+function getDecisionItemData(conv) {
+  const channelName = conv.channel ? conv.channel.charAt(0).toUpperCase() + conv.channel.slice(1) : 'WhatsApp';
+  const cleanMsg = (conv.message || '').replace(/^["'“\s]+|["'”\s]+$/g, '');
+
+  if (conv.id === 'conv-2' || conv.isQuote) {
+    return {
+      title: 'Review Horizon Capital’s quote',
+      detail: '₦350,000 · 18 staff headshots · Email',
+      proposedAction: 'Email ₦350,000 corporate quote to Horizon Capital',
+      facts: [
+        { label: 'Client', value: 'Kemi Adeleke (HR · Horizon Capital)' },
+        { label: 'Service', value: '18 Executive Staff Headshots (On-location)' },
+        { label: 'Total', value: '₦350,000' },
+        { label: 'Deposit required', value: '₦140,000 (40%) to lock date' },
+        { label: 'Shoot date', value: 'Thursday 3 Dec 2026' },
+        { label: 'Channel', value: 'Email (kemi.adeleke@horizoncap.ng)' }
+      ],
+      contextNote: 'Corporate inquiry · Victoria Island office · Quotation #VQ-2026-112 prepared',
+      primaryLabel: 'Approve & email quote',
+      cleanMsg: cleanMsg
+    };
+  }
+
+  if (conv.id === 'conv-3') {
+    return {
+      title: 'Move Babatunde’s appointment',
+      detail: 'Shift to 2:30 PM · Executive Low Taper · WhatsApp',
+      proposedAction: 'Confirm move to 2:30 PM & reply to Babatunde Ojo',
+      facts: [
+        { label: 'Client', value: 'Babatunde Ojo (Regular client · 6 visits)' },
+        { label: 'Service', value: 'Executive Low Taper Fade' },
+        { label: 'Original slot', value: 'Today at 1:00 PM' },
+        { label: 'Requested slot', value: 'Today at 2:30 PM' },
+        { label: 'Deposit', value: '₦2,000 paid · ₦6,000 due at shop' },
+        { label: 'Channel', value: 'WhatsApp (+234 803 998 7766)' }
+      ],
+      contextNote: 'Dele calendar verified: 2:30 PM slot open at Chair 1',
+      primaryLabel: 'Confirm move & reply',
+      cleanMsg: cleanMsg
+    };
+  }
+
+  if (conv.id === 'conv-1') {
+    return {
+      title: 'Confirm 4:15 PM haircut for Chuka',
+      detail: '₦10,000 · Haircut & Beard · WhatsApp',
+      proposedAction: 'Confirm 4:15 PM slot & send deposit link to Chuka Nnamdi',
+      facts: [
+        { label: 'Client', value: 'Chuka Nnamdi (First-time client)' },
+        { label: 'Service', value: 'Signature Haircut & Beard Trim' },
+        { label: 'Total', value: '₦10,000' },
+        { label: 'Requested slot', value: 'Today at 4:15 PM (Dele · Chair 1)' },
+        { label: 'Deposit required', value: '₦2,000 Paystack deposit' },
+        { label: 'Channel', value: 'WhatsApp (+234 809 112 3344)' }
+      ],
+      contextNote: 'Chair 1 (Dele) is open at 4:15 PM today',
+      primaryLabel: 'Send reply',
+      cleanMsg: cleanMsg
+    };
+  }
+
+  if (conv.id === 'conv-4' || conv.channel === 'instagram') {
+    return {
+      title: 'Reply to ' + conv.sender.split('(')[0].trim() + '’s haircut enquiry',
+      detail: 'VI Studio location & 5:30 PM slot · Instagram',
+      proposedAction: 'Send VI studio address and 5:30 PM slot to ' + conv.sender,
+      facts: [
+        { label: 'Client', value: conv.sender },
+        { label: 'Enquiry', value: 'Walk-ins in VI studio this evening' },
+        { label: 'Available slot', value: 'Dele open at 5:30 PM today' },
+        { label: 'Studio location', value: '14 Bishop Oluwole St, Victoria Island' },
+        { label: 'Channel', value: 'Instagram DM' }
+      ],
+      contextNote: 'Enquiry from Instagram transformation video',
+      primaryLabel: 'Send reply',
+      cleanMsg: cleanMsg
+    };
+  }
+
+  if (conv.id === 'conv-5' || conv.channel === 'tiktok') {
+    return {
+      title: 'Reply to ' + conv.sender + '’s taper enquiry',
+      detail: '₦8,000 · Executive Low Taper · TikTok',
+      proposedAction: 'Send pricing (₦8,000) and booking link to ' + conv.sender,
+      facts: [
+        { label: 'Client', value: conv.sender },
+        { label: 'Service', value: 'Executive Low Taper (₦8,000)' },
+        { label: 'Deposit required', value: '₦2,000 Paystack deposit' },
+        { label: 'Location', value: '14 Bishop Oluwole St, Victoria Island' },
+        { label: 'Channel', value: 'TikTok Message' }
+      ],
+      contextNote: 'Enquiry on viral Low Taper transformation video',
+      primaryLabel: 'Send reply',
+      cleanMsg: cleanMsg
+    };
+  }
+
+  return {
+    title: 'Review ' + channelName + ' reply for ' + conv.sender,
+    detail: channelName,
+    proposedAction: 'Send prepared reply to ' + conv.sender,
+    facts: [
+      { label: 'Client', value: conv.sender },
+      { label: 'Channel', value: channelName }
+    ],
+    contextNote: conv.context || '',
+    primaryLabel: 'Send reply',
+    cleanMsg: cleanMsg
+  };
+}
+
 function openDecisionTriage() {
   const modal = byId('decisionTriageModal');
   if (!modal) return;
-  renderDecisionTriageList();
+  currentDecisionView = 'list';
+  currentReviewConvId = null;
+  renderDecisionPanel();
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
@@ -431,104 +551,285 @@ function closeDecisionTriage() {
   document.body.style.overflow = '';
 }
 
-function renderDecisionTriageList() {
-  const container = byId('triageListContainer');
-  const pill = byId('triageCountPill');
+function renderDecisionPanel() {
+  const container = byId('decisionPanelContent');
   if (!container) return;
 
-  const pendingDecisions = workspace.conversations.filter(c => c.status === 'needs_approval');
-  
-  if (pill) {
-    pill.textContent = `${pendingDecisions.length} decision${pendingDecisions.length === 1 ? '' : 's'}`;
+  const pendingDecisions = (workspace.conversations || []).filter(c => c.status === 'needs_approval');
+
+  if (currentDecisionView === 'review' && currentReviewConvId) {
+    const conv = (workspace.conversations || []).find(c => c.id === currentReviewConvId);
+    if (conv && conv.status === 'needs_approval') {
+      renderFocusedReviewView(container, conv);
+      return;
+    }
+    // If not found or no longer pending, fall back to list
+    currentDecisionView = 'list';
+    currentReviewConvId = null;
   }
 
-  if (pendingDecisions.length === 0) {
-    container.innerHTML = `
-      <div class="triage-empty-state">
-        <div class="triage-empty-icon">✓</div>
-        <div class="triage-empty-title">All caught up</div>
-        <div class="triage-empty-sub">No pending decisions need your attention right now. Vela will notify you when new messages arrive.</div>
-        <button type="button" class="triage-btn-primary" onclick="closeDecisionTriage()">Back to Agent Home</button>
+  renderCompactListView(container, pendingDecisions);
+}
+
+function renderCompactListView(container, pendingDecisions) {
+  const count = pendingDecisions.length;
+  container.innerHTML = `
+    <div class="decision-panel-header">
+      <div class="decision-panel-title">Needs your decision · ${count}</div>
+      <button type="button" class="decision-close-icon-btn" onclick="closeDecisionTriage()" aria-label="Close panel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="decision-scroll-body" id="decisionScrollBody">
+      ${count === 0 ? `
+        <div class="decision-empty-state">
+          <div class="decision-empty-icon">✓</div>
+          <div class="decision-empty-title">All caught up</div>
+          <div class="decision-empty-sub">No pending decisions need your attention right now. Vela will notify you when new messages arrive.</div>
+        </div>
+      ` : `
+        <div class="decision-flat-list">
+          ${pendingDecisions.map(conv => {
+            const data = getDecisionItemData(conv);
+            return `
+              <div class="decision-flat-row" onclick="openDecisionReview('${conv.id}')" role="button" tabindex="0">
+                <div class="decision-row-content">
+                  <div class="decision-row-title">${escapeHtml(data.title)}</div>
+                  <div class="decision-row-detail">${escapeHtml(data.detail)}</div>
+                </div>
+                <div class="decision-row-chevron" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+
+    <div class="decision-panel-footer">
+      <button type="button" class="decision-footer-inbox-link" onclick="closeDecisionTriage(); location.hash='inbox';">
+        Open inbox →
+      </button>
+    </div>
+  `;
+}
+
+function openDecisionReview(convId) {
+  const scrollContainer = byId('decisionScrollBody');
+  if (scrollContainer) {
+    savedListScrollTop = scrollContainer.scrollTop;
+  }
+  currentDecisionView = 'review';
+  currentReviewConvId = convId;
+  renderDecisionPanel();
+}
+
+function backToDecisionList() {
+  currentDecisionView = 'list';
+  currentReviewConvId = null;
+  renderDecisionPanel();
+  const scrollContainer = byId('decisionScrollBody');
+  if (scrollContainer) {
+    scrollContainer.scrollTop = savedListScrollTop;
+  }
+}
+
+function renderFocusedReviewView(container, conv) {
+  const data = getDecisionItemData(conv);
+
+  container.innerHTML = `
+    <div class="decision-panel-header">
+      <button type="button" class="decision-back-btn" onclick="backToDecisionList()" aria-label="Back to decision list">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <span>Back</span>
+      </button>
+      <button type="button" class="decision-close-icon-btn" onclick="closeDecisionTriage()" aria-label="Close panel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="decision-scroll-body" id="decisionReviewScrollBody">
+      <!-- 1. Proposed Action First -->
+      <div class="decision-review-section">
+        <div class="decision-proposed-action">${escapeHtml(data.proposedAction)}</div>
       </div>
-    `;
+
+      <!-- 2. Essential Business Facts Second -->
+      <div class="decision-review-section">
+        <div class="decision-facts-list">
+          ${data.facts.map(f => `
+            <div class="decision-fact-row">
+              <span class="decision-fact-label">${escapeHtml(f.label)}</span>
+              <span class="decision-fact-value">${escapeHtml(f.value)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- 3. Context only when it changes the decision -->
+      ${data.contextNote ? `
+        <div class="decision-context-card">
+          <span class="decision-context-icon">ℹ</span>
+          <span class="decision-context-text">${escapeHtml(data.contextNote)}</span>
+        </div>
+      ` : ''}
+
+      <!-- 4. Editable Customer Reply Third -->
+      <div class="decision-review-section">
+        <label for="decisionDraftInput" class="decision-section-label">Prepared reply to customer</label>
+        <textarea id="decisionDraftInput" class="decision-draft-textarea" rows="4">${escapeHtml(conv.draftText || '')}</textarea>
+        <div class="decision-draft-hint">You can edit this draft before sending.</div>
+      </div>
+
+      <!-- 5. View conversation disclosure -->
+      <div class="decision-review-section">
+        <button type="button" class="decision-disclosure-btn" id="decisionDisclosureBtn" onclick="toggleConversationHistory('${conv.id}')">
+          <span id="decisionDisclosureLabel">View original enquiry</span>
+          <svg id="decisionDisclosureIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="decision-disclosure-content" id="decisionDisclosureContent" style="display:none;">
+          <div class="decision-history-bubble">
+            <div class="decision-history-meta">
+              <strong>${escapeHtml(conv.sender)}</strong>
+              <span>· ${escapeHtml(conv.time || 'Recent')}</span>
+            </div>
+            <div class="decision-history-text">“${escapeHtml(data.cleanMsg)}”</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions in Footer -->
+    <div class="decision-review-footer">
+      <button type="button" class="decision-btn-primary" id="decisionPrimaryBtn" onclick="executeDecisionAction('${conv.id}')">
+        ${escapeHtml(data.primaryLabel)}
+      </button>
+      <div class="decision-secondary-actions">
+        <button type="button" class="decision-btn-takeover" onclick="takeOverDecision('${conv.id}')">
+          Take over conversation
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleConversationHistory(convId) {
+  const content = byId('decisionDisclosureContent');
+  const label = byId('decisionDisclosureLabel');
+  const icon = byId('decisionDisclosureIcon');
+  if (!content) return;
+
+  const isHidden = content.style.display === 'none';
+  content.style.display = isHidden ? 'block' : 'none';
+  if (label) {
+    label.textContent = isHidden ? 'Hide original enquiry' : 'View original enquiry';
+  }
+  if (icon) {
+    icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+}
+
+function executeDecisionAction(convId) {
+  const btn = byId('decisionPrimaryBtn');
+  const draftInput = byId('decisionDraftInput');
+  const conv = (workspace.conversations || []).find(c => c.id === convId);
+
+  if (!conv) {
+    notify('Decision not found.');
+    backToDecisionList();
     return;
   }
 
-  container.innerHTML = pendingDecisions.map(conv => {
-    const channelLower = (conv.channel || 'whatsapp').toLowerCase();
-    const channelName = conv.channel ? conv.channel.charAt(0).toUpperCase() + conv.channel.slice(1) : 'Message';
-    const cleanMsg = (conv.message || '').replace(/^["'“\s]+|["'”\s]+$/g, '');
-    const isQuote = !!conv.isQuote;
-    const statusText = isQuote ? 'Quotation ready' : 'Needs approval';
-    const statusClass = isQuote ? 'triage-status-tag quote' : 'triage-status-tag';
+  // Preserve any edited draft
+  if (draftInput) {
+    const updatedDraft = draftInput.value.trim();
+    if (!updatedDraft) {
+      notify('Reply message cannot be empty.');
+      return;
+    }
+    conv.draftText = updatedDraft;
+  }
 
-    return `
-      <div class="triage-item" id="triage-item-${conv.id}">
-        <div class="triage-item-top">
-          <div class="triage-sender-info">
-            <span class="triage-channel-tag ${channelLower}">
-              ${escapeHtml(channelName)}
-            </span>
-            <span class="triage-sender-name">${escapeHtml(conv.sender)}</span>
-            <span class="triage-sender-time">· ${escapeHtml(conv.time || 'Recent')}</span>
-          </div>
-          <span class="${statusClass}">${statusText}</span>
-        </div>
-
-        <div class="triage-quote-box">
-          “${escapeHtml(cleanMsg)}”
-        </div>
-
-        <div class="triage-context-line">
-          <span>✦</span>
-          <span><strong>Vela Context:</strong> ${escapeHtml(conv.context || 'Customer enquiry')}</span>
-        </div>
-
-        <div class="triage-draft-box">
-          <div class="triage-draft-label">Vela Prepared Reply:</div>
-          <div>${escapeHtml(conv.draftText || '')}</div>
-        </div>
-
-        <div class="triage-actions-row">
-          ${isQuote ? `
-            <button type="button" class="triage-btn-primary" onclick="closeDecisionTriage(); originatingScreen='agent'; runWorkflow('review_quote')">
-              Review quotation
-            </button>
-            <button type="button" class="triage-btn-secondary" onclick="triageDismiss('${conv.id}', this)">
-              I’ll handle this
-            </button>
-          ` : `
-            <button type="button" class="triage-btn-primary" onclick="triageApprove('${conv.id}', this)">
-              Approve &amp; send ${escapeHtml(channelName)}
-            </button>
-            <button type="button" class="triage-btn-secondary" onclick="triageDismiss('${conv.id}', this)">
-              I’ll handle this
-            </button>
-          `}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function triageApprove(convId, btn) {
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '✓ Approved & Sent';
+    btn.textContent = 'Processing...';
   }
-  approveConversation(convId, btn);
-  updatePendingBadges();
-  renderDecisionTriageList();
+
+  try {
+    conv.status = 'sent';
+
+    if (conv.id === 'conv-2' || conv.isQuote) {
+      notify('✓ Quotation #VQ-2026-112 approved and emailed to Kemi Adeleke (Horizon Capital).');
+    } else if (conv.id === 'conv-3') {
+      const booking = (workspace.bookingsList || []).find(b => b.clientName === 'Babatunde Ojo');
+      if (booking) {
+        booking.status = 'Rescheduled · Confirmed 2:30 PM';
+        booking.dateSlot = 'Today at 2:30 PM';
+      }
+      notify('✓ Moved Babatunde Ojo to 2:30 PM and sent WhatsApp confirmation.');
+    } else if (conv.id === 'conv-1') {
+      const booking = (workspace.bookingsList || []).find(b => b.clientName === 'Chuka Nnamdi');
+      if (booking) {
+        booking.status = 'Confirmed · Reserved 4:15 PM';
+      }
+      notify('✓ 4:15 PM haircut confirmed for Chuka Nnamdi via WhatsApp.');
+    } else if (conv.id === 'conv-4' || conv.channel === 'instagram') {
+      notify('✓ Instagram reply sent to @kene_o with studio location & 5:30 PM slot.');
+    } else if (conv.id === 'conv-5' || conv.channel === 'tiktok') {
+      notify('✓ TikTok reply sent to @tayo_cuts with taper price & booking link.');
+    } else {
+      notify('✓ Reply sent to ' + conv.sender + '.');
+    }
+
+    save({
+      conversations: [...workspace.conversations],
+      bookingsList: [...(workspace.bookingsList || [])]
+    });
+
+    updatePendingBadges();
+
+    // Return to list view
+    currentDecisionView = 'list';
+    currentReviewConvId = null;
+    renderDecisionPanel();
+  } catch (err) {
+    console.error('Decision execution error:', err);
+    if (btn) {
+      btn.disabled = false;
+      const data = getDecisionItemData(conv);
+      btn.textContent = data.primaryLabel;
+    }
+    notify('Failed to send reply. Your draft has been preserved. Please retry.');
+  }
 }
 
-function triageDismiss(convId, btn) {
-  if (btn) {
-    btn.disabled = true;
-  }
-  pauseAIForConversation(convId, btn);
+function takeOverDecision(convId) {
+  const conv = (workspace.conversations || []).find(c => c.id === convId);
+  if (!conv) return;
+
+  conv.status = 'manual_handling';
+  save({ conversations: [...workspace.conversations] });
+  notify('✓ AI paused for ' + conv.sender + '. Conversation assigned to you.');
   updatePendingBadges();
-  renderDecisionTriageList();
+
+  currentDecisionView = 'list';
+  currentReviewConvId = null;
+  renderDecisionPanel();
 }
+
+window.openDecisionTriage = openDecisionTriage;
+window.closeDecisionTriage = closeDecisionTriage;
+window.renderDecisionPanel = renderDecisionPanel;
+window.openDecisionReview = openDecisionReview;
+window.backToDecisionList = backToDecisionList;
+window.toggleConversationHistory = toggleConversationHistory;
+window.executeDecisionAction = executeDecisionAction;
+window.takeOverDecision = takeOverDecision;
+window.renderDecisionTriageList = renderDecisionPanel;
+window.triageApprove = (id, btn) => executeDecisionAction(id);
+window.triageDismiss = (id, btn) => takeOverDecision(id);
 
 function toggleRecentTasks() {
   const list = byId('recentTasksList');
