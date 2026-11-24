@@ -1,6 +1,13 @@
 .DS_Store
 node_modules/
+client/node_modules/
+client/dist/
+dist/
 chrome-profile/
 scratch_chrome/
 screenshot-*.png
+verify_*.png
 *.log
+.env
+.env.local
+
