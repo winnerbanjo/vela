@@ -15,6 +15,8 @@ import {
   ExternalLink,
   Sparkles,
   Clock,
+  Settings,
+  Scissors,
   ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -269,6 +271,16 @@ export const DashboardLayout: React.FC = () => {
               </div>
             )}
           </div>
+
+          {[{ path: 'services', label: 'Services', Icon: Scissors }, { path: 'settings', label: 'Settings', Icon: Settings }].map(({ path, label, Icon }) => (
+            <Link key={path} to={`/dashboard/${path}`} title={label} aria-label={label}
+              aria-current={location.pathname === `/dashboard/${path}` ? 'page' : undefined}
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl hover:bg-black/5 aria-[current=page]:bg-black/10">
+              <Icon className="h-4 w-4 shrink-0" />
+              {(sidebarExpanded || sidebarOpen) && <span>{label}</span>}
+            </Link>
+          ))}
 
           {/* Recent Tasks in Sidebar */}
           {(sidebarExpanded || sidebarOpen) && (

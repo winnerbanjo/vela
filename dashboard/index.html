@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Workspace · Vela AI</title>
   <meta name="description" content="Vela AI sales assistant workspace for service professionals.">
   <link rel="icon" type="image/svg+xml" href="/assets/vela-logo-black-opt.png">
@@ -610,6 +610,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/dashboard/workspace.css">
 </head>
 <body>
 
@@ -630,24 +631,24 @@
         <span>New task</span>
       </button>
 
-      <nav class="nav-list">
-        <a href="/dashboard" class="nav-item active">
+      <nav class="nav-list" aria-label="Workspace">
+        <a href="#agent" class="nav-item active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"></path><path d="M12 12 2.1 12.5"></path><path d="m4.5 15 7.5-3"></path></svg>
           <span>Agent</span>
         </a>
-        <a href="/dashboard" class="nav-item">
+        <a href="#bookings" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           <span>Bookings</span>
         </a>
-        <a href="/dashboard" class="nav-item">
+        <a href="#clients" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span>Clients</span>
         </a>
-        <a href="/dashboard" class="nav-item">
+        <a href="#money" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
           <span>Money</span>
         </a>
-        <a href="/dashboard" class="nav-item">
+        <a href="#website" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
           <span>Website</span>
         </a>
@@ -671,9 +672,9 @@
         </div>
       </div>
 
-      <div class="sidebar-footer">
+      <div class="sidebar-footer"><a href="#settings" class="nav-item settings-link">Settings</a>
         <div class="owner-info">Studio Teni</div>
-        <div class="owner-role">Victoria Island · Lagos</div>
+        <div class="owner-role">Local demo workspace</div>
       </div>
     </aside>
 
@@ -695,13 +696,8 @@
       <!-- State 1: Home View -->
       <div class="home-view" id="homeView">
         
-        <div class="trade-toggle-wrap">
-          <button class="trade-btn active" id="btnBarberMode" onclick="setMode('barber')">Barber</button>
-          <button class="trade-btn" id="btnPhotoMode" onclick="setMode('photographer')">Photographer</button>
-        </div>
 
         <h1 class="home-headline">What do you need done?</h1>
-        <p class="home-sub">Ask Vela to do something for your business in everyday language.</p>
 
         <div class="prompt-box">
           <textarea class="prompt-input" id="homePromptInput" rows="3" placeholder="Ask Vela to do something for your business…"></textarea>
@@ -713,13 +709,12 @@
           </div>
         </div>
 
-        <div class="suggestions-label">Suggestions</div>
         <div class="suggestions-row" id="suggestionsRow">
           <!-- Populated by JS based on trade -->
         </div>
 
         <div class="updates-section">
-          <div class="suggestions-label">Live Updates</div>
+          <div class="suggestions-label">Today</div>
           
           <div class="update-card">
             <div class="update-text">
@@ -765,6 +760,7 @@
 
       </div>
 
+      <section id="workspacePage" class="workspace-page" hidden></section>
     </main>
   </div>
 
@@ -782,7 +778,6 @@
         <p><strong>Barber:</strong> Dele (Chair 1)</p>
       </div>
       <div style="display:flex; gap:10px;">
-        <button class="btn-approve" style="flex:1; justify-content:center;" onclick="alert('Opening WhatsApp reminder thread with client.'); closeModal();">WhatsApp Client</button>
         <button class="btn-secondary" onclick="closeModal()">Close</button>
       </div>
     </div>
@@ -791,34 +786,28 @@
   <script>
     let currentMode = 'barber';
 
-    function setMode(mode) {
-      currentMode = mode;
-      document.getElementById('btnBarberMode').classList.toggle('active', mode === 'barber');
-      document.getElementById('btnPhotoMode').classList.toggle('active', mode === 'photographer');
-      renderSuggestions();
-    }
-
     function renderSuggestions() {
       const container = document.getElementById('suggestionsRow');
       if (currentMode === 'barber') {
         container.innerHTML = `
-          <button class="suggestion-chip" onclick="runWorkflow('fill_slots')">• Fill tomorrow’s open slots</button>
-          <button class="suggestion-chip" onclick="runWorkflow('walk_in')">• Add a walk-in</button>
-          <button class="suggestion-chip" onclick="openBookingModal('Tobi Adebayo', 'Haircut and beard', '1:00 PM today', '₦2,000 paid · ₦8,000 balance')">• Show my next client</button>
+          <button class="suggestion-chip" onclick="runWorkflow('fill_slots')">Fill tomorrow’s open slots</button>
+          <button class="suggestion-chip" onclick="runWorkflow('walk_in')">Add a walk-in</button>
+          <button class="suggestion-chip" onclick="openBookingModal('Tobi Adebayo', 'Haircut and beard', '1:00 PM today', '₦2,000 paid · ₦8,000 balance')">Show my next client</button>
         `;
       } else {
         container.innerHTML = `
-          <button class="suggestion-chip" onclick="runWorkflow('wedding_quote')">• Prepare a quotation</button>
-          <button class="suggestion-chip" onclick="runWorkflow('unpaid_deposits')">• Follow up unpaid deposits</button>
-          <button class="suggestion-chip" onclick="runWorkflow('friday_shoot')">• Get Friday’s shoot ready</button>
+          <button class="suggestion-chip" onclick="runWorkflow('wedding_quote')">Prepare a quotation</button>
+          <button class="suggestion-chip" onclick="runWorkflow('unpaid_deposits')">Follow up unpaid deposits</button>
+          <button class="suggestion-chip" onclick="runWorkflow('friday_shoot')">Get Friday’s shoot ready</button>
         `;
       }
     }
 
-    renderSuggestions();
-
     // Workflows execution
     function runWorkflow(type) {
+      if (type === 'unpaid_deposits') { location.hash = 'money'; return; }
+      enterAgent();
+      closeDrawer();
       document.getElementById('homeView').style.display = 'none';
       document.getElementById('chatView').style.display = 'flex';
       const container = document.getElementById('chatContainer');
@@ -859,7 +848,6 @@
 
               <div class="record-actions" id="fillSlotsActions">
                 <button class="btn-approve" onclick="approveSlotsOutreach()">Send to 2 customers via WhatsApp</button>
-                <button class="btn-secondary" onclick="alert('Copied shareable booking link: https://studioteni.vela.ng/book?date=tomorrow')">Create shareable link</button>
               </div>
             </div>
           </div>
@@ -894,7 +882,6 @@
               </div>
               <div class="record-actions" id="quoteActions">
                 <button class="btn-approve" onclick="approveQuote()">Approve and send</button>
-                <button class="btn-secondary" onclick="alert('Quote values unlocked for inline editing.')">Edit quote</button>
               </div>
             </div>
           </div>
@@ -919,7 +906,7 @@
                 <span class="record-badge amber" id="shootBadge">Missing Venue</span>
               </div>
               <div style="font-size:12.5px; line-height:1.5;">
-                <p style="margin:0 0 4px 0;"><strong>Time:</strong> Friday, 28 Nov · 10:00 AM</p>
+                <p style="margin:0 0 4px 0;"><strong>Time:</strong> Friday, 27 Nov · 10:00 AM</p>
                 <p style="margin:0 0 4px 0;"><strong>Team:</strong> Teni (Lead) + Samuel (Assistant)</p>
                 <p style="margin:0 0 4px 0;"><strong>Payment:</strong> ₦140,000 deposit verified · ₦210,000 balance remaining</p>
               </div>
@@ -951,7 +938,7 @@
                 <p><strong>Time:</strong> Immediate walk-in</p>
               </div>
               <div class="record-actions">
-                <button class="btn-approve" onclick="this.innerText='✓ Confirmed · Dele Notified'; this.style.background='#16a34a';">Confirm Walk-in Now</button>
+                <button class="btn-approve" onclick="recordWalkIn(this)">Confirm Walk-in Now</button>
               </div>
             </div>
           </div>
@@ -1012,6 +999,8 @@
     }
 
     function startFreshTask() {
+      enterAgent();
+      closeDrawer();
       document.getElementById('homeView').style.display = 'flex';
       document.getElementById('chatView').style.display = 'none';
       document.getElementById('homePromptInput').value = '';
@@ -1064,7 +1053,10 @@
 
     function handleUserInput(text) {
       const lower = text.toLowerCase();
-      if (lower.includes('fill') || lower.includes('open') || lower.includes('slot')) {
+      const destination = ['settings','bookings','clients','website','gallery','money','services'].find(name => lower === name || lower === 'open '+name || lower === 'show '+name);
+      if (destination) { location.hash = destination; return; }
+      if (!lower.includes('quote') && (lower.includes('deposit') || lower.includes('invoice'))) { location.hash = 'money'; return; }
+      if (lower.includes('fill') || lower.includes('slot')) {
         runWorkflow('fill_slots');
       } else if (lower.includes('quote') || lower.includes('amaka')) {
         runWorkflow('wedding_quote');
@@ -1073,7 +1065,7 @@
       } else if (lower.includes('walk-in') || lower.includes('walk in')) {
         runWorkflow('walk_in');
       } else {
-        runWorkflow('fill_slots');
+        showInstructionHelp(text);
       }
     }
 
@@ -1090,5 +1082,6 @@
     });
   </script>
 
+  <script src="/dashboard/workspace.js"></script>
 </body>
 </html>
