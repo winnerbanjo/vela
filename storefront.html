@@ -1024,6 +1024,71 @@
 
     // Initial setup
     updateBookingSummaryUI();
+
+    // Campaign Deep-Link & Promo Handler
+    (function handleCampaignDeepLink() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const promo = urlParams.get('promo');
+      const srvParam = urlParams.get('service') || urlParams.get('srv');
+      const dayParam = urlParams.get('day');
+      const slotParam = urlParams.get('slot');
+
+      if (promo === 'wed_slots' || dayParam === 'Wednesday') {
+        const banner = document.createElement('div');
+        banner.className = 'preview-mode-bar active';
+        banner.style.background = '#161817';
+        banner.style.color = '#F7F6F0';
+        banner.style.borderBottom = '2px solid #C5F36A';
+        banner.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="preview-mode-badge" style="background:#C5F36A; color:#161817; font-weight:800;">CAMPAIGN OFFER</span>
+            <span><strong>Wednesday Afternoon Openings</strong> · Full beard sculpting &amp; hot towel finish included</span>
+          </div>
+          <span style="font-size:11.5px; color:#C5F36A; font-weight:700;">₦2,000 deposit locks your chair</span>
+        `;
+        document.body.prepend(banner);
+
+        activeBooking.date = 'Wednesday';
+        activeBooking.timeSlot = slotParam || '1:30 PM';
+
+        document.querySelectorAll('#dateBtnToday, #dateBtnSat, #dateBtnNext').forEach(b => b.classList.remove('selected'));
+        let wedBtn = document.getElementById('dateBtnWed');
+        if (!wedBtn) {
+          wedBtn = document.createElement('button');
+          wedBtn.id = 'dateBtnWed';
+          wedBtn.className = 'date-btn selected';
+          wedBtn.innerText = 'Wednesday';
+          wedBtn.onclick = () => {
+            document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('selected'));
+            wedBtn.classList.add('selected');
+            activeBooking.date = 'Wednesday';
+            updateBookingSummaryUI();
+          };
+          const datesRow = document.querySelector('.dates-row');
+          if (datesRow) datesRow.prepend(wedBtn);
+        } else {
+          wedBtn.classList.add('selected');
+        }
+
+        // Highlight Wednesday time slots
+        const timeSlotBtns = document.querySelectorAll('#timeSlotsGrid .time-slot-btn');
+        if (timeSlotBtns.length > 0) {
+          timeSlotBtns.forEach(b => b.classList.remove('selected'));
+          timeSlotBtns[0].classList.add('selected');
+        }
+      }
+
+      if (srvParam) {
+        try {
+          const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+          const services = stored.servicesList || [];
+          const found = services.find(s => s.id === srvParam);
+          if (found) {
+            selectServiceForBooking(found.id, found.name, found.price, found.deposit, found.staff, found.duration);
+          }
+        } catch(e) {}
+      }
+    })();
   </script>
 </body>
 </html>

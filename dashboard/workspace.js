@@ -121,6 +121,40 @@ const defaultWorkspace = {
   ]
 };
 
+const defaultSalesProfileBarber = {
+  trade: 'barber',
+  priorityServiceId: 'srv-1',
+  priorityServiceName: 'Signature Haircut & Beard Trim',
+  priorityPrice: 10000,
+  priorityDuration: 45,
+  priorityDeposit: 2000,
+  buyingJourney: 'A new client saw a low taper fade transformation video I posted, sent me the clip on WhatsApp and asked if I could do the exact same cut and how much it costs.',
+  customerFriction: 'Where in Yaba/VI are you located? Is full beard shaping and hot towel included in the ₦10,000 price? Do I need to book in advance or can I walk in?',
+  proofAssetUrl: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop',
+  proofAssetTitle: 'Executive Low Taper Transformation',
+  targetLocation: '14 Bishop Oluwole St, Victoria Island (Near Yaba corridor)',
+  quietPeriods: 'Wednesday afternoons (1:00 PM – 5:00 PM) are usually quiet with 4 open chairs. Saturdays are already at full capacity.',
+  campaignStage: 'recommendation'
+};
+
+const defaultSalesProfilePhotographer = {
+  trade: 'photographer',
+  priorityServiceId: 'srv-4',
+  priorityServiceName: 'Corporate Headshots Package',
+  priorityPrice: 350000,
+  priorityDuration: 180,
+  priorityDeposit: 140000,
+  buyingJourney: 'An HR Director at Horizon Capital saw our corporate leadership portraits on LinkedIn, emailed us to ask for an on-location team shoot quote for 18 staff members.',
+  customerFriction: 'Do you bring the mobile studio setup to our Victoria Island office? How many days until edited photos are delivered? Can you provide a formal quotation for accounting?',
+  proofAssetUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=400&fit=crop',
+  proofAssetTitle: 'Executive Leadership Headshots',
+  targetLocation: 'On-location corporate offices in Victoria Island / Ikoyi',
+  quietPeriods: 'Mid-week enterprise bookings (Wednesdays & Thursdays). Weekend studio slots fill up, but weekday corporate bookings need proactive sales outreach.',
+  campaignStage: 'recommendation'
+};
+
+defaultWorkspace.salesProfile = { ...defaultSalesProfileBarber };
+
 let workspace = { ...defaultWorkspace };
 try {
   const loaded = JSON.parse(localStorage.getItem(storageKey) || '{}');
@@ -129,6 +163,8 @@ try {
   if (loaded.photos) workspace.photos = loaded.photos;
   if (loaded.bookingsList) workspace.bookingsList = loaded.bookingsList;
   if (loaded.conversations) workspace.conversations = loaded.conversations;
+  if (loaded.salesProfile) workspace.salesProfile = loaded.salesProfile;
+  else workspace.salesProfile = workspace.trade === 'photographer' ? { ...defaultSalesProfilePhotographer } : { ...defaultSalesProfileBarber };
 } catch (e) {
   /* Use defaults */
 }
@@ -1245,11 +1281,63 @@ function renderSettings() {
   `;
   container.append(ch4);
 
+  // Sales Intelligence & Onboarding Profile Card (The 5 Core Dimensions)
+  const profile = getEffectiveSalesProfile();
+  const spCard = el('div', '', 'sales-profile-card');
+  spCard.style.marginTop = '24px';
+  spCard.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #deded9; padding-bottom:12px; margin-bottom:14px;">
+      <div>
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#15803d; letter-spacing:0.04em;">Sales Intelligence &amp; Onboarding Profile</div>
+        <h3 style="margin:2px 0 0; font-size:16px; font-weight:700;">How Vela Learns This Business Gets Paid</h3>
+      </div>
+      <span class="investigation-badge">Learned via Onboarding</span>
+    </div>
+
+    <p style="font-size:12.5px; color:#666; margin:0 0 14px; line-height:1.5;">
+      These 5 business truths inform Vela each time you tap <strong>Find me customers</strong>, so it identifies real opportunities and prepares finished campaigns instead of asking you to invent them.
+    </p>
+
+    <div class="sales-profile-question-row">
+      <div class="sp-q-label">1. Priority Service to Promote</div>
+      <div class="sp-a-text"><strong>${profile.priorityServiceName}</strong> · ₦${profile.priorityPrice.toLocaleString()} (${profile.priorityDuration} mins · ₦${profile.priorityDeposit.toLocaleString()} deposit via Paystack)</div>
+    </div>
+
+    <div class="sales-profile-question-row">
+      <div class="sp-q-label">2. Last Successful Customer Journey (Trigger &amp; Channel)</div>
+      <div class="sp-a-text">${profile.buyingJourney}</div>
+    </div>
+
+    <div class="sales-profile-question-row">
+      <div class="sp-q-label">3. Customer Pre-Payment Frictions &amp; Questions</div>
+      <div class="sp-a-text">${profile.customerFriction}</div>
+    </div>
+
+    <div class="sales-profile-question-row">
+      <div class="sp-q-label">4. Proof Asset used for Convincing</div>
+      <div class="sp-a-text" style="display:flex; align-items:center; gap:10px;">
+        <img src="${profile.proofAssetUrl}" style="width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid #deded9;">
+        <span><strong>${profile.proofAssetTitle}</strong></span>
+      </div>
+    </div>
+
+    <div class="sales-profile-question-row">
+      <div class="sp-q-label">5. Target Quiet Period &amp; Studio Location</div>
+      <div class="sp-a-text">${profile.quietPeriods}</div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+      <button type="button" class="btn-approve" onclick="openSalesProfileModal()">Edit Sales Profile (5 Questions)</button>
+      <button type="button" class="btn-secondary" onclick="openSalesOnboardingModal()">✦ Retake 5-Question Onboarding Interview</button>
+    </div>
+  `;
+  container.append(spCard);
+
   // General Settings Form
   const form = el('form', '', 'workspace-form');
   form.style.marginTop = '24px';
   form.innerHTML = `
-    <h2 style="font-size:16px; font-weight:700; margin:0 0 4px;">Business Profile & Rules</h2>
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 4px;">General Business Profile</h2>
     <label>Business Name
       <input type="text" name="name" value="${workspace.name}" required>
     </label>
@@ -1274,12 +1362,18 @@ function renderSettings() {
   form.onsubmit = e => {
     e.preventDefault();
     const fd = new FormData(form);
+    const newTrade = fd.get('trade');
+    const tradeChanged = newTrade !== workspace.trade;
     save({
       name: fd.get('name').trim(),
-      trade: fd.get('trade'),
+      trade: newTrade,
       location: fd.get('location').trim(),
       inboxMode: fd.get('inboxMode')
     });
+    if (tradeChanged) {
+      workspace.salesProfile = newTrade === 'photographer' ? { ...defaultSalesProfilePhotographer } : { ...defaultSalesProfileBarber };
+      save({ salesProfile: workspace.salesProfile });
+    }
     notify('Settings saved.');
     renderPage();
   };
@@ -1333,6 +1427,720 @@ function renderPage() {
 }
 
 // -------------------------------------------------------------
+// SALES INTELLIGENCE & DEMAND GENERATION ENGINE
+// -------------------------------------------------------------
+
+function enterAgent() {
+  originatingScreen = 'agent';
+  history.pushState(null, '', '#agent');
+  selectNav('agent');
+}
+
+function getEffectiveSalesProfile() {
+  if (workspace.salesProfile && workspace.salesProfile.trade === workspace.trade) {
+    return workspace.salesProfile;
+  }
+  const fallback = workspace.trade === 'photographer' ? defaultSalesProfilePhotographer : defaultSalesProfileBarber;
+  workspace.salesProfile = { ...fallback };
+  return workspace.salesProfile;
+}
+
+function saveSalesProfile(updates) {
+  const current = getEffectiveSalesProfile();
+  const nextProfile = { ...current, ...updates };
+  workspace.salesProfile = nextProfile;
+  save({ salesProfile: nextProfile });
+  notify('Sales profile updated.');
+  return nextProfile;
+}
+
+function openSalesProfileModal() {
+  const profile = getEffectiveSalesProfile();
+  let modal = byId('salesProfileModal');
+  if (!modal) {
+    modal = el('div', '', 'modal-backdrop');
+    modal.id = 'salesProfileModal';
+    document.body.append(modal);
+  }
+  
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width:580px; max-height:90vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px; margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#15803d; letter-spacing:0.04em;">Business Sales Intelligence</div>
+          <h3 style="margin:2px 0 0; font-size:17px; font-weight:700;">Edit 5-Question Sales Profile</h3>
+        </div>
+        <button type="button" onclick="closeSalesProfileModal()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
+      </div>
+
+      <p style="font-size:12.5px; color:#666; margin:0 0 16px;">
+        Vela uses these 5 business truths to investigate demand, choose the right service, and generate finished promotions each time you tap <strong>Find me customers</strong>.
+      </p>
+
+      <form id="editSalesProfileForm" onsubmit="handleSalesProfileSubmit(event)">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#161817; display:block; margin-bottom:4px;">
+            1. What service would you like more people to book?
+          </label>
+          <input type="text" name="priorityServiceName" value="${profile.priorityServiceName}" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:6px;" required>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <input type="number" name="priorityPrice" value="${profile.priorityPrice}" placeholder="Price (₦)" style="padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" required>
+            <input type="number" name="priorityDeposit" value="${profile.priorityDeposit}" placeholder="Deposit (₦)" style="padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" required>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#161817; display:block; margin-bottom:4px;">
+            2. Tell me about someone who booked this recently. How did they find you, and why did they choose you?
+          </label>
+          <textarea name="buyingJourney" rows="3" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical;" required>${profile.buyingJourney}</textarea>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#161817; display:block; margin-bottom:4px;">
+            3. What do people usually ask before they pay? (Frictions &amp; FAQs)
+          </label>
+          <textarea name="customerFriction" rows="2" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical;" required>${profile.customerFriction}</textarea>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#161817; display:block; margin-bottom:4px;">
+            4. Proof Asset (Photo or video used to convince the next customer)
+          </label>
+          <input type="text" name="proofAssetTitle" value="${profile.proofAssetTitle}" placeholder="Title of work" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; margin-bottom:6px;" required>
+          <input type="text" name="proofAssetUrl" value="${profile.proofAssetUrl}" placeholder="Image URL" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" required>
+        </div>
+
+        <div style="margin-bottom:18px;">
+          <label style="font-size:12px; font-weight:700; color:#161817; display:block; margin-bottom:4px;">
+            5. When and where do you want more work? (Target location &amp; quiet slots)
+          </label>
+          <textarea name="quietPeriods" rows="2" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical;" required>${profile.quietPeriods}</textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" class="btn-secondary" onclick="closeSalesProfileModal()">Cancel</button>
+          <button type="submit" class="btn-approve">Save Sales Profile</button>
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function closeSalesProfileModal() {
+  const modal = byId('salesProfileModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleSalesProfileSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const fd = new FormData(form);
+  saveSalesProfile({
+    priorityServiceName: fd.get('priorityServiceName').trim(),
+    priorityPrice: Number(fd.get('priorityPrice')),
+    priorityDeposit: Number(fd.get('priorityDeposit')),
+    buyingJourney: fd.get('buyingJourney').trim(),
+    customerFriction: fd.get('customerFriction').trim(),
+    proofAssetTitle: fd.get('proofAssetTitle').trim(),
+    proofAssetUrl: fd.get('proofAssetUrl').trim(),
+    quietPeriods: fd.get('quietPeriods').trim()
+  });
+  closeSalesProfileModal();
+  renderPage();
+}
+
+let currentOnboardingStep = 1;
+
+function openSalesOnboardingModal() {
+  currentOnboardingStep = 1;
+  let modal = byId('onboardingInterviewModal');
+  if (!modal) {
+    modal = el('div', '', 'modal-backdrop');
+    modal.id = 'onboardingInterviewModal';
+    document.body.append(modal);
+  }
+  modal.style.display = 'flex';
+  renderOnboardingStep();
+}
+
+function closeSalesOnboardingModal() {
+  const modal = byId('onboardingInterviewModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderOnboardingStep() {
+  const modal = byId('onboardingInterviewModal');
+  if (!modal) return;
+  const profile = getEffectiveSalesProfile();
+
+  const steps = [
+    {
+      title: "1. What service would you like more people to book?",
+      subtitle: "Choose what to promote, show the right price, and reserve enough time on your calendar.",
+      body: `
+        <div style="margin:16px 0;">
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Service Name</label>
+          <input type="text" id="obService" value="${profile.priorityServiceName}" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:13.5px; margin-bottom:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label style="font-size:11.5px; font-weight:600; display:block; margin-bottom:4px;">Full Price (₦)</label>
+              <input type="number" id="obPrice" value="${profile.priorityPrice}" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;">
+            </div>
+            <div>
+              <label style="font-size:11.5px; font-weight:600; display:block; margin-bottom:4px;">Paystack Deposit (₦)</label>
+              <input type="number" id="obDeposit" value="${profile.priorityDeposit}" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;">
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "2. Tell me about someone who booked this recently.",
+      subtitle: "How did they find you, and why did they choose you? Understanding the real trigger lets Vela reproduce the sale.",
+      body: `
+        <div style="margin:16px 0;">
+          <textarea id="obJourney" rows="4" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; line-height:1.5;">${profile.buyingJourney}</textarea>
+          <div style="font-size:11px; color:#777; margin-top:6px;">
+            💡 <em>Tip: "He saw a taper video I posted, sent it on WhatsApp and asked if I could do the same cut" gives Vela actual material to work with.</em>
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "3. What do people usually ask before they pay?",
+      subtitle: "Address common frictions upfront so clients don't drop off before paying.",
+      body: `
+        <div style="margin:16px 0;">
+          <textarea id="obFriction" rows="3" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; line-height:1.5;">${profile.customerFriction}</textarea>
+          <div style="font-size:11px; color:#777; margin-top:6px;">
+            Vela embeds these exact answers in your booking page and stages auto-replies for them in your inbox.
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "4. Show me the work you’d use to convince the next customer.",
+      subtitle: "Give Vela actual material to turn into a vertical flyer or post.",
+      body: `
+        <div style="margin:16px 0;">
+          <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
+            <img src="${profile.proofAssetUrl}" alt="Proof" style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid #deded9;">
+            <div style="flex:1;">
+              <input type="text" id="obAssetTitle" value="${profile.proofAssetTitle}" style="width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:8px; font-size:12.5px; margin-bottom:4px;">
+              <input type="text" id="obAssetUrl" value="${profile.proofAssetUrl}" style="width:100%; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:11.5px; color:#666;">
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      title: "5. When and where do you want more work?",
+      subtitle: "Aim campaigns at a real capacity problem. A full Saturday doesn't need promotion.",
+      body: `
+        <div style="margin:16px 0;">
+          <textarea id="obQuiet" rows="3" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:13px; font-family:inherit; line-height:1.5;">${profile.quietPeriods}</textarea>
+          <div style="font-size:11px; color:#777; margin-top:6px;">
+            Example: "Wednesday afternoons (1:00 PM – 5:00 PM) are empty. Saturdays are already full."
+          </div>
+        </div>
+      `
+    }
+  ];
+
+  const current = steps[currentOnboardingStep - 1];
+
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width:560px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span class="step-num-label">Step ${currentOnboardingStep} of 5 · Vela Onboarding</span>
+        <button type="button" onclick="closeSalesOnboardingModal()" style="background:none; border:none; cursor:pointer; font-size:18px;">✕</button>
+      </div>
+
+      <h3 style="font-size:17px; font-weight:800; color:#161817; margin:0 0 6px;">${current.title}</h3>
+      <p style="font-size:12.5px; color:#666; margin:0 0 12px; line-height:1.5;">${current.subtitle}</p>
+
+      ${current.body}
+
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:14px; margin-top:16px;">
+        <button type="button" class="btn-secondary" onclick="${currentOnboardingStep > 1 ? 'currentOnboardingStep--; renderOnboardingStep();' : 'closeSalesOnboardingModal()'}" style="font-size:12.5px;">
+          ${currentOnboardingStep > 1 ? '← Back' : 'Cancel'}
+        </button>
+
+        ${currentOnboardingStep < 5 ? `
+          <button type="button" class="btn-approve" onclick="saveCurrentOnboardingStep(${currentOnboardingStep}); currentOnboardingStep++; renderOnboardingStep();" style="font-size:12.5px;">
+            Continue →
+          </button>
+        ` : `
+          <button type="button" class="btn-approve" onclick="saveCurrentOnboardingStep(5); closeSalesOnboardingModal(); runFindCustomersFlow();" style="font-size:12.5px; background:#161817; color:#fff;">
+            Save &amp; Find Customers Now ✦
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function saveCurrentOnboardingStep(step) {
+  if (step === 1) {
+    const srv = byId('obService')?.value.trim();
+    const pr = Number(byId('obPrice')?.value);
+    const dep = Number(byId('obDeposit')?.value);
+    if (srv) saveSalesProfile({ priorityServiceName: srv, priorityPrice: pr || 10000, priorityDeposit: dep || 2000 });
+  } else if (step === 2) {
+    const j = byId('obJourney')?.value.trim();
+    if (j) saveSalesProfile({ buyingJourney: j });
+  } else if (step === 3) {
+    const f = byId('obFriction')?.value.trim();
+    if (f) saveSalesProfile({ customerFriction: f });
+  } else if (step === 4) {
+    const t = byId('obAssetTitle')?.value.trim();
+    const u = byId('obAssetUrl')?.value.trim();
+    if (t) saveSalesProfile({ proofAssetTitle: t, proofAssetUrl: u });
+  } else if (step === 5) {
+    const q = byId('obQuiet')?.value.trim();
+    if (q) saveSalesProfile({ quietPeriods: q });
+  }
+}
+
+// -------------------------------------------------------------
+// FIND ME CUSTOMERS CONVERSATIONAL WORKSPACE
+// -------------------------------------------------------------
+
+function runFindCustomersFlow() {
+  enterAgent();
+  closeDrawer();
+  closeModal();
+  history.pushState(null, '', '#agent');
+  selectNav('agent');
+  page.hidden = true;
+  byId('homeView').style.display = 'none';
+  byId('chatView').style.display = 'flex';
+  byId('chatTaskTitle').innerText = 'Find me customers · Demand generation';
+
+  const container = byId('chatContainer');
+  container.innerHTML = '';
+
+  const isBarber = workspace.trade === 'barber';
+  const profile = getEffectiveSalesProfile();
+
+  // 1. User Message
+  const userMsg = el('div', '', 'msg-block');
+  userMsg.innerHTML = `
+    <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+    <div class="msg-bubble user-msg">Find me customers.</div>
+  `;
+  container.append(userMsg);
+
+  // 2. Vela Response: Investigation + One Recommendation
+  const aiMsg = el('div', '', 'msg-block');
+  aiMsg.innerHTML = `
+    <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+
+    <!-- 4-Point Investigation Card -->
+    <div class="investigation-card">
+      <div class="investigation-header">
+        <div class="investigation-title">
+          <span>✦ Reviewing ${workspace.name}'s Capacity &amp; Sales Position</span>
+        </div>
+        <span class="investigation-badge">Investigation Complete</span>
+      </div>
+
+      <div class="investigation-grid">
+        <div class="investigation-step">
+          <div class="step-num-label">1. What can we sell right now?</div>
+          <div class="step-heading">${profile.priorityServiceName} (₦${profile.priorityPrice.toLocaleString()})</div>
+          <div class="step-body">
+            <strong>Capacity:</strong> Dele (Chair 1) has 4 open slots this Wednesday afternoon (1:30 PM, 2:30 PM, 3:30 PM, 4:30 PM).<br>
+            <strong>Deposit required:</strong> ₦${profile.priorityDeposit.toLocaleString()} (via Paystack).
+          </div>
+        </div>
+
+        <div class="investigation-step">
+          <div class="step-num-label">2. What demand evidence exists?</div>
+          <div class="step-heading">Owner Story vs. Observed Data</div>
+          <div class="step-body">
+            <strong>Owner knowledge:</strong> ${profile.buyingJourney.slice(0, 110)}...<br>
+            <span class="observed-chip">Observed: WhatsApp status posts convert 3.2x higher when video/photos are attached.</span>
+          </div>
+        </div>
+
+        <div class="investigation-step">
+          <div class="step-num-label">3. What is getting in the customer's way?</div>
+          <div class="step-heading">Pre-Payment Friction Detected</div>
+          <div class="step-body">
+            <strong>Key Questions:</strong> "${profile.customerFriction.slice(0, 85)}..."<br>
+            <span class="friction-chip">Friction #1: Booking page did not explicitly mention beard sculpting is included.</span>
+          </div>
+        </div>
+
+        <div class="investigation-step">
+          <div class="step-num-label">4. Can a new customer complete the sale?</div>
+          <div class="step-heading">Storefront Destination Audit</div>
+          <div class="step-body">
+            <strong>Audit result:</strong> Mobile booking page is active, but needs a direct deep-link highlighting Wednesday availability and beard inclusion.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- One Specific Recommendation Card -->
+    <div class="one-rec-card">
+      <div class="one-rec-headline">
+        ${isBarber ? 'Let’s get two new clients into your Wednesday afternoon slots.' : 'Let’s secure two corporate headshot packages for December.'}
+      </div>
+
+      <div class="one-rec-rationale">
+        <p>
+          You have four openings in Yaba/VI. You told me customers often choose a cut after seeing an example. Your low-taper photo is linked to the ₦${profile.priorityPrice.toLocaleString()} service, but the current booking page doesn’t explicitly show whether beard shaping is included.
+        </p>
+
+        <div class="plan-breakdown-box">
+          <strong>My plan:</strong> I’ll prepare a booking page for that exact cut with beard shaping highlighted, make a vertical post from your photo, and add your location, price and Wednesday availability. Anyone who messages instead of booking will get an accurate reply and a link to the same slots.
+        </div>
+
+        <div class="rec-meta-row">
+          <div><strong>Spend:</strong> <span class="rec-spend-tag">₦0 (Organic)</span></div>
+          <div><strong>Your part:</strong> Review the finished post, then share it to WhatsApp Status.</div>
+        </div>
+      </div>
+
+      <div class="rec-actions-bar">
+        <button type="button" class="btn-approve" onclick="prepareCustomerCampaign('${workspace.trade}')">Prepare this campaign</button>
+        <button type="button" class="btn-secondary" onclick="openChangeGoalDropdown()">Change goal</button>
+        <button type="button" class="btn-secondary" onclick="openSalesProfileModal()">Inspect sales profile (5 Qs)</button>
+      </div>
+    </div>
+  `;
+
+  container.append(aiMsg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function prepareCustomerCampaign(trade) {
+  const container = byId('chatContainer');
+  const profile = getEffectiveSalesProfile();
+  const isBarber = trade === 'barber';
+
+  // Add user click acknowledgement
+  const userAction = el('div', '', 'msg-block');
+  userAction.innerHTML = `
+    <div class="msg-sender-line"><div class="user-avatar">U</div><span>You · Just now</span></div>
+    <div class="msg-bubble user-msg">Prepare this campaign</div>
+  `;
+  container.append(userAction);
+
+  // Vela Campaign Deliverables + Lifecycle Engine
+  const aiDeliverables = el('div', '', 'msg-block');
+  aiDeliverables.innerHTML = `
+    <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+    <div class="msg-bubble">
+      I’ve prepared all 4 parts of your campaign. Everything is connected directly to your calendar, catalogue, and Paystack deposit ledger:
+    </div>
+
+    <div class="deliverables-container">
+
+      <!-- 1. Preview Booking Page -->
+      <div class="deliverable-card">
+        <div class="deliverable-header">
+          <div class="deliverable-title">
+            <span>1. Dedicated Campaign Booking Page</span>
+          </div>
+          <span class="deliverable-status-tag">Live &amp; Deep-Linked</span>
+        </div>
+
+        <div class="booking-preview-card">
+          <div class="booking-preview-service-line">
+            <div>
+              <div class="booking-preview-title">${profile.priorityServiceName}</div>
+              <div style="font-size:12px; color:#666;">Assigned: Dele (Chair 1) · ${profile.priorityDuration} mins</div>
+            </div>
+            <div class="booking-preview-price">₦${profile.priorityPrice.toLocaleString()}</div>
+          </div>
+
+          <div class="booking-inclusions-list">
+            <div>✓ Full beard sculpting and razor lineup included</div>
+            <div>✓ Hot towel finish &amp; organic hair conditioning oil</div>
+            <div>✓ ₦${profile.priorityDeposit.toLocaleString()} Paystack deposit locks chair immediately</div>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:6px;">Wednesday Afternoon Openings:</div>
+          <div class="booking-slots-preview-row">
+            <span class="booking-slot-bubble active">1:30 PM (Open)</span>
+            <span class="booking-slot-bubble">2:30 PM (Open)</span>
+            <span class="booking-slot-bubble">3:30 PM (Open)</span>
+            <span class="booking-slot-bubble">4:30 PM (Open)</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(22,24,23,0.08); padding-top:12px; flex-wrap:wrap; gap:8px;">
+            <span style="font-family:'JetBrains Mono'; font-size:11.5px; color:#555;">studioteni.vela.ng/book?promo=wed_slots</span>
+            <a href="/storefront?service=srv-1&promo=wed_slots&day=Wednesday" target="_blank" class="action-btn-sm primary" style="text-decoration:none;">
+              Open live customer booking page ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Preview Finished Creative (9:16 Canvas) -->
+      <div class="deliverable-card">
+        <div class="deliverable-header">
+          <div class="deliverable-title">
+            <span>2. Finished Vertical Creative (9:16 Story Flyer)</span>
+          </div>
+          <span class="deliverable-status-tag">Ready to Share</span>
+        </div>
+
+        <div class="creative-preview-grid">
+          <!-- 9:16 Visual Card Mockup -->
+          <div class="vertical-story-card">
+            <img src="${profile.proofAssetUrl}" alt="Cut" class="vertical-story-bg">
+            <div class="story-top-badge">${workspace.name.toUpperCase()} · WEDNESDAY</div>
+            <div class="story-bottom-content">
+              <div class="story-headline">Wednesday Afternoon Slots Open</div>
+              <div class="story-tagline">Low Taper + Beard Sculpt (₦10,000)</div>
+              <div class="story-slots-strip">
+                <span class="story-slot-pill">1:30 PM</span>
+                <span class="story-slot-pill">2:30 PM</span>
+                <span class="story-slot-pill">3:30 PM</span>
+                <span class="story-slot-pill">4:30 PM</span>
+              </div>
+              <div style="font-size:9.5px; color:#FFFFFF; margin-bottom:6px; opacity:0.9;">14 Bishop Oluwole St, VI</div>
+              <div class="story-cta-box">₦2k Deposit Locks Slot</div>
+            </div>
+          </div>
+
+          <!-- Caption & Action Controls -->
+          <div class="caption-box-wrap">
+            <div style="font-size:12.5px; font-weight:700; color:#161817;">Prepared WhatsApp Status Caption:</div>
+            <div class="caption-text-area" id="campaignCaptionText">Wednesday chair openings at Studio Teni! ✂️🔥
+Getting that clean low taper &amp; beard shape for the week.
+Available this Wednesday: 1:30 PM, 2:30 PM, 3:30 PM, 4:30 PM.
+₦10k (includes full beard sculpt &amp; hot towel). ₦2k deposit holds your chair.
+Tap to claim: studioteni.vela.ng/book?promo=wed_slots</div>
+
+            <div class="caption-btn-row">
+              <button type="button" class="btn-approve" onclick="copyCampaignCaption(this)">Copy caption &amp; link</button>
+              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent('Wednesday chair openings at Studio Teni! ✂️🔥\nGetting that clean low taper & beard shape for the week.\nAvailable this Wednesday: 1:30 PM, 2:30 PM, 3:30 PM, 4:30 PM.\n₦10k (includes full beard sculpt & hot towel). ₦2k deposit holds your chair.\nTap to claim: studioteni.vela.ng/book?promo=wed_slots')}" target="_blank" class="action-btn-sm" style="text-decoration:none; display:flex; align-items:center; gap:6px;">
+                <span>Share to WhatsApp Status</span> ↗
+              </a>
+              <button type="button" class="action-btn-sm" onclick="notify('Story graphic saved to downloads.')">Download story card</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Review Prepared Inbox Auto-Reply -->
+      <div class="deliverable-card">
+        <div class="deliverable-header">
+          <div class="deliverable-title">
+            <span>3. Prepared Inbox Auto-Reply (Friction Handling)</span>
+          </div>
+          <span class="deliverable-status-tag" style="background:#EFF6FF; color:#1D4ED8;">Staged in Inbox</span>
+        </div>
+
+        <div style="font-size:12.5px; color:#555; margin-bottom:8px;">
+          When an inquiry arrives asking <em>"Where in Yaba/VI?"</em> or <em>"Is beard included?"</em>, Vela will use this verified reply:
+        </div>
+
+        <div style="background:#F7F6F0; border-radius:12px; padding:14px; border-left:3px solid #161817; font-size:12.5px; line-height:1.6; font-style:italic;">
+          “Yes! Full beard shaping and hot towel finish are included in the ₦10,000 cut. Studio Teni is located at 14 Bishop Oluwole St, Victoria Island. Dele has slots open this Wednesday at 1:30 PM, 2:30 PM, 3:30 PM, and 4:30 PM. You can lock in your chair with a ₦2,000 deposit here: studioteni.vela.ng/book?promo=wed_slots”
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <span style="font-size:11.5px; color:#666;">Mode: Draft for me (Requires 1-tap owner approval)</span>
+          <button type="button" class="action-btn-sm" onclick="location.hash='inbox'">View in Inbox →</button>
+        </div>
+      </div>
+
+      <!-- 4. Campaign Live Tracker (Closed Loop) -->
+      <div class="deliverable-card">
+        <div class="deliverable-header">
+          <div class="deliverable-title">
+            <span>4. Track This Campaign (Closed-Loop Attribution)</span>
+          </div>
+          <span class="deliverable-status-tag">Campaign #CAMP-WED-TAPER-01</span>
+        </div>
+
+        <div class="tracker-stats-grid">
+          <div class="tracker-metric-box">
+            <div class="tracker-metric-label">Visits</div>
+            <div class="tracker-metric-val" id="metricVisits">14</div>
+            <div class="tracker-metric-sub">11 unique mobile clicks</div>
+          </div>
+          <div class="tracker-metric-box">
+            <div class="tracker-metric-label">Enquiries</div>
+            <div class="tracker-metric-val" id="metricEnquiries">3</div>
+            <div class="tracker-metric-sub">WhatsApp conversations</div>
+          </div>
+          <div class="tracker-metric-box">
+            <div class="tracker-metric-label">Bookings</div>
+            <div class="tracker-metric-val" id="metricBookings">2</div>
+            <div class="tracker-metric-sub">2 of 4 slots reserved</div>
+          </div>
+          <div class="tracker-metric-box">
+            <div class="tracker-metric-label">Deposits Paid</div>
+            <div class="tracker-metric-val" id="metricDeposits">₦4,000</div>
+            <div class="tracker-metric-sub">Paystack verified</div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; color:#555; background:#FAFAFA; border:1px solid #EEE; padding:10px 14px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span><strong>Attribution:</strong> 2 new clients (Tunde B. &amp; Segun A.) · 0 returning. Remaining open: 2:30 PM &amp; 4:30 PM.</span>
+          <button type="button" class="action-btn-sm" onclick="location.hash='bookings'">View Bookings</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 5. ONGOING SALES AGENT LIFECYCLE CONTROLS -->
+    <div class="lifecycle-simulation-box">
+      <div class="lifecycle-sim-header">
+        <span>✦ Ongoing Sales Agent Lifecycle · What Vela does next:</span>
+        <span style="font-size:10px; color:#666;">Interactive Simulation</span>
+      </div>
+
+      <div class="lifecycle-tabs-strip">
+        <button type="button" class="lifecycle-tab-btn active" onclick="simulateCampaignState('prepared', this)">1. Not shared yet</button>
+        <button type="button" class="lifecycle-tab-btn" onclick="simulateCampaignState('low_visits', this)">2. Low visits (2 clicks)</button>
+        <button type="button" class="lifecycle-tab-btn" onclick="simulateCampaignState('friction', this)">3. Friction detected</button>
+        <button type="button" class="lifecycle-tab-btn" onclick="simulateCampaignState('deposits_paid', this)">4. 2 Deposits paid</button>
+        <button type="button" class="lifecycle-tab-btn" onclick="simulateCampaignState('slots_filled', this)">5. All slots filled</button>
+      </div>
+
+      <div id="lifecycleOutcomeContainer" class="lifecycle-outcome-card">
+        <div style="font-weight:700; color:#161817; margin-bottom:4px;">State: Creative prepared, but link not yet shared</div>
+        <p style="margin:0 0 8px; color:#555;">
+          Vela will hold the campaign in memory. When you open the app, it re-opens the finished asset rather than generating another idea.
+        </p>
+        <div class="lifecycle-outcome-action">
+          <button type="button" class="btn-approve" style="font-size:12px;" onclick="copyCampaignCaption(this)">Copy caption for WhatsApp Status</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.append(aiDeliverables);
+  container.scrollTop = container.scrollHeight;
+}
+
+function simulateCampaignState(stage, btn) {
+  if (btn) {
+    document.querySelectorAll('.lifecycle-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const container = byId('lifecycleOutcomeContainer');
+  if (!container) return;
+
+  if (stage === 'prepared') {
+    container.innerHTML = `
+      <div style="font-weight:700; color:#161817; margin-bottom:4px;">State: Creative prepared, but link not yet shared</div>
+      <p style="margin:0 0 8px; color:#555;">
+        Vela holds the campaign active. On your next dashboard visit, it reopens this finished status asset and sharing action instead of asking you to invent a new one.
+      </p>
+      <div class="lifecycle-outcome-action">
+        <button type="button" class="btn-approve" style="font-size:12px;" onclick="copyCampaignCaption(this)">Copy caption for WhatsApp Status</button>
+      </div>
+    `;
+  } else if (stage === 'low_visits') {
+    container.innerHTML = `
+      <div style="font-weight:700; color:#b45309; margin-bottom:4px;">State: Shared 4 hours ago, but tracked link got few visits (2 clicks)</div>
+      <p style="margin:0 0 8px; color:#555;">
+        Vela investigates distribution: <em>"WhatsApp status reached only 22 viewers today. Suggesting: (1) Broadcast direct invites to the 3 clients who asked about tapers last week, or (2) Boost with a ₦1,500 Instagram local promotion."</em>
+      </p>
+      <div class="lifecycle-outcome-action">
+        <button type="button" class="btn-approve" style="font-size:12px;" onclick="notify('WhatsApp follow-up invites prepared.');">Review 3 direct invites</button>
+        <button type="button" class="btn-secondary" style="font-size:12px;" onclick="notify('₦1,500 local boost prepared.');">Prepare local Instagram boost</button>
+      </div>
+    `;
+  } else if (stage === 'friction') {
+    container.innerHTML = `
+      <div style="font-weight:700; color:#1d4ed8; margin-bottom:4px;">State: Visitors landed and asked whether beard oil is included</div>
+      <p style="margin:0 0 8px; color:#555;">
+        Vela detects repeated question across 2 chats: <em>"2 visitors asked on WhatsApp if beard oil is included. I drafted an updated service description on your booking page and auto-reply. Click to apply."</em>
+      </p>
+      <div class="lifecycle-outcome-action">
+        <button type="button" class="btn-approve" style="font-size:12px;" onclick="notify('Booking page updated with beard oil inclusion.'); this.textContent='✓ Updated page & auto-reply';">Apply 1-click update to page</button>
+      </div>
+    `;
+  } else if (stage === 'deposits_paid') {
+    container.innerHTML = `
+      <div style="font-weight:700; color:#15803d; margin-bottom:4px;">State: Two new clients paid deposits (₦4,000 collected)</div>
+      <p style="margin:0 0 8px; color:#555;">
+        Vela records verified Paystack deposits for Tunde Bakare (1:30 PM) and Segun Adeleke (3:30 PM). 2 slots remain open. Vela prepares follow-up confirmations and asks whether to repeat the campaign for next Wednesday.
+      </p>
+      <div class="lifecycle-outcome-action">
+        <button type="button" class="btn-approve" style="font-size:12px;" onclick="location.hash='bookings'">Open Agenda bookings</button>
+        <button type="button" class="btn-secondary" style="font-size:12px;" onclick="notify('Reminder scheduled for Tuesday.');">Schedule pre-appointment reminders</button>
+      </div>
+    `;
+  } else if (stage === 'slots_filled') {
+    container.innerHTML = `
+      <div style="font-weight:700; color:#15803d; margin-bottom:4px;">State: All 4 promoted Wednesday slots filled! 🎉</div>
+      <p style="margin:0 0 8px; color:#555;">
+        Vela automatically concludes the campaign: pauses promotion, marks Wednesday at full capacity, and seamlessly redirects future link visitors to your Friday &amp; Saturday calendar.
+      </p>
+      <div class="lifecycle-outcome-action">
+        <button type="button" class="btn-approve" style="font-size:12px;" onclick="notify('Next week quiet slots identified.');">Plan next week's campaign</button>
+      </div>
+    `;
+  }
+}
+
+function copyCampaignCaption(btn) {
+  const text = byId('campaignCaptionText')?.innerText;
+  if (text) {
+    navigator.clipboard.writeText(text);
+    if (btn) {
+      const orig = btn.innerText;
+      btn.innerText = '✓ Copied to clipboard!';
+      btn.style.background = '#15803d';
+      setTimeout(() => {
+        btn.innerText = orig;
+        btn.style.background = '';
+      }, 1500);
+    }
+    notify('Caption & booking link copied to clipboard.');
+  }
+}
+
+function openChangeGoalDropdown() {
+  const container = byId('chatContainer');
+  const block = el('div', '', 'msg-block');
+  block.innerHTML = `
+    <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
+    <div class="msg-bubble">
+      Which alternative sales goal would you like to target?
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-approve" onclick="runFindCustomersFlow()">Focus on Wednesday (4 Openings)</button>
+        <button type="button" class="btn-secondary" onclick="renderFindSaturdayFindings()">Fill Saturday (3 Openings)</button>
+        <button type="button" class="btn-secondary" onclick="renderFindNewCustomers()">Target Corporate Clients</button>
+      </div>
+    </div>
+  `;
+  container.append(block);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Global window exposure for inline handlers
+window.enterAgent = enterAgent;
+window.getEffectiveSalesProfile = getEffectiveSalesProfile;
+window.saveSalesProfile = saveSalesProfile;
+window.openSalesProfileModal = openSalesProfileModal;
+window.closeSalesProfileModal = closeSalesProfileModal;
+window.handleSalesProfileSubmit = handleSalesProfileSubmit;
+window.openSalesOnboardingModal = openSalesOnboardingModal;
+window.closeSalesOnboardingModal = closeSalesOnboardingModal;
+window.renderOnboardingStep = renderOnboardingStep;
+window.saveCurrentOnboardingStep = saveCurrentOnboardingStep;
+window.runFindCustomersFlow = runFindCustomersFlow;
+window.prepareCustomerCampaign = prepareCustomerCampaign;
+window.simulateCampaignState = simulateCampaignState;
+window.copyCampaignCaption = copyCampaignCaption;
+window.openChangeGoalDropdown = openChangeGoalDropdown;
+
+// -------------------------------------------------------------
 // EVENT LISTENERS & INITIALIZATION
 // -------------------------------------------------------------
 // Fix: Agent nav button reliably returns home every time
@@ -1369,3 +2177,12 @@ window.addEventListener('hashchange', renderPage);
 // Initial bootstrap
 updatePendingBadges();
 renderPage();
+
+// URL deep-link trigger for Find Me Customers flow and Prepared Campaign
+const urlFlow = new URLSearchParams(location.search).get('flow') || location.hash.slice(1);
+if (urlFlow === 'find_customers') {
+  runFindCustomersFlow();
+} else if (urlFlow === 'campaign_prepared') {
+  runFindCustomersFlow();
+  prepareCustomerCampaign(workspace.trade);
+}

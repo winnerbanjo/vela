@@ -713,7 +713,7 @@
               <span class="action-tag">Demand generation</span>
             </div>
             <div class="action-card-title">Find me customers</div>
-            <div class="action-card-desc">Fill Saturday’s 3 openings or attract new clients</div>
+            <div class="action-card-desc">Identify 1 sales opportunity &amp; prepare finished campaign</div>
           </button>
 
           <button class="primary-action-card" onclick="location.hash = 'inbox'">
@@ -1450,7 +1450,9 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
       const destination = ['settings','bookings','clients','website','gallery','money','services'].find(name => lower === name || lower === 'open '+name || lower === 'show '+name);
       if (destination) { location.hash = destination; return; }
       if (!lower.includes('quote') && (lower.includes('deposit') || lower.includes('invoice'))) { location.hash = 'money'; return; }
-      if (lower.includes('fill') || lower.includes('slot')) {
+      if (lower.includes('customer') || lower.includes('find me') || lower.includes('campaign') || lower.includes('find')) {
+        runFindCustomersFlow();
+      } else if (lower.includes('fill') || lower.includes('slot')) {
         runWorkflow('fill_slots');
       } else if (lower.includes('quote') || lower.includes('amaka')) {
         runWorkflow('wedding_quote');
