@@ -55,6 +55,16 @@ export const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [pendingCount, setPendingCount] = useState(4);
+
+  useEffect(() => {
+    try {
+      const ws = JSON.parse(localStorage.getItem('vela.preview.workspace.v1') || '{}');
+      if (ws.conversations) {
+        setPendingCount(ws.conversations.filter((c: any) => c.status === 'needs_approval').length);
+      }
+    } catch (e) {}
+  }, [location]);
 
   // Listen for task changes
   useEffect(() => {
@@ -179,7 +189,7 @@ export const DashboardLayout: React.FC = () => {
             {(sidebarExpanded || sidebarOpen) && (
               <div className="flex items-center justify-between flex-1">
                 <span>Inbox</span>
-                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#161817] text-[#C5F36A] border border-[#C5F36A]/30">4</span>
+                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#161817] text-[#C5F36A] border border-[#C5F36A]/30">{pendingCount}</span>
               </div>
             )}
           </Link>

@@ -780,7 +780,7 @@
         
         <div class="chat-header-bar">
           <div class="chat-title" id="chatTaskTitle">Active Task</div>
-          <button class="action-btn-sm" onclick="startFreshTask()">Close task</button>
+          <button class="action-btn-sm" onclick="closeCurrentTask()">Close task</button>
         </div>
 
         <div class="chat-scroll-area">
@@ -1204,15 +1204,18 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
         </div>
         <div class="msg-block">
           <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
-          <div class="msg-bubble">Here are 4 specific demand opportunities Vela observed from your business:</div>
+          <div class="msg-bubble">Here are 4 specific demand opportunities Vela observed from your business capacity and connected channels:</div>
 
           <div class="findings-container">
             <div class="finding-card">
               <div class="finding-header">
                 <span class="finding-title">1. Two past clients eligible for Saturday follow-up</span>
-                <span class="finding-source">Booking History</span>
+                <span class="finding-source">Live Calendar & CRM</span>
               </div>
-              <div class="finding-detail">Tunde and Femi previously enquired about Saturday appointments. Personalized WhatsApp messages prepared.</div>
+              <div class="finding-detail">
+                <strong>Capacity:</strong> Dele (Chair 1) has 2 openings on Saturday (11:30 AM & 2:00 PM).<br>
+                <strong>Eligible Contacts:</strong> Tunde Bakare (last enquiry: 14 days ago) and Femi Adeleke (visited 21 days ago). Both opted in for WhatsApp updates.
+              </div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="runWorkflow('review_messages')">Review 2 messages</button>
               </div>
@@ -1220,10 +1223,13 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
 
             <div class="finding-card">
               <div class="finding-header">
-                <span class="finding-title">2. Viral TikTok video missing studio location</span>
-                <span class="finding-source">TikTok Analysis</span>
+                <span class="finding-title">2. Shop location missing in viral TikTok transformation</span>
+                <span class="finding-source">TikTok Post #78192 · 18 Nov 16:45</span>
               </div>
-              <div class="finding-detail">Your low-taper transformation video has 3 comments asking for shop address. Suggested caption with Yaba/VI location prepared.</div>
+              <div class="finding-detail">
+                <strong>Observed Evidence:</strong> Clip <em>"Low taper transformation fade"</em> gained 5,400 views with 3 comments asking for shop address (@chuks_99, @kene_o, @tayo_cuts).<br>
+                <strong>Action:</strong> Caption drafted with exact address (14 Bishop Oluwole St, Victoria Island) and link to book.
+              </div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="openTikTokCaptionModal()">Use this caption</button>
               </div>
@@ -1232,9 +1238,11 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
             <div class="finding-card">
               <div class="finding-header">
                 <span class="finding-title">3. 20-second low-taper video brief</span>
-                <span class="finding-source">Service Demand</span>
+                <span class="finding-source">Local Demand Analysis</span>
               </div>
-              <div class="finding-detail">A short video idea with opening hook ("Stop getting tapers that fade out in 2 days"), 3 shot angles, text overlay, and booking CTA.</div>
+              <div class="finding-detail">
+                <strong>Observable Trend:</strong> Taper fade searches in Lagos up 34% this month. Brief prepared with opening hook, 3-angle shot list, and CTA directing to your <code>Executive Low Taper Fade</code> service.
+              </div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="showVideoBrief(this)">Create video brief</button>
               </div>
@@ -1243,9 +1251,11 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
             <div class="finding-card">
               <div class="finding-header">
                 <span class="finding-title">4. Saturday Flash WhatsApp Status Offer</span>
-                <span class="finding-source">Live Calendar</span>
+                <span class="finding-source">Live Openings</span>
               </div>
-              <div class="finding-detail">Ready-to-share WhatsApp Status with Knotless Braids & Barber slots, ₦2,000 deposit requirement, and direct booking link.</div>
+              <div class="finding-detail">
+                Ready-to-post status card with Dele's 11:30 AM and 2:00 PM openings, ₦2,000 deposit requirement, and tracked booking link (<code>studioteni.vela.ng/book?ref=status_sat</code>).
+              </div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="showStatusOffer(this)">Create booking offer</button>
               </div>
@@ -1267,7 +1277,7 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
         </div>
         <div class="msg-block">
           <div class="msg-sender-line"><span class="ai-badge">AI</span><span>Vela · Just now</span></div>
-          <div class="msg-bubble">Targeted customer acquisition based on your trade and location (Victoria Island · Lagos):</div>
+          <div class="msg-bubble">Targeted customer acquisition based on Studio Teni's published services and Victoria Island location:</div>
 
           <div class="findings-container">
             <div class="finding-card">
@@ -1275,7 +1285,7 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
                 <span class="finding-title">1. VIP Client Referral Reward</span>
                 <span class="finding-source">Client Network</span>
               </div>
-              <div class="finding-detail">Send an exclusive invite to your top 10 loyal clients giving their friends 15% off their first visit with a tracked referral credit.</div>
+              <div class="finding-detail">Send an exclusive invite to your top 10 loyal clients giving their colleagues ₦2,000 off their first visit with a tracked referral credit.</div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="this.textContent='✓ Referral campaign ready'; this.disabled=true;">Prepare referral campaign</button>
               </div>
@@ -1284,9 +1294,14 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
             <div class="finding-card">
               <div class="finding-header">
                 <span class="finding-title">2. Corporate Headshot Outreach (3 local companies)</span>
-                <span class="finding-source">Permitted Business Research</span>
+                <span class="finding-source">Public Company Directories · 22 Nov</span>
               </div>
-              <div class="finding-detail">Identified 3 Victoria Island companies with executive teams and outdated team photos (Leadway, Eden Life, Paystack Hub). Drafted tailored email pitch for 15+ staff sessions.</div>
+              <div class="finding-detail">
+                Identified 3 Victoria Island companies with executive teams and outdated team photos:<br>
+                • <strong>Leadway Assurance</strong> (leadway.com · VI branch) — 24 leadership bios with non-uniform portraits.<br>
+                • <strong>Eden Life</strong> (ouredenlife.com · Victoria Island) — Growing hybrid team requiring consistent headshots.<br>
+                • <strong>Paystack Hub</strong> (paystack.com · 1265 Bishop Oluwole St) — Direct neighbor with new staff onboarding.
+              </div>
               <div class="finding-actions">
                 <button class="btn-approve" onclick="this.textContent='✓ Pitch drafted for review'; this.disabled=true;">Review corporate pitches</button>
               </div>
@@ -1295,7 +1310,6 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
         </div>
       `;
       container.append(block);
-      container.scrollTop = container.scrollHeight;
     }
 
     function showVideoBrief(btn) {

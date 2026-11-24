@@ -75,6 +75,12 @@ export const Dashboard: React.FC = () => {
   const [inboxMode, setInboxMode] = useState<'draft' | 'routine' | 'manual'>('draft');
   const [chukaStatus, setChukaStatus] = useState<'needs_approval' | 'approved' | 'manual'>('needs_approval');
   const [babatundeStatus, setBabatundeStatus] = useState<'needs_approval' | 'approved'>('needs_approval');
+  const [keneStatus, setKeneStatus] = useState<'needs_approval' | 'approved'>('needs_approval');
+  const [tayoStatus, setTayoStatus] = useState<'needs_approval' | 'approved'>('needs_approval');
+  const pendingInboxCount = (chukaStatus === 'needs_approval' ? 1 : 0) +
+                            (babatundeStatus === 'needs_approval' ? 1 : 0) +
+                            (keneStatus === 'needs_approval' ? 1 : 0) +
+                            (tayoStatus === 'needs_approval' ? 1 : 0) + 1; // Horizon Capital quote
   const isInboxOpen = searchParams.get('inbox') === 'open';
 
   // Active conversation state
@@ -821,7 +827,7 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <h1 className="text-2xl font-bold text-[#161817] flex items-center gap-2.5">
                   <span>Manage my inbox</span>
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#161817] text-[#C5F36A]">4 pending</span>
+                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#161817] text-[#C5F36A]">{pendingInboxCount} pending</span>
                 </h1>
               </div>
               <button
@@ -839,6 +845,8 @@ export const Dashboard: React.FC = () => {
                 <div className="flex flex-wrap gap-2 text-xs">
                   <span className="px-2.5 py-0.5 rounded-md bg-[#e7f7ed] text-[#15803d] font-semibold">● WhatsApp (+234 803 123 4567)</span>
                   <span className="px-2.5 py-0.5 rounded-md bg-[#eff6ff] text-[#1d4ed8] font-semibold">● Email (hello@studioteni.ng)</span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#fdf2f8] text-[#be185d] font-semibold">● Instagram (@studioteni_ng)</span>
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#f1f5f9] text-[#0f172a] font-semibold">● TikTok (@studioteni)</span>
                   <Link to="/dashboard/settings" className="text-xs text-[#285731] font-semibold underline self-center ml-1">Settings → Channels</Link>
                 </div>
               </div>
@@ -1000,6 +1008,80 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {/* 5. @kene_o on Instagram DM */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#fdf2f8] text-[#be185d]">Instagram</span>
+                    <span>@kene_o (Kenechukwu)</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· 45m ago</span>
+                  </div>
+                  <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full', keneStatus === 'approved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800')}>
+                    {keneStatus === 'approved' ? '✓ Reply sent' : 'Needs approval'}
+                  </span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “Do you take walk-ins in Yaba or VI? I need a clean taper this evening.”
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-dashed border-[#161817]/20 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">Vela Prepared Draft Reply</div>
+                  <p className="text-xs text-[#161817]">“Hey Kene! We're located at 14 Bishop Oluwole St, Victoria Island. Dele has an opening at 5:30 PM today! You can lock it in here: studioteni.vela.ng/book”</p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {keneStatus === 'approved' ? (
+                    <div className="text-xs font-semibold text-[#16a34a] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Instagram DM sent with Victoria Island studio location and booking link</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setKeneStatus('approved')}
+                      className="px-4 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5 text-[#C5F36A]" />
+                      <span>Approve &amp; send Instagram DM</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 6. @tayo_cuts on TikTok Messages */}
+              <div className="bg-white border border-[#161817]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#161817]">
+                    <span className="px-2 py-0.5 rounded bg-[#f1f5f9] text-[#0f172a]">TikTok</span>
+                    <span>@tayo_cuts</span>
+                    <span className="text-[11px] text-[#161817]/40 font-normal">· 1h ago</span>
+                  </div>
+                  <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full', tayoStatus === 'approved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800')}>
+                    {tayoStatus === 'approved' ? '✓ Reply sent' : 'Needs approval'}
+                  </span>
+                </div>
+                <div className="bg-[#f7f6f0] border-l-2 border-[#161817] p-3 rounded-r-xl text-xs sm:text-sm text-[#161817]">
+                  “Drop address abeg! How much for the taper in the video?”
+                </div>
+                <div className="p-3 bg-[#fafaf8] border border-dashed border-[#161817]/20 rounded-xl space-y-1">
+                  <div className="text-[10px] font-bold text-[#161817]/50 uppercase tracking-wider font-mono">Vela Prepared Reply</div>
+                  <p className="text-xs text-[#161817]">“Studio Teni is at 14 Bishop Oluwole St, Victoria Island. Executive Low Taper is ₦8,000. Book here with ₦2k deposit: studioteni.vela.ng/book”</p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {tayoStatus === 'approved' ? (
+                    <div className="text-xs font-semibold text-[#16a34a] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>TikTok message sent with address and service price</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setTayoStatus('approved')}
+                      className="px-4 py-2 bg-[#161817] text-[#F7F6F0] rounded-xl text-xs font-semibold hover:bg-[#282b29] flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5 text-[#C5F36A]" />
+                      <span>Approve &amp; send TikTok reply</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -1080,11 +1162,11 @@ export const Dashboard: React.FC = () => {
                   <MessageSquare className="w-4 h-4" />
                 </span>
                 <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#161817] text-[#C5F36A]">
-                  4 pending
+                  {pendingInboxCount} pending
                 </span>
               </div>
               <div className="font-bold text-sm text-[#161817] group-hover:text-black">
-                Manage my inbox · 4
+                Manage my inbox · {pendingInboxCount}
               </div>
               <div className="text-xs text-[#161817]/65">
                 Turn incoming WhatsApp & email leads into paid bookings

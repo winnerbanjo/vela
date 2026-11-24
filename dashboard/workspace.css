@@ -7,23 +7,23 @@ body{height:100dvh}
 .settings-link{padding:8px 0;margin-bottom:10px}
 .sidebar-footer{margin-top:auto}
 .main-workspace{min-width:0;background:#fff}
-.home-view,.workspace-page{width:min(100%,800px);margin-inline:auto;box-sizing:border-box;padding:clamp(28px,8vh,88px) clamp(18px,4vw,48px) 32px}
+.home-view,.workspace-page{width:min(100%,860px);margin-inline:auto;box-sizing:border-box;padding:clamp(24px,6vh,72px) clamp(16px,4vw,44px) 32px}
 .home-view{justify-content:flex-start}
-.home-headline,.workspace-page h1{font-size:clamp(26px,3vw,38px);letter-spacing:-.045em;margin:0 0 22px;line-height:1.15}
+.home-headline,.workspace-page h1{font-size:clamp(24px,3vw,36px);letter-spacing:-.04em;margin:0 0 20px;line-height:1.15}
 .prompt-input{min-height:60px}
 .suggestions-row{margin-top:12px}
 .updates-section{margin-top:32px}
 .workspace-page{overflow-y:auto}
-.workspace-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0;border-bottom:1px solid #deded9;font-size:14px}
-.workspace-row p{margin:5px 0;color:#555;font-size:13px}
-.section-link{color:#285731;font-weight:600;font-size:13px}
-.workspace-form{display:grid;gap:18px;max-width:520px}
-.workspace-page label{display:grid;gap:6px;font-size:14px;font-weight:600}
-.workspace-page input,.workspace-page select{font:inherit;border:1px solid #c5c7bf;background:white;border-radius:8px;padding:10px;width:100%;box-sizing:border-box}
-.workspace-page .btn-approve{width:fit-content;margin-top:12px}
-.workspace-notice{position:fixed;bottom:22px;right:20px;background:#222;color:white;border-radius:10px;padding:12px 18px;z-index:120}
-.gallery-grid{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
-.gallery-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
+.workspace-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid #deded9;font-size:13.5px}
+.workspace-row p{margin:4px 0;color:#555;font-size:12.5px}
+.section-link{color:#285731;font-weight:600;font-size:12.5px;text-decoration:none}
+.section-link:hover{text-decoration:underline}
+.workspace-form{display:grid;gap:16px;max-width:580px}
+.workspace-page label{display:grid;gap:6px;font-size:13.5px;font-weight:600}
+.workspace-page input,.workspace-page select,.workspace-page textarea{font:inherit;border:1px solid #c5c7bf;background:white;border-radius:10px;padding:10px 12px;width:100%;box-sizing:border-box}
+.workspace-page input:focus,.workspace-page select:focus,.workspace-page textarea:focus{border-color:#161817;outline:none}
+.workspace-page .btn-approve{width:fit-content;margin-top:10px}
+.workspace-notice{position:fixed;bottom:22px;right:20px;background:#161817;color:#F7F6F0;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;z-index:120;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
 
 /* Primary Action Buttons (Find me customers & Manage my inbox) */
 .primary-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
@@ -66,17 +66,22 @@ body{height:100dvh}
 .finding-detail{font-size:12.5px;color:rgba(22,24,23,.7);line-height:1.4;margin-bottom:10px}
 .finding-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-/* Inbox View */
-.inbox-modes-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f4f4f1;border-radius:10px;margin-bottom:20px;font-size:12.5px;flex-wrap:wrap}
+/* Inbox View & Filter Tabs */
+.inbox-modes-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f4f4f1;border-radius:12px;margin-bottom:16px;font-size:12.5px;flex-wrap:wrap}
 .inbox-mode-pill{border:1px solid rgba(22,24,23,.15);background:#fff;padding:5px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer}
 .inbox-mode-pill.active{background:#161817;color:#fff;border-color:#161817}
-.inbox-item-card{background:#fff;border:1px solid rgba(22,24,23,.12);border-radius:12px;padding:16px;margin-bottom:14px;transition:all .15s ease}
-.inbox-item-card:hover{border-color:rgba(22,24,23,.3)}
+.inbox-filter-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.inbox-filter-tab{border:1px solid rgba(22,24,23,.12);background:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#555;white-space:nowrap}
+.inbox-filter-tab.active{background:#161817;color:#F7F6F0;border-color:#161817}
+.inbox-item-card{background:#fff;border:1px solid rgba(22,24,23,.12);border-radius:14px;padding:16px;margin-bottom:14px;transition:all .15s ease}
+.inbox-item-card:hover{border-color:rgba(22,24,23,.3);box-shadow:0 3px 12px rgba(0,0,0,0.03)}
 .inbox-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .inbox-customer-info{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.channel-pill{font-size:11px;padding:2px 7px;border-radius:6px;font-weight:600}
+.channel-pill{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600}
 .channel-pill.whatsapp{background:#e7f7ed;color:#15803d}
 .channel-pill.email{background:#eff6ff;color:#1d4ed8}
+.channel-pill.instagram{background:#fdf2f8;color:#be185d}
+.channel-pill.tiktok{background:#f1f5f9;color:#0f172a}
 .inbox-status-tag{font-size:11px;color:#854d0e;background:#fef9c3;padding:2px 8px;border-radius:12px;font-weight:600}
 .inbox-customer-msg{background:#f7f6f0;border-left:3px solid #161817;padding:10px 12px;font-size:13px;color:#161817;border-radius:0 8px 8px 0;margin-bottom:12px}
 .inbox-draft-box{background:#fafaf8;border:1px dashed rgba(22,24,23,.2);border-radius:8px;padding:12px;margin-bottom:12px}
@@ -84,4 +89,82 @@ body{height:100dvh}
 .inbox-draft-text{font-size:13px;color:#161817;line-height:1.45}
 .inbox-item-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-@media(max-width:768px){.home-view,.workspace-page{padding:32px 18px}.sidebar.open{box-shadow:6px 0 45px #0002}.suggestions-row{flex-wrap:wrap}.workspace-row{flex-wrap:wrap}.mobile-bar{flex-shrink:0}.primary-actions-grid{grid-template-columns:1fr}.decision-card{flex-direction:column;align-items:flex-start}}
+/* Website Channel Manager Header & Tabs */
+.website-channel-card{background:#f7f6f0;border:1px solid rgba(22,24,23,.12);border-radius:18px;padding:20px;margin-bottom:20px}
+.website-header-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.website-url-badge{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#161817;background:#fff;padding:6px 14px;border-radius:10px;border:1px solid rgba(22,24,23,.15)}
+.website-status-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:0.04em}
+.website-status-tag.published{background:#dcfce7;color:#166534}
+.website-status-tag.draft{background:#fef9c3;color:#854d0e}
+.unpublished-alert-banner{background:#fffbeb;border:1px solid #fef3c7;color:#92400e;padding:10px 14px;border-radius:10px;font-size:12.5px;font-weight:600;margin-top:14px;display:flex;align-items:center;justify-content:space-between}
+.website-section-tabs{display:flex;gap:8px;border-bottom:1px solid #deded9;margin-bottom:20px;overflow-x:auto}
+.website-tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;font-size:13px;font-weight:600;color:#666;cursor:pointer;white-space:nowrap}
+.website-tab-btn.active{color:#161817;border-bottom-color:#161817}
+
+/* Responsive Preview Modal */
+.preview-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:250;align-items:center;justify-content:center;padding:16px}
+.preview-modal-backdrop.open{display:flex}
+.preview-modal-window{background:#161817;border-radius:20px;width:100%;max-width:960px;height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.preview-modal-bar{background:#232524;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;color:#fff}
+.device-toggle-group{display:flex;background:#161817;border-radius:8px;padding:3px;gap:2px}
+.device-toggle-btn{background:none;border:none;color:#aaa;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+.device-toggle-btn.active{background:#2a2d2b;color:#fff}
+.preview-frame-container{flex:1;background:#383b39;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:16px}
+.preview-iframe{border:none;background:#fff;border-radius:12px;height:100%;transition:width 0.25s ease;box-shadow:0 8px 30px rgba(0,0,0,0.3)}
+.preview-iframe.mobile{width:390px;height:780px;border-radius:36px;border:8px solid #000}
+.preview-iframe.desktop{width:100%;max-width:860px;border-radius:12px}
+
+/* Services Catalogue Table & Cards */
+.services-manager-list{display:grid;gap:12px}
+.service-manager-row{background:#fff;border:1px solid #deded9;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.service-manager-row:hover{border-color:#161817}
+.service-status-pill{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase}
+.service-status-pill.active{background:#dcfce7;color:#166534}
+.service-status-pill.archived{background:#f1f5f9;color:#64748b}
+
+/* Bookings & Agenda */
+.booking-agenda-card{background:#fff;border:1px solid #deded9;border-radius:14px;padding:16px;margin-bottom:12px;transition:border-color .15s ease}
+.booking-agenda-card:hover{border-color:#161817}
+.agenda-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.agenda-client-name{font-size:14.5px;font-weight:700;color:#161817}
+.agenda-slot-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:#285731;background:rgba(40,87,49,.08);padding:3px 8px;border-radius:6px;font-weight:700}
+.agenda-meta{font-size:12.5px;color:#555;display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.agenda-actions{display:flex;gap:8px;border-top:1px solid #f0f0ee;padding-top:10px;margin-top:10px}
+
+/* Clients Directory */
+.client-profile-card{background:#fff;border:1px solid #deded9;border-radius:14px;padding:16px;margin-bottom:12px}
+.client-profile-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.client-stat-badge{font-size:11.5px;background:#f4f4f1;padding:3px 8px;border-radius:6px;color:#555}
+
+/* Money Ledger */
+.money-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.money-stat-card{background:#f7f6f0;border:1px solid rgba(22,24,23,.1);border-radius:12px;padding:14px}
+.money-stat-label{font-size:11px;font-weight:700;text-transform:uppercase;color:#666;margin-bottom:4px}
+.money-stat-val{font-size:20px;font-weight:800;color:#161817}
+.ledger-table{width:100%;border-collapse:collapse;font-size:12.5px;text-align:left}
+.ledger-table th{background:#f4f4f1;padding:10px 12px;font-weight:700;border-bottom:1px solid #deded9;color:#444}
+.ledger-table td{padding:12px;border-bottom:1px solid #eee;color:#333}
+
+/* Connected Channels Settings */
+.channel-connection-card{background:#fff;border:1px solid #deded9;border-radius:14px;padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.channel-connection-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800}
+.channel-connection-icon.wa{background:#e7f7ed;color:#15803d}
+.channel-connection-icon.em{background:#eff6ff;color:#1d4ed8}
+.channel-connection-icon.ig{background:#fdf2f8;color:#be185d}
+.channel-connection-icon.tt{background:#f1f5f9;color:#0f172a}
+.channel-details{flex:1}
+.channel-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.channel-status-dot.active{background:#22c55e}
+.channel-status-dot.idle{background:#eab308}
+
+@media(max-width:768px){
+  .home-view,.workspace-page{padding:24px 16px}
+  .sidebar.open{box-shadow:6px 0 45px #0002}
+  .suggestions-row{flex-wrap:wrap}
+  .workspace-row{flex-wrap:wrap}
+  .mobile-bar{flex-shrink:0}
+  .primary-actions-grid{grid-template-columns:1fr}
+  .decision-card{flex-direction:column;align-items:flex-start}
+  .money-stats-grid{grid-template-columns:1fr}
+  .channel-connection-card{flex-direction:column;align-items:flex-start}
+}

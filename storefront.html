@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio Teni · Official Booking Site</title>
+  <meta name="description" content="Book signature haircuts, fades, and photography sessions at Studio Teni in Victoria Island, Lagos.">
+  <link rel="icon" type="image/svg+xml" href="/assets/vela-logo-black-opt.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --bg-warm: #F7F6F0;
+      --text-ink: #161817;
+      --accent-lime: #C5F36A;
+      --border-subtle: rgba(22, 24, 23, 0.12);
+      --card-bg: #FFFFFF;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg-warm);
+      color: var(--text-ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .storefront-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+    }
+    /* Scoped Preview Banner */
+    .preview-mode-bar {
+      display: none;
+      background: #161817;
+      color: #F7F6F0;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .preview-mode-bar.active {
+      display: flex;
+    }
+    .preview-mode-badge {
+      background: var(--accent-lime);
+      color: #161817;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    /* Hero Header */
+    .storefront-header {
+      margin-top: 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+    .cover-banner-wrap {
+      height: 180px;
+      position: relative;
+      background: #161817;
+      overflow: hidden;
+    }
+    .cover-banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.9;
+    }
+    .business-meta-card {
+      padding: 20px;
+      position: relative;
+    }
+    .business-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .business-name {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-ink);
+    }
+    .verified-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(197, 243, 106, 0.4);
+      color: #161817;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(22, 24, 23, 0.12);
+    }
+    .business-bio {
+      font-size: 13.5px;
+      color: #555;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .info-badges-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #666;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+    }
+    .info-badge-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .info-badge-item strong {
+      color: var(--text-ink);
+    }
+    .hero-cta-btn {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s ease;
+      text-decoration: none;
+    }
+    .hero-cta-btn:hover {
+      background: #2a2c2b;
+    }
+    /* Section Headers */
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 32px 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-subtitle {
+      font-size: 12px;
+      color: #666;
+      font-weight: 500;
+    }
+    /* Services Catalogue */
+    .services-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .service-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .service-card:hover {
+      border-color: rgba(22, 24, 23, 0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .service-info {
+      flex: 1;
+    }
+    .service-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-ink);
+      margin-bottom: 4px;
+    }
+    .service-meta {
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .service-desc {
+      font-size: 12.5px;
+      color: #555;
+      line-height: 1.4;
+    }
+    .service-price-block {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .service-price {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-ink);
+    }
+    .service-deposit {
+      font-size: 11px;
+      color: #15803d;
+      background: #dcfce7;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .btn-book-service {
+      padding: 8px 16px;
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s ease;
+    }
+    .btn-book-service:hover {
+      background: #2a2c2b;
+    }
+    /* Team Section */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .team-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .team-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      border: 1px solid var(--border-subtle);
+    }
+    .team-name {
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+    .team-role {
+      font-size: 11.5px;
+      color: #666;
+    }
+    /* Booking Wizard Section */
+    .booking-section-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 24px;
+      margin-top: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .booking-step-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .time-slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+      margin: 14px 0;
+    }
+    .time-slot-btn {
+      padding: 10px;
+      border: 1px solid var(--border-subtle);
+      background: #FFFFFF;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .time-slot-btn:hover {
+      border-color: var(--text-ink);
+    }
+    .time-slot-btn.selected {
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border-color: var(--text-ink);
+    }
+    .time-slot-btn.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      background: #f1f1ee;
+      text-decoration: line-through;
+    }
+    .booking-form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      font-size: 13.5px;
+      margin-bottom: 10px;
+      background: #FFFFFF;
+      outline: none;
+    }
+    .booking-form-input:focus {
+      border-color: var(--text-ink);
+    }
+    .booking-summary-box {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .summary-row.total {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 8px;
+      margin-top: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    /* Gallery Lookbook */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .gallery-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .gallery-img-wrap {
+      height: 180px;
+      position: relative;
+      background: #eae8e1;
+      overflow: hidden;
+    }
+    .gallery-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.2s ease;
+    }
+    .gallery-card:hover .gallery-img {
+      transform: scale(1.03);
+    }
+    .gallery-info {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .gallery-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .gallery-caption {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .btn-book-look {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--text-ink);
+      color: #F7F6F0;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s ease;
+    }
+    .btn-book-look:hover {
+      background: #2a2c2b;
+    }
+    /* Footer */
+    .storefront-footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .footer-links a {
+      color: #555;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer-links a:hover {
+      color: var(--text-ink);
+    }
+    /* Confirmation Success Modal/View */
+    .confirmation-banner {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .confirmation-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #166534;
+      background: #bbf7d0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scoped Preview Notification Bar (when accessed via ?preview=true) -->
+  <div class="preview-mode-bar" id="previewBar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="preview-mode-badge">Storefront Preview</span>
+      <span>Viewing latest draft revision · Studio Teni</span>
+    </div>
+    <a href="/dashboard#website" style="color:#C5F36A; text-decoration:none; font-weight:700;">Return to Editor ✕</a>
+  </div>
+
+  <main class="storefront-container">
+    
+    <!-- Hero Business Header -->
+    <header class="storefront-header">
+      <div class="cover-banner-wrap">
+        <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&h=400&fit=crop" alt="Studio Teni Cover" class="cover-banner-img" id="storeCoverImg">
+      </div>
+      <div class="business-meta-card">
+        <div class="business-title-row">
+          <div>
+            <h1 class="business-name" id="storeName">Studio Teni</h1>
+            <div style="font-size:13px; color:#555; margin-top:2px;" id="storeTagline">Barbering, styling, and executive photography in Victoria Island</div>
+          </div>
+          <span class="verified-pill">✓ Verified Business</span>
+        </div>
+        
+        <p class="business-bio" id="storeBio">
+          Clean studio space for precision haircuts, low-taper fades, and executive portraits. We pride ourselves on punctuality, pristine hygiene, and exceptional craftsmanship.
+        </p>
+
+        <div class="info-badges-row">
+          <div class="info-badge-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span id="storeLocation">14 Bishop Oluwole St, Victoria Island · Lagos</span>
+          </div>
+          <div class="info-badge-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Today: <strong>9:00 AM – 7:00 PM</strong></span>
+          </div>
+          <div class="info-badge-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <span id="storePhone">+234 803 123 4567</span>
+          </div>
+        </div>
+
+        <a href="#book" class="hero-cta-btn">
+          <span>Book an Appointment</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- Services Catalogue -->
+    <section id="services">
+      <div class="section-title">
+        <span>Available Services</span>
+        <span class="section-subtitle">Select a service to reserve</span>
+      </div>
+
+      <div class="services-grid" id="servicesGrid">
+        <!-- Card 1 -->
+        <div class="service-card" data-service-id="srv-1">
+          <div class="service-info">
+            <div class="service-name">Signature Haircut & Beard Trim</div>
+            <div class="service-meta">
+              <span>⏱ 45 mins</span>
+              <span>•</span>
+              <span>Staff: Dele (Chair 1)</span>
+            </div>
+            <div class="service-desc">Complete consultation, precision scissor & clipper cut, beard sculpting, and hot towel finish.</div>
+          </div>
+          <div class="service-price-block">
+            <div class="service-price">₦10,000</div>
+            <span class="service-deposit">₦2,000 deposit</span>
+            <button class="btn-book-service" onclick="selectServiceForBooking('srv-1', 'Signature Haircut & Beard Trim', 10000, 2000, 'Dele (Chair 1)', 45)">Book</button>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="service-card" data-service-id="srv-2">
+          <div class="service-info">
+            <div class="service-name">Executive Low Taper Fade</div>
+            <div class="service-meta">
+              <span>⏱ 35 mins</span>
+              <span>•</span>
+              <span>Staff: Dele (Chair 1)</span>
+            </div>
+            <div class="service-desc">Low skin taper, razor edge lineup, hair conditioning oil, and styling.</div>
+          </div>
+          <div class="service-price-block">
+            <div class="service-price">₦8,000</div>
+            <span class="service-deposit">₦2,000 deposit</span>
+            <button class="btn-book-service" onclick="selectServiceForBooking('srv-2', 'Executive Low Taper Fade', 8000, 2000, 'Dele (Chair 1)', 35)">Book</button>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="service-card" data-service-id="srv-3">
+          <div class="service-info">
+            <div class="service-name">Studio Portrait Session</div>
+            <div class="service-meta">
+              <span>⏱ 60 mins</span>
+              <span>•</span>
+              <span>Staff: Teni (Studio A)</span>
+            </div>
+            <div class="service-desc">1-hour studio session, 2 outfit changes, 5 retouched high-resolution master images.</div>
+          </div>
+          <div class="service-price-block">
+            <div class="service-price">₦45,000</div>
+            <span class="service-deposit">₦15,000 deposit</span>
+            <button class="btn-book-service" onclick="selectServiceForBooking('srv-3', 'Studio Portrait Session', 45000, 15000, 'Teni (Studio A)', 60)">Book</button>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="service-card" data-service-id="srv-4">
+          <div class="service-info">
+            <div class="service-name">Corporate Headshots Package</div>
+            <div class="service-meta">
+              <span>⏱ Half-day / Full-day</span>
+              <span>•</span>
+              <span>On-location in Lagos</span>
+            </div>
+            <div class="service-desc">Mobile studio lighting setup for executive teams, LinkedIn and corporate annual reports.</div>
+          </div>
+          <div class="service-price-block">
+            <div class="service-price">From ₦350,000</div>
+            <span class="service-deposit" style="background:#fef3c7; color:#92400e;">Custom Quote</span>
+            <button class="btn-book-service" style="background:#161817;" onclick="openQuoteRequest('Corporate Headshots Package')">Request Quote</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team Section -->
+    <section>
+      <div class="section-title">
+        <span>Our Specialists</span>
+        <span class="section-subtitle">Expert hands on every service</span>
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar">D</div>
+          <div>
+            <div class="team-name">Dele O.</div>
+            <div class="team-role">Master Barber · Chair 1</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">T</div>
+          <div>
+            <div class="team-name">Teniola B.</div>
+            <div class="team-role">Creative Director & Lead Photographer</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Booking Form Section -->
+    <section id="book">
+      <div class="section-title">
+        <span>Lock In Your Appointment</span>
+        <span class="section-subtitle">Real-time slot availability</span>
+      </div>
+
+      <div class="booking-section-card" id="bookingCard">
+        
+        <!-- Success State Container (Hidden initially) -->
+        <div id="bookingSuccessBox" style="display:none;">
+          <div class="confirmation-banner">
+            <span class="confirmation-badge" id="successRef">BOOKING #VB-104 CONFIRMED</span>
+            <h2 style="font-size:20px; font-weight:800; color:#166534; margin:4px 0 8px;">Your chair is reserved!</h2>
+            <p style="font-size:13.5px; color:#14532d; max-width:480px; margin:0 auto;" id="successMsg">
+              We look forward to seeing you at Studio Teni. An SMS and WhatsApp reminder will be sent before your appointment.
+            </p>
+          </div>
+
+          <div class="booking-summary-box" id="successDetailsBox">
+            <!-- Populated on booking confirmation -->
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+            <a href="https://maps.google.com/?q=14+Bishop+Oluwole+St+Victoria+Island+Lagos" target="_blank" class="hero-cta-btn" style="flex:1; margin-top:0; background:#fff; color:#161817; border:1px solid #161817;">
+              Get Directions (Google Maps)
+            </a>
+            <button onclick="resetBookingForm()" class="hero-cta-btn" style="flex:1; margin-top:0;">
+              Book Another Appointment
+            </button>
+          </div>
+        </div>
+
+        <!-- Form State Container -->
+        <div id="bookingFormContent">
+          
+          <div class="booking-step-title">1. Selected Service</div>
+          <div style="background:var(--bg-warm); padding:12px 16px; border-radius:12px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong id="selectedServiceName" style="font-size:14.5px;">Signature Haircut & Beard Trim</strong>
+              <div style="font-size:12px; color:#666;" id="selectedServiceStaff">Assigned: Dele (Chair 1) · 45 mins</div>
+            </div>
+            <div style="text-align:right;">
+              <strong style="font-size:15px;" id="selectedServicePrice">₦10,000</strong>
+              <div style="font-size:11px; color:#15803d; font-weight:600;" id="selectedServiceDeposit">₦2,000 deposit</div>
+            </div>
+          </div>
+
+          <div class="booking-step-title">2. Choose Date & Time</div>
+          <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
+            <button class="time-slot-btn selected" id="dateBtnToday" onclick="pickDate('today')">Today (Fri)</button>
+            <button class="time-slot-btn" id="dateBtnSat" onclick="pickDate('sat')">Saturday</button>
+            <button class="time-slot-btn" id="dateBtnNext" onclick="pickDate('next')">Next Week</button>
+          </div>
+
+          <div style="font-size:12px; color:#666; font-weight:600; margin-bottom:6px;">Available Openings with Dele:</div>
+          <div class="time-slot-grid" id="timeSlotsGrid">
+            <button class="time-slot-btn" onclick="selectSlot(this, '11:30 AM')">11:30 AM</button>
+            <button class="time-slot-btn" onclick="selectSlot(this, '2:00 PM')">2:00 PM</button>
+            <button class="time-slot-btn" onclick="selectSlot(this, '4:15 PM')">4:15 PM</button>
+            <button class="time-slot-btn" onclick="selectSlot(this, '5:30 PM')">5:30 PM</button>
+            <button class="time-slot-btn disabled" title="Slot already booked">1:00 PM (Booked)</button>
+            <button class="time-slot-btn disabled" title="Slot already booked">3:00 PM (Booked)</button>
+          </div>
+
+          <div class="booking-step-title" style="margin-top:20px;">3. Your Contact Details</div>
+          <input type="text" class="booking-form-input" id="custName" placeholder="Your full name" required>
+          <input type="tel" class="booking-form-input" id="custPhone" placeholder="WhatsApp phone number (e.g. 0803 123 4567)" required>
+          <input type="email" class="booking-form-input" id="custEmail" placeholder="Email address (for booking receipt)" required>
+          <textarea class="booking-form-input" id="custNotes" rows="2" placeholder="Notes for barber/photographer (optional style inspiration or requests)"></textarea>
+
+          <div class="booking-summary-box">
+            <div class="summary-row">
+              <span>Service Fee:</span>
+              <strong id="sumTotal">₦10,000</strong>
+            </div>
+            <div class="summary-row" style="color:#15803d; font-weight:600;">
+              <span>Deposit Due Now (to secure slot):</span>
+              <strong id="sumDeposit">₦2,000</strong>
+            </div>
+            <div class="summary-row">
+              <span style="color:#666;">Balance Due At Studio:</span>
+              <span id="sumBalance">₦8,000</span>
+            </div>
+            <div class="summary-row total">
+              <span>Appointment:</span>
+              <span id="sumSlotLabel">Today at 4:15 PM with Dele</span>
+            </div>
+          </div>
+
+          <div style="font-size:11.5px; color:#666; margin-bottom:14px; line-height:1.4;">
+            🔒 <strong>Cancellation Policy:</strong> Free rescheduling or cancellation up to 4 hours prior. Your ₦2,000 deposit locks your chair and guarantees no waiting.
+          </div>
+
+          <button class="hero-cta-btn" id="confirmBookingBtn" onclick="submitBooking()">
+            <span>Pay ₦2,000 Deposit & Confirm Slot</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Gallery Lookbook -->
+    <section id="gallery">
+      <div class="section-title">
+        <span>Portfolio & Lookbook</span>
+        <span class="section-subtitle">Tap "Book this look" to reserve the exact style</span>
+      </div>
+
+      <div class="gallery-grid" id="galleryGrid">
+        
+        <!-- Look 1 -->
+        <div class="gallery-card">
+          <div class="gallery-img-wrap">
+            <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&h=400&fit=crop" alt="Low Taper Fade" class="gallery-img">
+          </div>
+          <div class="gallery-info">
+            <div>
+              <div class="gallery-title">Low Taper Transformation</div>
+              <div class="gallery-caption">Crisp low skin taper with natural razor hairline and beard sculpt.</div>
+            </div>
+            <button class="btn-book-look" onclick="bookLook('Executive Low Taper Fade', 8000, 2000, 'Dele (Chair 1)', 'look-taper-01')">
+              Book this look (₦8,000)
+            </button>
+          </div>
+        </div>
+
+        <!-- Look 2 -->
+        <div class="gallery-card">
+          <div class="gallery-img-wrap">
+            <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&h=400&fit=crop" alt="Signature Fade & Beard" class="gallery-img">
+          </div>
+          <div class="gallery-info">
+            <div>
+              <div class="gallery-title">Signature Fade & Beard Care</div>
+              <div class="gallery-caption">Mid taper drop fade paired with hot oil beard sculpting and balm shine.</div>
+            </div>
+            <button class="btn-book-look" onclick="bookLook('Signature Haircut & Beard Trim', 10000, 2000, 'Dele (Chair 1)', 'look-fade-02')">
+              Book this look (₦10,000)
+            </button>
+          </div>
+        </div>
+
+        <!-- Look 3 -->
+        <div class="gallery-card">
+          <div class="gallery-img-wrap">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&h=400&fit=crop" alt="Executive Studio Portrait" class="gallery-img">
+          </div>
+          <div class="gallery-info">
+            <div>
+              <div class="gallery-title">Executive Studio Portrait</div>
+              <div class="gallery-caption">Clean editorial lighting on neutral canvas for leaders and creatives.</div>
+            </div>
+            <button class="btn-book-look" onclick="bookLook('Studio Portrait Session', 45000, 15000, 'Teni (Studio A)', 'look-photo-03')">
+              Request a similar shoot
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="storefront-footer">
+      <div class="footer-links">
+        <a href="#services">Services</a>
+        <a href="#book">Book</a>
+        <a href="#gallery">Lookbook</a>
+        <a href="https://wa.me/2348031234567" target="_blank">WhatsApp Direct</a>
+      </div>
+      <p style="margin-bottom:6px;">Studio Teni · 14 Bishop Oluwole St, Victoria Island, Lagos</p>
+      <p style="font-size:11px; opacity:0.7;">Powered by <strong>Vela AI</strong> · Sales assistant for service professionals</p>
+    </footer>
+
+  </main>
+
+  <!-- Quote Request Modal -->
+  <div id="quoteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#FFF; border-radius:20px; max-width:480px; width:100%; padding:24px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #deded9; padding-bottom:10px;">
+        <h3 style="margin:0; font-size:17px; font-weight:700;">Request Corporate Quotation</h3>
+        <button onclick="closeQuoteModal()" style="border:none; background:none; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:12.5px; color:#555; margin-bottom:14px;">Tell us about your team size, office location, and ideal date. Vela will prepare a tailored quotation with deliverables.</p>
+      
+      <input type="text" id="quoteCompany" class="booking-form-input" placeholder="Company / Organization Name">
+      <input type="text" id="quoteContact" class="booking-form-input" placeholder="Your Name & Title">
+      <input type="email" id="quoteEmail" class="booking-form-input" placeholder="Official Business Email">
+      <input type="number" id="quoteHeadcount" class="booking-form-input" placeholder="Number of Staff (e.g. 15)">
+      <textarea id="quoteBrief" class="booking-form-input" rows="2" placeholder="Specific requirements or preferred date..."></textarea>
+      
+      <button class="hero-cta-btn" onclick="submitCorporateQuoteLead()">Send Quote Request</button>
+    </div>
+  </div>
+
+  <script>
+    // Check if loaded with ?preview=true
+    if (window.location.search.includes('preview=true')) {
+      document.getElementById('previewBar').classList.add('active');
+    }
+
+    // Load merchant workspace settings from localStorage if available
+    const storageKey = 'vela.preview.workspace.v1';
+    let localWorkspace = null;
+    try {
+      localWorkspace = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      if (localWorkspace.name) document.getElementById('storeName').innerText = localWorkspace.name;
+      if (localWorkspace.bio) document.getElementById('storeBio').innerText = localWorkspace.bio;
+      if (localWorkspace.location) document.getElementById('storeLocation').innerText = localWorkspace.location;
+      if (localWorkspace.whatsappNumber) document.getElementById('storePhone').innerText = localWorkspace.whatsappNumber;
+    } catch(e) {}
+
+    // Booking state
+    let activeBooking = {
+      serviceId: 'srv-1',
+      serviceName: 'Signature Haircut & Beard Trim',
+      price: 10000,
+      deposit: 2000,
+      staff: 'Dele (Chair 1)',
+      duration: 45,
+      date: 'Today',
+      timeSlot: '4:15 PM',
+      attachedLookId: null
+    };
+
+    function selectServiceForBooking(id, name, price, deposit, staff, duration) {
+      activeBooking.serviceId = id;
+      activeBooking.serviceName = name;
+      activeBooking.price = price;
+      activeBooking.deposit = deposit;
+      activeBooking.staff = staff;
+      activeBooking.duration = duration;
+      activeBooking.attachedLookId = null;
+
+      updateBookingSummaryUI();
+      document.getElementById('book').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function bookLook(serviceName, price, deposit, staff, lookId) {
+      activeBooking.serviceName = serviceName;
+      activeBooking.price = price;
+      activeBooking.deposit = deposit;
+      activeBooking.staff = staff;
+      activeBooking.attachedLookId = lookId;
+
+      updateBookingSummaryUI();
+      document.getElementById('book').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateBookingSummaryUI() {
+      document.getElementById('selectedServiceName').innerText = activeBooking.serviceName + (activeBooking.attachedLookId ? ` (${activeBooking.attachedLookId})` : '');
+      document.getElementById('selectedServiceStaff').innerText = `Assigned: ${activeBooking.staff} · ${activeBooking.duration} mins`;
+      document.getElementById('selectedServicePrice').innerText = `₦${activeBooking.price.toLocaleString()}`;
+      document.getElementById('selectedServiceDeposit').innerText = `₦${activeBooking.deposit.toLocaleString()} deposit`;
+
+      document.getElementById('sumTotal').innerText = `₦${activeBooking.price.toLocaleString()}`;
+      document.getElementById('sumDeposit').innerText = `₦${activeBooking.deposit.toLocaleString()}`;
+      document.getElementById('sumBalance').innerText = `₦${(activeBooking.price - activeBooking.deposit).toLocaleString()}`;
+      document.getElementById('sumSlotLabel').innerText = `${activeBooking.date} at ${activeBooking.timeSlot} with ${activeBooking.staff}`;
+      document.getElementById('confirmBookingBtn').innerHTML = `<span>Pay ₦${activeBooking.deposit.toLocaleString()} Deposit & Confirm Slot</span>`;
+    }
+
+    function pickDate(type) {
+      document.querySelectorAll('#dateBtnToday, #dateBtnSat, #dateBtnNext').forEach(b => b.classList.remove('selected'));
+      if (type === 'today') {
+        document.getElementById('dateBtnToday').classList.add('selected');
+        activeBooking.date = 'Today';
+      } else if (type === 'sat') {
+        document.getElementById('dateBtnSat').classList.add('selected');
+        activeBooking.date = 'Saturday';
+      } else {
+        document.getElementById('dateBtnNext').classList.add('selected');
+        activeBooking.date = 'Next Tuesday';
+      }
+      updateBookingSummaryUI();
+    }
+
+    function selectSlot(btn, time) {
+      document.querySelectorAll('#timeSlotsGrid .time-slot-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      activeBooking.timeSlot = time;
+      updateBookingSummaryUI();
+    }
+
+    function submitBooking() {
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const notes = document.getElementById('custNotes').value.trim();
+
+      if (!name || !phone) {
+        alert('Please provide your name and WhatsApp phone number.');
+        return;
+      }
+
+      // Generate realistic booking reference
+      const refId = 'VB-' + Math.floor(100 + Math.random() * 900);
+      
+      // Save directly into shared merchant storage
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const bookings = stored.bookingsList || [];
+        bookings.unshift({
+          id: refId,
+          clientName: name,
+          clientPhone: phone,
+          clientEmail: email || 'client@vela.ng',
+          serviceName: activeBooking.serviceName,
+          dateSlot: `${activeBooking.date} at ${activeBooking.timeSlot}`,
+          staff: activeBooking.staff,
+          totalPrice: activeBooking.price,
+          depositPaid: activeBooking.deposit,
+          balanceDue: activeBooking.price - activeBooking.deposit,
+          status: 'Confirmed · Deposit Paid',
+          notes: notes,
+          lookId: activeBooking.attachedLookId,
+          source: 'Website Booking'
+        });
+        stored.bookingsList = bookings;
+        stored.walkIns = (stored.walkIns || 0) + 1;
+        localStorage.setItem(storageKey, JSON.stringify(stored));
+      } catch(e) {
+        console.error('Local save error', e);
+      }
+
+      // Render success screen
+      document.getElementById('bookingFormContent').style.display = 'none';
+      document.getElementById('bookingSuccessBox').style.display = 'block';
+      document.getElementById('successRef').innerText = `BOOKING #${refId} CONFIRMED`;
+      document.getElementById('successDetailsBox').innerHTML = `
+        <div class="summary-row"><span>Client:</span> <strong>${name} (${phone})</strong></div>
+        <div class="summary-row"><span>Service:</span> <strong>${activeBooking.serviceName}</strong></div>
+        <div class="summary-row"><span>Slot:</span> <strong>${activeBooking.date} at ${activeBooking.timeSlot}</strong></div>
+        <div class="summary-row"><span>Specialist:</span> <strong>${activeBooking.staff}</strong></div>
+        <div class="summary-row"><span>Deposit Received:</span> <strong style="color:#166534;">₦${activeBooking.deposit.toLocaleString()} (Verified)</strong></div>
+        <div class="summary-row"><span>Balance on arrival:</span> <strong>₦${(activeBooking.price - activeBooking.deposit).toLocaleString()}</strong></div>
+        ${activeBooking.attachedLookId ? `<div class="summary-row"><span>Style Lookbook Ref:</span> <strong>${activeBooking.attachedLookId}</strong></div>` : ''}
+      `;
+      document.getElementById('bookingCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetBookingForm() {
+      document.getElementById('bookingSuccessBox').style.display = 'none';
+      document.getElementById('bookingFormContent').style.display = 'block';
+      document.getElementById('custName').value = '';
+      document.getElementById('custPhone').value = '';
+      document.getElementById('custEmail').value = '';
+      document.getElementById('custNotes').value = '';
+    }
+
+    function openQuoteRequest(serviceName) {
+      document.getElementById('quoteModal').style.display = 'flex';
+    }
+
+    function closeQuoteModal() {
+      document.getElementById('quoteModal').style.display = 'none';
+    }
+
+    function submitCorporateQuoteLead() {
+      const company = document.getElementById('quoteCompany').value.trim();
+      const contact = document.getElementById('quoteContact').value.trim();
+      const email = document.getElementById('quoteEmail').value.trim();
+      const count = document.getElementById('quoteHeadcount').value.trim();
+
+      if (!company || !contact || !email) {
+        alert('Please fill in company name, contact person, and email.');
+        return;
+      }
+
+      // Save into merchant inbox as a new lead
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const leads = stored.inboxLeads || [];
+        leads.unshift({
+          company,
+          contact,
+          email,
+          count: count || 15,
+          timestamp: 'Just now'
+        });
+        stored.inboxLeads = leads;
+        localStorage.setItem(storageKey, JSON.stringify(stored));
+      } catch(e) {}
+
+      closeQuoteModal();
+      alert(`Thank you, ${contact}! Your quote request for ${company} has been received. Studio Teni via Vela will send the formal quotation to ${email} shortly.`);
+    }
+
+    // Initial setup
+    updateBookingSummaryUI();
+  </script>
+</body>
+</html>
