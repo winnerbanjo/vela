@@ -1176,6 +1176,70 @@
       </div>
     </div>
   </div>
+  <!-- Walk-In Modal -->
+  <div class="modal-backdrop" id="walkInModal" style="display:none;" onclick="if(event.target===this)closeWalkInModal()">
+    <div class="modal-card" style="max-width: 480px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+        <div>
+          <h3 style="margin:0 0 4px 0; font-size:17px; font-weight:700; color:#161817;">Record Walk-in Client</h3>
+          <p style="margin:0; font-size:12.5px; color:#666;">Immediate chair reservation and instant appointment record</p>
+        </div>
+        <button type="button" onclick="closeWalkInModal()" style="background:none; border:none; cursor:pointer; font-size:20px; color:#888; padding:0 4px; line-height:1;">✕</button>
+      </div>
+
+      <form id="walkInForm" onsubmit="event.preventDefault(); handleWalkInSubmit();">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Client Name</label>
+            <input type="text" id="walkInName" class="workspace-input" placeholder="e.g. Emeka Eze or Walk-in Client" value="Walk-in Client" required style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px;">
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div>
+              <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Phone (for WhatsApp receipt)</label>
+              <input type="tel" id="walkInPhone" class="workspace-input" placeholder="+234 ..." style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px;">
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Assigned Barber</label>
+              <select id="walkInStaff" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px; background:#fff;">
+                <option value="Dele (Chair 1)">Dele (Chair 1) — Ready</option>
+                <option value="Samuel (Chair 2)">Samuel (Chair 2)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Service &amp; Price</label>
+            <select id="walkInService" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px; background:#fff;" onchange="updateWalkInPriceHint()">
+              <option value="Signature Haircut &amp; Beard Trim|10000">Signature Haircut &amp; Beard Trim — ₦10,000 (45m)</option>
+              <option value="Executive Low Taper Fade|8000">Executive Low Taper Fade — ₦8,000 (35m)</option>
+              <option value="Express Haircut|6000">Express Haircut — ₦6,000 (25m)</option>
+              <option value="Clean Beard Sculpt &amp; Hot Towel|5000">Clean Beard Sculpt &amp; Hot Towel — ₦5,000 (20m)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Payment Collected</label>
+            <select id="walkInPayment" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px; background:#fff;">
+              <option value="full">₦10,000 Full payment collected (Cash / Transfer / POS)</option>
+              <option value="deposit">₦2,000 Deposit collected · ₦8,000 due after cut</option>
+              <option value="post">Pay after haircut (Full balance due)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-weight:600; color:#333; margin-bottom:5px;">Notes (Optional)</label>
+            <input type="text" id="walkInNotes" class="workspace-input" placeholder="e.g. Skin fade with clean lineup" style="width:100%; box-sizing:border-box; padding:9px 12px; border:1px solid rgba(22,24,23,0.15); border-radius:10px; font-size:13px;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:22px;">
+          <button type="submit" class="page-hero-btn-primary" style="flex:1; justify-content:center; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer;">Confirm Walk-in Now</button>
+          <button type="button" class="page-hero-btn-secondary" onclick="closeWalkInModal()" style="padding:10px 16px; font-size:13px; cursor:pointer;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- TikTok Suggestion Modal -->
   <div class="modal-backdrop" id="tikTokModal" style="display:none;">
@@ -1234,6 +1298,8 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
       if (type === 'unpaid_deposits') { location.hash = 'money'; return; }
       enterAgent();
       closeDrawer();
+      const pageEl = document.getElementById('workspacePage');
+      if (pageEl) pageEl.hidden = true;
       document.getElementById('homeView').style.display = 'none';
       document.getElementById('chatView').style.display = 'flex';
       const container = document.getElementById('chatContainer');
@@ -1439,6 +1505,51 @@ Crisp low taper fade at Studio Teni. ✨ Located at 14 Bishop Oluwole St, Victor
               <div class="record-actions">
                 <button class="btn-approve" onclick="recordWalkIn(this)">Confirm Walk-in Now</button>
               </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function recordWalkIn(btn) {
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '✓ Walk-in Confirmed';
+      }
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const newId = `VB-${100 + (window.workspace && window.workspace.bookingsList ? window.workspace.bookingsList.length : 3) + 1}`;
+      const booking = {
+        id: newId,
+        clientName: 'Walk-in Client',
+        clientPhone: '',
+        serviceName: 'Signature Haircut & Beard Trim',
+        dateSlot: `Today at ${timeStr} (Just now)`,
+        staff: 'Dele (Chair 1)',
+        totalPrice: 10000,
+        depositPaid: 10000,
+        balanceDue: 0,
+        status: 'Confirmed · Paid in Full',
+        source: 'Walk-in',
+        notes: 'Walk-in recorded via Vela Agent'
+      };
+      if (window.workspace && window.workspace.bookingsList) {
+        window.workspace.bookingsList.unshift(booking);
+        window.workspace.walkIns = (window.workspace.walkIns || 0) + 1;
+        if (typeof window.save === 'function') {
+          window.save({ bookingsList: [...window.workspace.bookingsList], walkIns: window.workspace.walkIns });
+        }
+      }
+      if (typeof window.notify === 'function') {
+        window.notify('✓ Chair 1 (Dele) booked for immediate walk-in haircut.');
+      }
+      const parent = btn?.parentElement;
+      if (parent) {
+        parent.innerHTML = `
+          <div style="background:#dcfce7; color:#166534; padding:12px 14px; border-radius:10px; font-size:12.5px; font-weight:600; width:100%;">
+            ✓ Chair 1 (Dele) booked for immediate walk-in haircut (#${newId}). Recorded in Bookings schedule.
+            <div style="margin-top:8px;">
+              <button class="btn-approve" style="font-size:12px; padding:6px 14px; border-radius:9999px;" onclick="location.hash='bookings'">View in Bookings agenda →</button>
             </div>
           </div>
         `;

@@ -1399,7 +1399,7 @@ function renderBookings() {
         </div>
       </div>
       <div class="page-hero-actions">
-        <button class="page-hero-btn-primary" onclick="runWorkflow('walk_in')">
+        <button class="page-hero-btn-primary" onclick="openWalkInModal()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>Add a walk-in</span>
         </button>
@@ -1447,6 +1447,165 @@ function renderBookings() {
   container.append(list);
 
   return container;
+}
+
+// -------------------------------------------------------------
+// WALK-IN APPOINTMENT HANDLERS
+// -------------------------------------------------------------
+function openWalkInModal() {
+  const modal = byId('walkInModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  const nameInput = byId('walkInName');
+  if (nameInput) {
+    nameInput.value = 'Walk-in Client';
+    setTimeout(() => {
+      nameInput.focus();
+      nameInput.select();
+    }, 50);
+  }
+}
+
+function closeWalkInModal() {
+  const modal = byId('walkInModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
+function updateWalkInPriceHint() {
+  const serviceSelect = byId('walkInService');
+  const paymentSelect = byId('walkInPayment');
+  if (!serviceSelect || !paymentSelect) return;
+
+  const parts = (serviceSelect.value || '').split('|');
+  const price = parseInt(parts[1], 10) || 10000;
+  const deposit = Math.min(2000, price);
+  const balance = price - deposit;
+
+  paymentSelect.innerHTML = `
+    <option value="full">₦${price.toLocaleString()} Full payment collected (Cash / POS / Transfer)</option>
+    <option value="deposit">₦${deposit.toLocaleString()} Deposit collected · ₦${balance.toLocaleString()} due after cut</option>
+    <option value="post">Pay after haircut (Full balance due)</option>
+  `;
+}
+
+function handleWalkInSubmit() {
+  const nameInput = byId('walkInName');
+  const phoneInput = byId('walkInPhone');
+  const serviceSelect = byId('walkInService');
+  const staffSelect = byId('walkInStaff');
+  const paymentSelect = byId('walkInPayment');
+  const notesInput = byId('walkInNotes');
+
+  const clientName = (nameInput?.value || 'Walk-in Client').trim() || 'Walk-in Client';
+  const clientPhone = (phoneInput?.value || '').trim();
+  const rawService = serviceSelect?.value || 'Signature Haircut & Beard Trim|10000';
+  const [serviceName, priceStr] = rawService.split('|');
+  const totalPrice = parseInt(priceStr, 10) || 10000;
+  const staff = staffSelect?.value || 'Dele (Chair 1)';
+  const paymentMode = paymentSelect?.value || 'full';
+  const notes = (notesInput?.value || '').trim() || 'Walk-in arrival at studio';
+
+  let depositPaid = 0;
+  let balanceDue = totalPrice;
+  let status = 'Walk-in Confirmed · Balance Due';
+
+  if (paymentMode === 'full') {
+    depositPaid = totalPrice;
+    balanceDue = 0;
+    status = 'Confirmed · Paid in Full';
+  } else if (paymentMode === 'deposit') {
+    depositPaid = Math.min(2000, totalPrice);
+    balanceDue = totalPrice - depositPaid;
+    status = `Confirmed · ₦${depositPaid.toLocaleString()} Deposit Paid`;
+  } else {
+    depositPaid = 0;
+    balanceDue = totalPrice;
+    status = 'Walk-in Confirmed · Pay After Service';
+  }
+
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const newId = `VB-${100 + (workspace.bookingsList ? workspace.bookingsList.length : 3) + 1}`;
+
+  const newBooking = {
+    id: newId,
+    clientName,
+    clientPhone,
+    serviceName: serviceName || 'Signature Haircut & Beard Trim',
+    dateSlot: `Today at ${timeStr} (Just now)`,
+    staff,
+    totalPrice,
+    depositPaid,
+    balanceDue,
+    status,
+    source: 'Walk-in',
+    notes
+  };
+
+  if (!workspace.bookingsList) workspace.bookingsList = [];
+  workspace.bookingsList.unshift(newBooking);
+  workspace.walkIns = (workspace.walkIns || 0) + 1;
+
+  if (clientName && clientName.toLowerCase() !== 'walk-in client') {
+    clientsDirectory.unshift({
+      name: clientName,
+      phone: clientPhone || 'Walk-in',
+      email: '',
+      visits: 1,
+      spend: depositPaid,
+      lastService: serviceName,
+      lastDate: `Today ${timeStr}`,
+      notes: notes || 'Walk-in arrival recorded at front desk'
+    });
+  }
+
+  save({ bookingsList: [...workspace.bookingsList], walkIns: workspace.walkIns });
+  notify(`✓ Walk-in recorded: ${clientName} assigned to ${staff}.`);
+  closeWalkInModal();
+  bookingFilter = 'all';
+  renderPage();
+}
+
+function recordWalkIn(btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '✓ Walk-in Confirmed';
+  }
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const newId = `VB-${100 + (workspace.bookingsList ? workspace.bookingsList.length : 3) + 1}`;
+  const booking = {
+    id: newId,
+    clientName: 'Walk-in Client',
+    clientPhone: '',
+    serviceName: 'Signature Haircut & Beard Trim',
+    dateSlot: `Today at ${timeStr} (Just now)`,
+    staff: 'Dele (Chair 1)',
+    totalPrice: 10000,
+    depositPaid: 10000,
+    balanceDue: 0,
+    status: 'Confirmed · Paid in Full',
+    source: 'Walk-in',
+    notes: 'Walk-in recorded via Vela Agent'
+  };
+  if (!workspace.bookingsList) workspace.bookingsList = [];
+  workspace.bookingsList.unshift(booking);
+  workspace.walkIns = (workspace.walkIns || 0) + 1;
+  save({ bookingsList: [...workspace.bookingsList], walkIns: workspace.walkIns });
+
+  notify('✓ Chair 1 (Dele) booked for immediate walk-in haircut.');
+  const parent = btn?.parentElement;
+  if (parent) {
+    parent.innerHTML = `
+      <div style="background:#dcfce7; color:#166534; padding:12px 14px; border-radius:10px; font-size:12.5px; font-weight:600; width:100%;">
+        ✓ Chair 1 (Dele) booked for immediate walk-in haircut (#${newId}). Recorded in Bookings schedule.
+        <div style="margin-top:8px;">
+          <button class="btn-approve" style="font-size:12px; padding:6px 14px; border-radius:9999px;" onclick="location.hash='bookings'">View in Bookings agenda →</button>
+        </div>
+      </div>
+    `;
+  }
 }
 
 // -------------------------------------------------------------
@@ -2590,7 +2749,11 @@ window.quietItemDismiss = quietItemDismiss;
 window.triageApprove = triageApprove;
 window.triageDismiss = triageDismiss;
 window.updatePendingBadges = updatePendingBadges;
-window.autoGrowComposer = autoGrowComposer;
+window.openWalkInModal = openWalkInModal;
+window.closeWalkInModal = closeWalkInModal;
+window.updateWalkInPriceHint = updateWalkInPriceHint;
+window.handleWalkInSubmit = handleWalkInSubmit;
+window.recordWalkIn = recordWalkIn;
 window.startFreshTask = startFreshTask;
 window.closeCurrentTask = closeCurrentTask;
 
