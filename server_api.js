@@ -320,7 +320,7 @@ const PROVIDER_REGISTRY = {
   'zoho-crm': {
     id: 'zoho-crm',
     name: 'Zoho CRM',
-    category: 'accounting',
+    category: 'sales',
     setupType: 'oauth',
     requiresWebhook: false,
     assetPath: '/assets/integrations/zoho-crm.svg',
@@ -330,7 +330,7 @@ const PROVIDER_REGISTRY = {
     supportedCapabilities: [
       'Create Lead when corporate headshot or wedding inquiry arrives',
       'Smart contact deduplication and review step for existing clients',
-      'Pipeline tracking for corporate packages (> ₦100,000)',
+      'Pipeline tracking for corporate packages',
       'Deal advancement on actual Vela booking events'
     ],
     outcomeExplanation: 'Vela can sync corporate clients into Zoho CRM, advance deal stages upon booking confirmation, and avoid duplicate leads.',
@@ -636,21 +636,25 @@ const initialAppsState = {
   },
   'zoho-crm': {
     ...PROVIDER_REGISTRY['zoho-crm'],
-    headline: 'Sync high-value corporate leads and wedding photography clients.',
-    status: 'disconnected',
-    accountIdentity: 'Unconnected',
+    headline: 'Capture corporate and event leads and track enquiries without duplicate contacts.',
+    status: 'connected',
+    category: 'sales',
+    accountIdentity: 'Studio Teni CRM (zoho.com/crm)',
     permissions: {
       createLeads: true,
       createDeals: true,
       requireDuplicateReview: true
     },
-    lastSync: 'Never',
-    health: 'Not connected',
+    lastSync: '1h ago',
+    health: 'Active · Zoho CRM Verified',
     config: {
-      leadThreshold: 100000,
+      leadDestination: 'Leads Module',
+      enquiryFilter: 'All corporate & event enquiries',
       autoMergeConfidence: 0.95
     },
-    activityLog: []
+    activityLog: [
+      { timestamp: '1h ago', event: 'Lead reviewed', status: 'success', details: 'Folake Phillips (Horizon Capital) logged as new lead' }
+    ]
   },
   'google-drive': {
     ...PROVIDER_REGISTRY['google-drive'],
@@ -670,16 +674,24 @@ const initialAppsState = {
   },
   dropbox: {
     ...PROVIDER_REGISTRY.dropbox,
-    headline: 'Store raw camera shoots and finished client albums securely.',
-    status: 'disconnected',
-    accountIdentity: 'Unconnected',
+    headline: 'Choose photos from your Dropbox to add to client galleries.',
+    status: 'connected',
+    accountIdentity: 'Studio Teni Portfolio Dropbox',
     permissions: {
-      createUploads: true
+      importPhotos: true,
+      createCopies: true
     },
-    lastSync: 'Never',
-    health: 'Not connected',
-    config: {},
-    activityLog: []
+    lastSync: '3m ago',
+    health: 'Active · Connected',
+    config: {
+      selectedFolder: '/Studio Teni Client Deliveries',
+      enabledFeature: 'Client gallery photo import',
+      lastOperation: '12 photos added to Amaka’s wedding gallery',
+      lastOperationTime: '3m ago'
+    },
+    activityLog: [
+      { timestamp: '3m ago', event: 'Photos imported', status: 'success', details: '12 photos added to Amaka’s wedding gallery' }
+    ]
   },
   'meta-ads': {
     ...PROVIDER_REGISTRY['meta-ads'],
@@ -790,29 +802,96 @@ const initialTransactions = [
   }
 ];
 
-// Helper to load/save state
-function loadState() {
-  let apps = { ...initialAppsState };
-  let txs = [...initialTransactions];
+const initialClientGalleries = [
+  {
+    id: 'gal-amaka',
+    title: 'Amaka’s wedding gallery',
+    client: 'Amaka Obi',
+    isPrivate: true,
+    published: false,
+    createdAt: '2 days ago',
+    coverPhoto: '/assets/placeholder-look.jpg',
+    photos: [
+      { id: 'ph-amaka-01', filename: 'DSC_4890_BridalHair.jpg', size: '4.2 MB', src: '/assets/placeholder-look.jpg', title: 'Bridal Hair Detail' },
+      { id: 'ph-amaka-02', filename: 'DSC_4895_GownPortrait.jpg', size: '5.1 MB', src: '/assets/placeholder-look.jpg', title: 'Gown Full Length' }
+    ]
+  },
+  {
+    id: 'gal-horizon',
+    title: 'Horizon Capital Executive Headshots',
+    client: 'Horizon Capital (Folake Phillips)',
+    isPrivate: true,
+    published: false,
+    createdAt: 'Yesterday',
+    coverPhoto: '/assets/placeholder-look.jpg',
+    photos: [
+      { id: 'ph-hor-01', filename: 'HC_01_Folake.jpg', size: '3.8 MB', src: '/assets/placeholder-look.jpg', title: 'Folake Phillips Headshot' }
+    ]
+  }
+];
+
+function getMerchantFiles(merchantId = 'studio_teni') {
+  const clean = String(merchantId || 'studio_teni').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const isDefault = clean === 'studio_teni';
+  return {
+    appsFile: isDefault ? APPS_FILE : path.join(DATA_DIR, `apps_state_${clean}.json`),
+    txsFile: isDefault ? TXS_FILE : path.join(DATA_DIR, `transactions_${clean}.json`),
+    galFile: path.join(DATA_DIR, `galleries_${clean}.json`),
+    threadsFile: path.join(DATA_DIR, `threads_${clean}.json`)
+  };
+}
+
+let currentMerchantContext = 'studio_teni';
+
+// Helper to load/save state with multi-tenant isolation
+function loadState(merchantId) {
+  const mId = merchantId || currentMerchantContext || 'studio_teni';
+  const { appsFile, txsFile } = getMerchantFiles(mId);
+  let apps = JSON.parse(JSON.stringify(initialAppsState));
+  let txs = JSON.parse(JSON.stringify(initialTransactions));
   try {
-    if (fs.existsSync(APPS_FILE)) {
-      apps = JSON.parse(fs.readFileSync(APPS_FILE, 'utf8'));
+    if (fs.existsSync(appsFile)) {
+      apps = JSON.parse(fs.readFileSync(appsFile, 'utf8'));
     }
-    if (fs.existsSync(TXS_FILE)) {
-      txs = JSON.parse(fs.readFileSync(TXS_FILE, 'utf8'));
+    if (fs.existsSync(txsFile)) {
+      txs = JSON.parse(fs.readFileSync(txsFile, 'utf8'));
     }
   } catch (err) {
-    console.error('Error reading state files:', err);
+    console.error('Error reading state files for', mId, err);
   }
   return { apps, txs };
 }
 
-function saveState(apps, txs) {
+function saveState(apps, txs, merchantId) {
+  const mId = merchantId || currentMerchantContext || 'studio_teni';
+  const { appsFile, txsFile } = getMerchantFiles(mId);
   try {
-    if (apps) fs.writeFileSync(APPS_FILE, JSON.stringify(apps, null, 2));
-    if (txs) fs.writeFileSync(TXS_FILE, JSON.stringify(txs, null, 2));
+    if (apps) fs.writeFileSync(appsFile, JSON.stringify(apps, null, 2));
+    if (txs) fs.writeFileSync(txsFile, JSON.stringify(txs, null, 2));
   } catch (err) {
-    console.error('Error saving state files:', err);
+    console.error('Error saving state files for', mId, err);
+  }
+}
+
+function loadGalleries(merchantId = 'studio_teni') {
+  const { galFile } = getMerchantFiles(merchantId);
+  let galleries = JSON.parse(JSON.stringify(initialClientGalleries));
+  try {
+    if (fs.existsSync(galFile)) {
+      galleries = JSON.parse(fs.readFileSync(galFile, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Error reading galleries for', merchantId, e);
+  }
+  return galleries;
+}
+
+function saveGalleries(galleries, merchantId = 'studio_teni') {
+  const { galFile } = getMerchantFiles(merchantId);
+  try {
+    fs.writeFileSync(galFile, JSON.stringify(galleries, null, 2));
+  } catch (e) {
+    console.error('Error saving galleries for', merchantId, e);
   }
 }
 
@@ -840,6 +919,8 @@ function handleApiRequest(req, res) {
   const parsedUrl = new URL(req.url, 'http://localhost:3030');
   const pathname = parsedUrl.pathname;
   const method = req.method;
+  const merchantId = req.headers['x-merchant-id'] || parsedUrl.searchParams.get('merchant') || 'studio_teni';
+  currentMerchantContext = merchantId;
 
   // JSON helper
   function sendJson(status, data) {
@@ -2042,6 +2123,10 @@ function handleApiRequest(req, res) {
       const { apps, txs } = loadState();
       if (!apps._currencyDefaults) apps._currencyDefaults = {};
       apps._currencyDefaults[currency] = provider;
+      if (currency === 'NGN') {
+        if (apps.paystack) apps.paystack.isDefault = (provider === 'paystack');
+        if (apps.flutterwave) apps.flutterwave.isDefault = (provider === 'flutterwave');
+      }
       saveState(apps, txs);
       return sendJson(200, {
         success: true,
@@ -2050,6 +2135,198 @@ function handleApiRequest(req, res) {
         currencyDefaults: apps._currencyDefaults,
         message: `Default provider for ${currency} set to ${provider}.`
       });
+    });
+  }
+
+  // 28. GET & POST /api/gallery - Client Galleries Management
+  if (pathname === '/api/gallery' && method === 'GET') {
+    const galleries = loadGalleries(merchantId);
+    return sendJson(200, { success: true, galleries });
+  }
+
+  if (pathname === '/api/gallery' && method === 'POST') {
+    return readBody((err, data) => {
+      if (err || !data.galleries) return sendJson(400, { error: 'Invalid galleries data' });
+      saveGalleries(data.galleries, merchantId);
+      return sendJson(200, { success: true, galleries: data.galleries });
+    });
+  }
+
+  // 29. GET /api/dropbox/folders - Available Dropbox Folders
+  if (pathname === '/api/dropbox/folders' && method === 'GET') {
+    return sendJson(200, {
+      account: 'Studio Teni Portfolio Dropbox',
+      folders: [
+        { path: '/Studio Teni Client Deliveries/Amaka Wedding 2026', name: 'Amaka Wedding 2026', count: 12 },
+        { path: '/Studio Teni Client Deliveries/Horizon Capital Headshots', name: 'Horizon Capital Headshots', count: 8 },
+        { path: '/Studio Teni Client Deliveries/Commercial Shoots', name: 'Commercial Shoots', count: 15 }
+      ]
+    });
+  }
+
+  // 30. GET /api/dropbox/photos - Photos in Folder
+  if (pathname === '/api/dropbox/photos' && method === 'GET') {
+    const folder = parsedUrl.searchParams.get('folder') || '/Studio Teni Client Deliveries/Amaka Wedding 2026';
+    const photos = [
+      { id: 'dbx-01', filename: 'DSC_4901_BridePrep.jpg', size: '4.8 MB', title: 'Bride Prep Session', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-02', filename: 'DSC_4902_GroomDetails.jpg', size: '4.2 MB', title: 'Groom Cufflinks & Watch', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-03', filename: 'DSC_4905_BridalParty.jpg', size: '5.1 MB', title: 'Bridal Party Toast', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-04', filename: 'DSC_4908_CeremonyProcessional.jpg', size: '4.6 MB', title: 'Ceremony Processional', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-05', filename: 'DSC_4912_VowsCeremony.jpg', size: '5.4 MB', title: 'Vows & Rings', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-06', filename: 'DSC_4915_RingExchange.jpg', size: '4.9 MB', title: 'Ring Exchange', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-07', filename: 'DSC_4919_FirstKiss.jpg', size: '5.0 MB', title: 'First Kiss', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-08', filename: 'DSC_4922_ChurchExit.jpg', size: '4.7 MB', title: 'Church Exit & Confetti', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-09', filename: 'DSC_4926_BridalPortraits.jpg', size: '5.8 MB', title: 'Bridal Solo Portraits', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-10', filename: 'DSC_4930_CoupleSunset.jpg', size: '6.2 MB', title: 'Couple Sunset Golden Hour', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-11', filename: 'DSC_4934_ReceptionEntry.jpg', size: '4.5 MB', title: 'Grand Reception Entry', src: '/assets/placeholder-look.jpg' },
+      { id: 'dbx-12', filename: 'DSC_4940_FirstDance.jpg', size: '5.3 MB', title: 'First Dance', src: '/assets/placeholder-look.jpg' }
+    ];
+    return sendJson(200, {
+      account: 'Studio Teni Portfolio Dropbox',
+      folder,
+      totalCount: photos.length,
+      photos
+    });
+  }
+
+  // 31. POST /api/dropbox/import - Resilient Photo Import with Deduplication
+  if (pathname === '/api/dropbox/import' && method === 'POST') {
+    return readBody((err, data) => {
+      const galleryId = data.galleryId || 'gal-amaka';
+      const selectedIds = data.photoIds || [];
+      const simulateFailureCount = Number(data.simulateFailureCount) || 0;
+
+      const allPhotos = [
+        { id: 'dbx-01', filename: 'DSC_4901_BridePrep.jpg', size: '4.8 MB', title: 'Bride Prep Session', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-02', filename: 'DSC_4902_GroomDetails.jpg', size: '4.2 MB', title: 'Groom Cufflinks & Watch', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-03', filename: 'DSC_4905_BridalParty.jpg', size: '5.1 MB', title: 'Bridal Party Toast', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-04', filename: 'DSC_4908_CeremonyProcessional.jpg', size: '4.6 MB', title: 'Ceremony Processional', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-05', filename: 'DSC_4912_VowsCeremony.jpg', size: '5.4 MB', title: 'Vows & Rings', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-06', filename: 'DSC_4915_RingExchange.jpg', size: '4.9 MB', title: 'Ring Exchange', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-07', filename: 'DSC_4919_FirstKiss.jpg', size: '5.0 MB', title: 'First Kiss', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-08', filename: 'DSC_4922_ChurchExit.jpg', size: '4.7 MB', title: 'Church Exit & Confetti', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-09', filename: 'DSC_4926_BridalPortraits.jpg', size: '5.8 MB', title: 'Bridal Solo Portraits', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-10', filename: 'DSC_4930_CoupleSunset.jpg', size: '6.2 MB', title: 'Couple Sunset Golden Hour', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-11', filename: 'DSC_4934_ReceptionEntry.jpg', size: '4.5 MB', title: 'Grand Reception Entry', src: '/assets/placeholder-look.jpg' },
+        { id: 'dbx-12', filename: 'DSC_4940_FirstDance.jpg', size: '5.3 MB', title: 'First Dance', src: '/assets/placeholder-look.jpg' }
+      ];
+
+      const targetPhotos = allPhotos.filter(p => selectedIds.includes(p.id));
+      const galleries = loadGalleries(merchantId);
+      let gallery = galleries.find(g => g.id === galleryId);
+      if (!gallery) {
+        gallery = {
+          id: galleryId,
+          title: 'Amaka’s wedding gallery',
+          client: 'Amaka Obi',
+          isPrivate: true,
+          published: false,
+          createdAt: 'Just now',
+          coverPhoto: '/assets/placeholder-look.jpg',
+          photos: []
+        };
+        galleries.push(gallery);
+      }
+
+      let successPhotos = targetPhotos;
+      let failedPhotos = [];
+      if (simulateFailureCount > 0 && targetPhotos.length > simulateFailureCount) {
+        failedPhotos = targetPhotos.slice(-simulateFailureCount);
+        successPhotos = targetPhotos.slice(0, targetPhotos.length - simulateFailureCount);
+      }
+
+      // Deduplicate by filename
+      const existingFilenames = new Set(gallery.photos.map(p => p.filename));
+      let newlyAdded = 0;
+      for (const sp of successPhotos) {
+        if (!existingFilenames.has(sp.filename)) {
+          gallery.photos.push(sp);
+          existingFilenames.add(sp.filename);
+          newlyAdded++;
+        }
+      }
+
+      saveGalleries(galleries, merchantId);
+
+      // Update Dropbox app state
+      const { apps, txs } = loadState(merchantId);
+      if (apps.dropbox) {
+        apps.dropbox.status = 'connected';
+        apps.dropbox.lastSync = 'Just now';
+        if (!apps.dropbox.config) apps.dropbox.config = {};
+        apps.dropbox.config.lastOperation = `${successPhotos.length} photos added to ${gallery.title}`;
+        apps.dropbox.config.lastOperationTime = 'Just now';
+        if (!apps.dropbox.activityLog) apps.dropbox.activityLog = [];
+        apps.dropbox.activityLog.unshift({
+          timestamp: 'Just now',
+          event: 'Photos imported',
+          status: 'success',
+          details: `${successPhotos.length} photos added to ${gallery.title}`
+        });
+        saveState(apps, txs, merchantId);
+      }
+
+      return sendJson(200, {
+        success: true,
+        galleryId: gallery.id,
+        galleryTitle: gallery.title,
+        isPrivate: gallery.isPrivate,
+        importedCount: successPhotos.length,
+        failedCount: failedPhotos.length,
+        failedPhotos: failedPhotos.map(p => p.id),
+        totalPhotosInGallery: gallery.photos.length,
+        message: failedPhotos.length > 0
+          ? `${successPhotos.length} of ${targetPhotos.length} photos imported. ${failedPhotos.length} photos timed out during transfer.`
+          : `${successPhotos.length} photos added to ${gallery.title}.`
+      });
+    });
+  }
+
+  // 32. POST /api/whatsapp/enquiry - Inbound Customer Enquiry Simulation
+  if (pathname === '/api/whatsapp/enquiry' && method === 'POST') {
+    return readBody((err, data) => {
+      const enquiry = {
+        id: 'enq-' + Date.now().toString(36),
+        channel: 'whatsapp',
+        from: data.from || '+234 812 990 1234',
+        customerName: data.customerName || 'Tayo Adeyemi',
+        message: data.message || 'Good morning, do you have space for a fade and beard trim this afternoon around 3pm?',
+        receivedAt: 'Just now',
+        status: 'draft',
+        draftReply: 'Good morning Tayo! Yes, Dele has an opening at 3:30 PM today for your fade and beard trim. Would you like me to reserve that chair for you?',
+        aiContext: 'Dele has Chair 1 open at 3:30 PM (fade & beard trim: 45 min, ₦9,000).'
+      };
+      return sendJson(200, { success: true, enquiry });
+    });
+  }
+
+  // 33. POST /api/whatsapp/approve-reply - Approve & Send WhatsApp Draft
+  if (pathname === '/api/whatsapp/approve-reply' && method === 'POST') {
+    return readBody((err, data) => {
+      const { enquiryId, replyText } = data;
+      return sendJson(200, {
+        success: true,
+        enquiryId,
+        status: 'sent',
+        sentAt: 'Just now',
+        replyText: replyText || 'Good morning Tayo! Yes, Dele has an opening at 3:30 PM today for your fade and beard trim. Would you like me to reserve that chair for you?',
+        message: 'Reply sent via WhatsApp to customer.'
+      });
+    });
+  }
+
+  // 34. POST /api/apps/simulate-expire - Recovery test token expiration
+  if (pathname === '/api/apps/simulate-expire' && method === 'POST') {
+    return readBody((err, data) => {
+      const appId = data.appId || 'dropbox';
+      const { apps, txs } = loadState(merchantId);
+      if (apps[appId]) {
+        apps[appId].status = 'needs_attention';
+        apps[appId].health = 'Needs Attention · Token Expired';
+        apps[appId].failureReason = `${apps[appId].name} access token expired. Photos already in your gallery remain safe. Reconnect to resume.`;
+        saveState(apps, txs, merchantId);
+      }
+      return sendJson(200, { success: true, app: apps[appId] });
     });
   }
 

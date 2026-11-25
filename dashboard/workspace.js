@@ -38,6 +38,36 @@ const defaultWorkspace = {
     instagram: { connected: true, identity: '@studioteni_ng', name: 'Meta Graph API', lastSync: '5m ago' },
     tiktok: { connected: true, identity: '@studioteni', name: 'TikTok Messaging API', lastSync: '28m ago' }
   },
+  clientGalleries: [
+    {
+      id: 'gal-amaka',
+      title: 'Amaka’s wedding gallery',
+      clientName: 'Amaka Obi',
+      clientEmail: 'amaka.obi@gmail.com',
+      eventDate: '14 Feb 2026',
+      status: 'private_proof',
+      coverPhoto: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&fit=crop',
+      source: 'Dropbox',
+      sourceAccount: 'Studio Teni Portfolio Dropbox',
+      sourceFolder: '/Studio Teni Client Deliveries/Amaka Wedding 2026/',
+      photosCount: 0,
+      photos: []
+    },
+    {
+      id: 'gal-horizon',
+      title: 'Horizon Capital Executive Headshots',
+      clientName: 'Kemi Adeleke',
+      clientEmail: 'kemi.adeleke@horizoncap.ng',
+      eventDate: '20 Nov 2026',
+      status: 'published',
+      coverPhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&fit=crop',
+      source: 'Google Drive',
+      sourceAccount: 'studioteni@gmail.com',
+      sourceFolder: 'Corporate / Horizon Headshots',
+      photosCount: 18,
+      photos: []
+    }
+  ],
   servicesList: [
     { id: 'srv-1', name: 'Signature Haircut & Beard Trim', duration: 45, buffer: 15, price: 10000, deposit: 2000, staff: 'Dele (Chair 1)', status: 'active', desc: 'Consultation, precision cut, beard sculpting, hot towel finish.' },
     { id: 'srv-2', name: 'Executive Low Taper Fade', duration: 35, buffer: 10, price: 8000, deposit: 2000, staff: 'Dele (Chair 1)', status: 'active', desc: 'Low skin taper, razor edge lineup, hair conditioning oil.' },
@@ -171,6 +201,8 @@ try {
   workspace = { ...defaultWorkspace, ...loaded };
   if (loaded.servicesList) workspace.servicesList = loaded.servicesList;
   if (loaded.photos) workspace.photos = loaded.photos;
+  if (loaded.clientGalleries) workspace.clientGalleries = loaded.clientGalleries;
+  else workspace.clientGalleries = JSON.parse(JSON.stringify(defaultWorkspace.clientGalleries));
   if (loaded.bookingsList) workspace.bookingsList = loaded.bookingsList;
   if (loaded.conversations) workspace.conversations = loaded.conversations;
   if (loaded.salesProfile) workspace.salesProfile = loaded.salesProfile;
@@ -1579,6 +1611,8 @@ function archiveService(id) {
 // -------------------------------------------------------------
 // RENDER GALLERY (PORTFOLIO CONNECTED TO SALE)
 // -------------------------------------------------------------
+let gallerySubTab = 'deliveries'; // 'deliveries' or 'lookbook'
+
 function renderGallery() {
   const container = el('div');
   
@@ -1590,14 +1624,100 @@ function renderGallery() {
           <h1 class="page-hero-title">Gallery</h1>
         </div>
         <div class="page-hero-subtitle">
-          Portfolio looks connected directly to bookable services
+          ${gallerySubTab === 'deliveries' ? 'Client deliveries and private proofs delivered to clients' : 'Portfolio looks connected directly to bookable services'}
         </div>
       </div>
+      <div class="page-hero-actions">
+        ${gallerySubTab === 'deliveries' ? `
+          <button type="button" class="page-hero-btn-primary" onclick="openAddPhotosModal('gal-amaka')">
+            + Add photos
+          </button>
+        ` : ''}
+      </div>
+    </div>
+    <div class="gallery-subtabs" style="display:flex; gap:12px; margin-top:14px; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:8px;">
+      <button type="button" class="gallery-subtab-btn ${gallerySubTab === 'deliveries' ? 'active' : ''}" onclick="gallerySubTab='deliveries'; renderPage();" style="background:none; border:none; font-size:13px; font-weight:700; padding:6px 14px; cursor:pointer; color:${gallerySubTab === 'deliveries' ? '#161817' : '#666'}; border-bottom:${gallerySubTab === 'deliveries' ? '2px solid #161817' : 'none'};">
+        Client Deliveries (Private Proofs)
+      </button>
+      <button type="button" class="gallery-subtab-btn ${gallerySubTab === 'lookbook' ? 'active' : ''}" onclick="gallerySubTab='lookbook'; renderPage();" style="background:none; border:none; font-size:13px; font-weight:700; padding:6px 14px; cursor:pointer; color:${gallerySubTab === 'lookbook' ? '#161817' : '#666'}; border-bottom:${gallerySubTab === 'lookbook' ? '2px solid #161817' : 'none'};">
+        Portfolio Lookbook (Public)
+      </button>
     </div>
   `;
   container.append(heroBar);
 
-  // Upload header
+  if (gallerySubTab === 'deliveries') {
+    const deliveriesWrap = el('div', '', 'gallery-deliveries-container');
+    const galleries = workspace.clientGalleries || [];
+    
+    deliveriesWrap.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:20px; margin-top:16px;">
+        ${galleries.map(gal => {
+          const isPublished = gal.status === 'published';
+          const photos = gal.photos || [];
+          return `
+            <div class="gallery-delivery-card" id="gallery-card-${gal.id}" style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:14px;">
+                <div>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <h3 style="margin:0; font-size:16px; font-weight:700;">${escapeHtml(gal.title)}</h3>
+                    <span class="gallery-privacy-badge ${isPublished ? 'published' : 'proof'}" style="font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; background:${isPublished ? '#DCFCE7' : '#FEF3C7'}; color:${isPublished ? '#166534' : '#92400E'};">
+                      ${isPublished ? 'Published' : 'Private Proof'}
+                    </span>
+                  </div>
+                  <div style="font-size:12px; color:#555; margin-top:4px;">
+                    Client: <strong>${escapeHtml(gal.clientName)}</strong> (${escapeHtml(gal.clientEmail)}) · Event: ${escapeHtml(gal.eventDate)}
+                  </div>
+                  <div style="font-size:11.5px; color:#666; margin-top:2px;">
+                    Source: <strong>${escapeHtml(gal.source)}</strong> (<code>${escapeHtml(gal.sourceFolder)}</code>)
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <button type="button" class="btn-approve" style="font-size:12px; padding:6px 14px;" onclick="openAddPhotosModal('${gal.id}')">
+                    + Add photos
+                  </button>
+                  <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 14px;" onclick="openGalleryProofPreview('${gal.id}')">
+                    Preview gallery
+                  </button>
+                  <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="toggleGalleryPublish('${gal.id}')">
+                    ${isPublished ? 'Unpublish' : 'Publish proof'}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Gallery Photos Preview -->
+              ${photos.length === 0 ? `
+                <div style="padding:24px 16px; background:#FAF9F5; border:1px dashed #D1D5DB; border-radius:10px; text-align:center; color:#666; font-size:12.5px;">
+                  No photos imported to this gallery yet. Click <strong>+ Add photos</strong> above to choose photos from Dropbox, Google Drive or this device.
+                </div>
+              ` : `
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:600; color:#15803D;">✓ ${photos.length} photos staged in client gallery</span>
+                    <span style="font-size:11.5px; color:#777;">Private proof · Originals in ${escapeHtml(gal.source)} untouched</span>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px;">
+                    ${photos.map((p, idx) => `
+                      <div style="position:relative; border-radius:8px; overflow:hidden; border:1px solid #E5E7EB; background:#000;">
+                        <img src="${p.src}" alt="${p.filename}" style="width:100%; height:95px; object-fit:cover; display:block; opacity:0.9;">
+                        <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                          ${p.filename}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.append(deliveriesWrap);
+    return container;
+  }
+
+  // Otherwise, Portfolio Lookbook (public)
   const uploader = el('div', '', 'website-channel-card');
   uploader.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
@@ -1630,7 +1750,6 @@ function renderGallery() {
   `;
   container.append(uploader);
 
-  // File picker handler
   setTimeout(() => {
     const fileInput = byId('lookFileInput');
     if (fileInput) {
@@ -1668,7 +1787,6 @@ function renderGallery() {
     }
   }, 50);
 
-  // Gallery items
   const grid = el('div', '', 'gallery-grid');
   for (const photo of workspace.photos) {
     const card = el('div', '', 'gallery-card');
@@ -1711,6 +1829,911 @@ function deleteLook(lookId) {
   });
   notify('Look removed from gallery.');
   renderPage();
+}
+
+// =============================================================
+// CLIENT GALLERIES & DROPBOX WORKFLOW
+// =============================================================
+
+const dropboxAmakaPhotos = [
+  { id: 'dbx-01', filename: 'DSC_4901_BridePrep.jpg', size: '4.8 MB', title: 'Bride Prep Session', src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&fit=crop' },
+  { id: 'dbx-02', filename: 'DSC_4902_GroomDetails.jpg', size: '4.2 MB', title: 'Groom Cufflinks & Watch', src: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&fit=crop' },
+  { id: 'dbx-03', filename: 'DSC_4905_BridalParty.jpg', size: '5.1 MB', title: 'Bridal Party Toast', src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&fit=crop' },
+  { id: 'dbx-04', filename: 'DSC_4908_CeremonyProcessional.jpg', size: '4.6 MB', title: 'Ceremony Processional', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&fit=crop' },
+  { id: 'dbx-05', filename: 'DSC_4912_VowsCeremony.jpg', size: '5.4 MB', title: 'Vows & Rings', src: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&fit=crop' },
+  { id: 'dbx-06', filename: 'DSC_4915_RingExchange.jpg', size: '4.9 MB', title: 'Ring Exchange', src: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=800&fit=crop' },
+  { id: 'dbx-07', filename: 'DSC_4919_FirstKiss.jpg', size: '5.0 MB', title: 'First Kiss', src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=800&fit=crop' },
+  { id: 'dbx-08', filename: 'DSC_4922_ChurchExit.jpg', size: '4.7 MB', title: 'Church Exit & Confetti', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&fit=crop' },
+  { id: 'dbx-09', filename: 'DSC_4926_BridalPortraits.jpg', size: '5.8 MB', title: 'Bridal Solo Portraits', src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&fit=crop' },
+  { id: 'dbx-10', filename: 'DSC_4930_CoupleSunset.jpg', size: '6.2 MB', title: 'Couple Sunset Golden Hour', src: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=800&fit=crop' },
+  { id: 'dbx-11', filename: 'DSC_4934_ReceptionEntry.jpg', size: '4.5 MB', title: 'Grand Reception Entry', src: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=800&fit=crop' },
+  { id: 'dbx-12', filename: 'DSC_4940_FirstDance.jpg', size: '5.3 MB', title: 'First Dance', src: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&fit=crop' }
+];
+
+let currentActiveGalleryId = 'gal-amaka';
+
+function openAddPhotosModal(galleryId) {
+  currentActiveGalleryId = galleryId || 'gal-amaka';
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === currentActiveGalleryId) || { id: 'gal-amaka', title: 'Amaka’s wedding gallery' };
+  
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0; font-size:17px; font-weight:700;">+ Add photos to ${escapeHtml(gallery.title)}</h3>
+        <p style="margin:4px 0 0; font-size:12px; color:#666;">Choose a source to import photos into this client gallery.</p>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+      <!-- Source 1: From this device -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:40px; height:40px; border-radius:10px; background:#F3F4F6; display:flex; align-items:center; justify-content:center; font-size:20px;">
+            📷
+          </div>
+          <div>
+            <div style="font-weight:700; font-size:14px;">From this device</div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">Upload photos directly from your phone, tablet or computer.</div>
+          </div>
+        </div>
+        <input type="file" id="localGalleryFileInput" multiple accept="image/*" style="display:none;" onchange="handleLocalGalleryUpload('${gallery.id}', this.files)">
+        <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 14px;" onclick="byId('localGalleryFileInput').click()">
+          Choose files
+        </button>
+      </div>
+
+      <!-- Source 2: From Dropbox -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('dropbox', 40)}
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:14px;">From Dropbox</strong>
+              <span class="provider-badge connected" style="font-size:11px;">Connected · Studio Teni Portfolio Dropbox</span>
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">
+              Import copies from <code>/Studio Teni Client Deliveries/Amaka Wedding 2026/</code>. Originals remain safe.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-approve" style="font-size:12px; padding:6px 14px;" onclick="openDropboxImportFlow('${gallery.id}', 1)">
+          Choose from Dropbox
+        </button>
+      </div>
+
+      <!-- Source 3: From Google Drive -->
+      <div style="background:#FFFFFF; border:1px solid rgba(22,24,23,0.12); border-radius:12px; padding:14px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('google-drive', 40)}
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:14px;">From Google Drive</strong>
+              <span class="provider-badge awaiting" style="font-size:11px;">Connect account</span>
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:2px;">Import photoshoot assets from Google Workspace.</div>
+          </div>
+        </div>
+        <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 14px;" onclick="openAppDetailModal('google-drive')">
+          Connect Drive
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function handleLocalGalleryUpload(galleryId, files) {
+  if (!files || files.length === 0) return;
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === galleryId);
+  if (!gallery) return;
+  if (!gallery.photos) gallery.photos = [];
+  
+  let added = 0;
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    gallery.photos.push({
+      id: 'local-' + Date.now() + '-' + i,
+      filename: f.name,
+      size: (f.size / (1024 * 1024)).toFixed(1) + ' MB',
+      title: f.name.replace(/\.[^.]+$/, ''),
+      src: URL.createObjectURL(f)
+    });
+    added++;
+  }
+  save({ clientGalleries: workspace.clientGalleries });
+  notify(`${added} photos added to ${gallery.title}!`);
+  closeAppDetailModal();
+  renderPage();
+}
+
+function openDropboxImportFlow(galleryId, step = 1) {
+  currentActiveGalleryId = galleryId || 'gal-amaka';
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === currentActiveGalleryId) || { id: 'gal-amaka', title: 'Amaka’s wedding gallery', clientName: 'Amaka Obi' };
+  
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  if (step === 1) {
+    // Screen 1: Permissions & one-time import distinction
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('dropbox', 40)}
+          <div>
+            <h3 style="margin:0; font-size:17px; font-weight:700;">Add photos from Dropbox</h3>
+            <p style="margin:2px 0 0; font-size:12px; color:#666;">Choose photos from your Dropbox to add to this client gallery.</p>
+          </div>
+        </div>
+        <button onclick="closeAppDetailModal(); renderPage();" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+      </div>
+
+      <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:18px;">
+        <div style="font-size:12.5px; font-weight:700; color:#161817; margin-bottom:6px;">
+          One-time import vs continuing backup
+        </div>
+        <div style="font-size:12px; color:#4B5563; line-height:1.5;">
+          Vela imports high-resolution copies directly into <strong>${escapeHtml(gallery.title)}</strong>. Originals in your Dropbox remain completely untouched and safe. Disconnecting Dropbox in the future will not delete or alter your client gallery.
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn-secondary" onclick="closeAppDetailModal(); renderPage();">Cancel</button>
+        <button type="button" class="btn-approve" onclick="openDropboxImportFlow('${gallery.id}', 2)">Choose from Dropbox</button>
+      </div>
+    `;
+  } else if (step === 2) {
+    // Screen 2: Account and selection
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${renderAppLogo('dropbox', 36)}
+          <div>
+            <h3 style="margin:0; font-size:16px; font-weight:700;">Select photos from Dropbox</h3>
+            <p style="margin:2px 0 0; font-size:12px; color:#666;">Target gallery: <strong>${escapeHtml(gallery.title)}</strong></p>
+          </div>
+        </div>
+        <button onclick="closeAppDetailModal(); renderPage();" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+      </div>
+
+      <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:12px; color:#374151;">
+          Connected: <strong>Studio Teni Portfolio Dropbox</strong> · Folder: <code>/Studio Teni Client Deliveries/Amaka Wedding 2026/</code>
+        </div>
+        <a href="#" onclick="notify('Current folder: /Studio Teni Client Deliveries/Amaka Wedding 2026/'); return false;" style="font-size:11.5px; color:#2563EB; text-decoration:none; font-weight:600;">Change folder</a>
+      </div>
+
+      <!-- Photo Selection Grid -->
+      <div style="max-height:280px; overflow-y:auto; border:1px solid #E5E7EB; border-radius:8px; padding:10px; margin-bottom:12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px;" id="dropboxPhotosGrid">
+        ${dropboxAmakaPhotos.map(p => `
+          <label style="position:relative; display:block; border:1px solid #D1D5DB; border-radius:6px; overflow:hidden; cursor:pointer; background:#fff;">
+            <input type="checkbox" class="dropbox-photo-check" checked data-id="${p.id}" data-filename="${p.filename}" data-size="${p.size}" onchange="updateDropboxLiveCount()" style="position:absolute; top:6px; left:6px; z-index:2; width:16px; height:16px;">
+            <img src="${p.src}" alt="${p.title}" style="width:100%; height:85px; object-fit:cover; display:block;">
+            <div style="padding:4px 6px; font-size:10px; color:#333; line-height:1.2;">
+              <div style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.filename}</div>
+              <div style="color:#777;">${p.size}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+
+      <!-- Live Selection Counter & Safety Callout -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:#FAF9F5; padding:8px 12px; border-radius:6px; font-size:12px;">
+        <span id="dropboxSelectionCounter" style="font-weight:700; color:#161817;">12 photos selected (60.5 MB)</span>
+        <span style="color:#666; font-size:11.5px;">Vela imports copies. Originals in Dropbox remain untouched.</span>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn-secondary" onclick="closeAppDetailModal(); renderPage();">Cancel</button>
+        <button type="button" class="btn-approve" id="dropboxExecuteBtn" onclick="executeDropboxImport('${gallery.id}')">Import 12 photos</button>
+      </div>
+    `;
+  }
+
+  modal.style.display = 'flex';
+}
+
+function updateDropboxLiveCount() {
+  const checkboxes = document.querySelectorAll('.dropbox-photo-check');
+  let selected = 0;
+  checkboxes.forEach(cb => { if (cb.checked) selected++; });
+  const mb = (selected * 5.04).toFixed(1);
+  const counter = byId('dropboxSelectionCounter');
+  const btn = byId('dropboxExecuteBtn');
+  if (counter) counter.textContent = `${selected} photos selected (${mb} MB)`;
+  if (btn) {
+    btn.textContent = `Import ${selected} photos`;
+    btn.disabled = (selected === 0);
+  }
+}
+
+function executeDropboxImport(galleryId, isRetry = false) {
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === galleryId) || workspace.clientGalleries[0];
+  const card = byId('appDetailModalCard');
+  if (!card) return;
+
+  // Screen 3: Progress
+  card.innerHTML = `
+    <div style="padding:20px 0; text-align:center;">
+      <h3 style="margin:0 0 8px; font-size:17px; font-weight:700;">Importing photos from Dropbox...</h3>
+      <p style="margin:0 0 16px; font-size:12.5px; color:#666;">Transferring copies to <strong>${escapeHtml(gallery.title)}</strong></p>
+      
+      <div style="width:100%; background:#E5E7EB; border-radius:8px; height:12px; overflow:hidden; margin-bottom:12px;">
+        <div id="dropboxProgressBar" style="width:${window.__simulateDropboxFailure && !isRetry ? '83%' : '100%'}; background:#161817; height:100%; transition:width 0.4s ease;"></div>
+      </div>
+      <div id="dropboxProgressText" style="font-size:12px; color:#555;">
+        ${window.__simulateDropboxFailure && !isRetry ? '10 of 12 photos transferred...' : '12 of 12 photos transferred...'}
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    if (window.__simulateDropboxFailure && !isRetry) {
+      // Simulate partial failure on 2 photos: DSC_4934_ReceptionEntry.jpg and DSC_4940_FirstDance.jpg
+      const first10 = dropboxAmakaPhotos.slice(0, 10);
+      if (!gallery.photos) gallery.photos = [];
+      const existingFilenames = new Set(gallery.photos.map(p => p.filename));
+      for (const p of first10) {
+        if (!existingFilenames.has(p.filename)) {
+          gallery.photos.push(p);
+          existingFilenames.add(p.filename);
+        }
+      }
+      save({ clientGalleries: workspace.clientGalleries });
+
+      card.innerHTML = `
+        <div style="padding:10px 0;">
+          <h3 style="margin:0 0 8px; font-size:16px; font-weight:700;">Transfer Paused</h3>
+          
+          <div style="background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:12px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; line-height:1.4;">
+            <strong>⚠️ Temporary network timeout:</strong> 2 of 12 photos failed to transfer. 10 photos were imported successfully.
+            <div style="margin-top:6px; font-size:11.5px; color:#7F1D1D;">
+              Failed files: <code>DSC_4934_ReceptionEntry.jpg</code>, <code>DSC_4940_FirstDance.jpg</code>
+            </div>
+          </div>
+
+          <p style="font-size:12px; color:#555; margin-bottom:16px;">
+            You can retry the failed photos now. Vela will transfer only the missing files without duplicating the 10 photos already saved.
+          </p>
+
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-secondary" onclick="closeAppDetailModal(); renderPage();">Cancel</button>
+            <button type="button" class="btn-approve" style="background:#B45309;" onclick="executeDropboxImport('${gallery.id}', true)">
+              Retry failed photos
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Success (either direct or after retry)
+    if (!gallery.photos) gallery.photos = [];
+    const existingFilenames = new Set(gallery.photos.map(p => p.filename));
+    for (const p of dropboxAmakaPhotos) {
+      if (!existingFilenames.has(p.filename)) {
+        gallery.photos.push(p);
+        existingFilenames.add(p.filename);
+      }
+    }
+    save({ clientGalleries: workspace.clientGalleries });
+
+    // Also update Dropbox app state
+    const apps = getAppsState();
+    if (apps.dropbox) {
+      apps.dropbox.status = 'connected';
+      apps.dropbox.lastSync = 'Just now';
+      if (!apps.dropbox.activityLog) apps.dropbox.activityLog = [];
+      apps.dropbox.activityLog.unshift({
+        timestamp: 'Just now',
+        event: 'Photo import',
+        status: 'success',
+        details: `12 photos added to ${gallery.title}`
+      });
+      save({ connectedApps: apps });
+    }
+
+    // Screen 4: Completion
+    card.innerHTML = `
+      <div style="padding:16px 0; text-align:center;">
+        <div style="width:48px; height:48px; border-radius:50%; background:#DCFCE7; color:#166534; font-size:24px; font-weight:700; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+          ✓
+        </div>
+        <h3 style="margin:0 0 6px; font-size:18px; font-weight:700;">12 photos added to ${escapeHtml(gallery.title)}.</h3>
+        <p style="margin:0 0 20px; font-size:12.5px; color:#555; max-width:380px; margin-left:auto; margin-right:auto; line-height:1.4;">
+          All 12 high-resolution photos were imported into this client gallery. Originals in Dropbox remain safe and untouched.
+        </p>
+
+        <div style="display:flex; justify-content:center; gap:12px;">
+          <button type="button" class="btn-approve" style="font-size:13px; padding:8px 18px;" onclick="openGalleryProofPreview('${gallery.id}')">
+            Preview gallery
+          </button>
+          <button type="button" class="btn-secondary" style="font-size:13px; padding:8px 16px;" onclick="closeAppDetailModal(); renderPage();">
+            Done · Return to gallery
+          </button>
+        </div>
+      </div>
+    `;
+  }, 400);
+}
+
+function openGalleryProofPreview(galleryId) {
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === (galleryId || 'gal-amaka')) || workspace.clientGalleries[0];
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const isPublished = gallery.status === 'published';
+  const photos = (gallery.photos && gallery.photos.length > 0) ? gallery.photos : dropboxAmakaPhotos;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h3 style="margin:0; font-size:17px; font-weight:700;">Private Client Proof · ${escapeHtml(gallery.title)}</h3>
+          <span class="gallery-privacy-badge ${isPublished ? 'published' : 'proof'}" style="font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; background:${isPublished ? '#DCFCE7' : '#FEF3C7'}; color:${isPublished ? '#166534' : '#92400E'};">
+            ${isPublished ? 'Published' : 'Private Proof'}
+          </span>
+        </div>
+        <p style="margin:4px 0 0; font-size:12px; color:#555;">
+          Client: <strong>${escapeHtml(gallery.clientName)}</strong> (${escapeHtml(gallery.clientEmail)}) · Event: ${escapeHtml(gallery.eventDate)}
+        </p>
+        <p style="margin:2px 0 0; font-size:11.5px; color:#777;">
+          This proof is private to ${escapeHtml(gallery.clientName)}. Not indexed by search engines until you choose to publish.
+        </p>
+      </div>
+      <button onclick="closeAppDetailModal(); renderPage();" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <!-- Proof Photos Grid -->
+    <div style="max-height:360px; overflow-y:auto; border:1px solid #E5E7EB; border-radius:10px; padding:12px; margin-bottom:16px; display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px;">
+      ${photos.map((p, idx) => `
+        <div style="position:relative; border-radius:8px; overflow:hidden; border:1px solid #D1D5DB; background:#111;">
+          <img src="${p.src}" alt="${p.filename}" style="width:100%; height:110px; object-fit:cover; display:block; opacity:0.92;">
+          <div style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.6); color:#fff; font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:4px;">
+            PROOF
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.75); color:#fff; font-size:10px; padding:4px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            ${idx + 1}. ${p.filename} (${p.size})
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:12px; color:#666;">${photos.length} photos ready for client review</span>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-approve" onclick="toggleGalleryPublish('${gallery.id}'); openGalleryProofPreview('${gallery.id}');">
+          ${isPublished ? 'Unpublish proof' : 'Publish client gallery'}
+        </button>
+        <button type="button" class="btn-secondary" onclick="closeAppDetailModal(); renderPage();">
+          Close proof
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function toggleGalleryPublish(galleryId) {
+  const gallery = (workspace.clientGalleries || []).find(g => g.id === galleryId);
+  if (!gallery) return;
+  gallery.status = (gallery.status === 'published' ? 'private_proof' : 'published');
+  save({ clientGalleries: workspace.clientGalleries });
+  notify(`${gallery.title} is now ${gallery.status === 'published' ? 'published and viewable by client' : 'saved as a private proof'}.`);
+  renderPage();
+}
+
+function reconnectDropboxPrompt() {
+  const apps = getAppsState();
+  if (apps.dropbox) {
+    apps.dropbox.status = 'connected';
+    apps.dropbox.health = 'Connected · Access Token Active';
+    apps.dropbox.lastSync = 'Just now';
+    save({ connectedApps: apps });
+  }
+  notify('Dropbox reconnected successfully. All imported photos preserved.');
+  closeAppDetailModal();
+  renderPage();
+}
+
+// =============================================================
+// APP DESTINATION WORKFLOW MODALS
+// =============================================================
+
+function openWhatsAppInboxModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const conv = (workspace.conversations || []).find(c => c.channel === 'whatsapp') || {
+    sender: 'Chuka Nnamdi',
+    phone: '+234 809 112 3344',
+    message: '“Boss, can I come around 4 for haircut and beard? How much?”',
+    draftText: '“Haircut and beard is ₦10,000. Dele has a 4:15 PM opening today at Studio Teni (14 Bishop Oluwole St). Would you like me to hold this chair for you with a ₦2,000 deposit?”',
+    status: 'needs_approval'
+  };
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('whatsapp', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">WhatsApp Business · Booking Inbox</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Connected number: <strong>+234 803 123 4567</strong> · Meta Cloud API</p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#666;">Incoming Customer Enquiry</span>
+        <span class="provider-badge awaiting" style="font-size:11px;">Draft mode · Requires approval</span>
+      </div>
+      <div style="font-weight:700; font-size:14px; color:#161817;">${escapeHtml(conv.sender)} (${escapeHtml(conv.phone)})</div>
+      <div style="font-size:13px; color:#374151; margin-top:4px; font-style:italic;">${escapeHtml(conv.message)}</div>
+      <div style="font-size:11.5px; color:#059669; font-weight:600; margin-top:6px;">
+        ✓ Dele calendar verified: 4:15 PM slot open today at Studio Teni
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border:1px solid #D1D5DB; border-radius:10px; padding:14px; margin-bottom:16px;">
+      <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:6px;">Prepared Draft Reply</div>
+      <textarea id="whatsappDraftInput" style="width:100%; border:1px solid #ccc; border-radius:6px; padding:10px; font-size:12.5px; line-height:1.4; box-sizing:border-box;" rows="3">${escapeHtml(conv.draftText)}</textarea>
+      <div style="font-size:11px; color:#666; margin-top:6px;">
+        Customer does NOT receive any reply until you tap approve below.
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:11.5px; color:#666;">Status: <strong>${conv.status === 'approved' ? 'Replied' : 'Pending Approval'}</strong></span>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+        <button type="button" class="btn-approve" onclick="approveWhatsAppModalAction()">
+          ${conv.status === 'approved' ? 'Reply already sent ✓' : 'Approve & send WhatsApp'}
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function approveWhatsAppModalAction() {
+  fetch('/api/whatsapp/approve-reply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enquiryId: 'conv-1' })
+  }).then(r => r.json()).catch(() => ({}));
+
+  if (workspace.conversations && workspace.conversations[0]) {
+    workspace.conversations[0].status = 'approved';
+    workspace.conversations[0].actionLabel = 'Replied ✓';
+    save({ conversations: workspace.conversations });
+  }
+  notify('Approved! WhatsApp message delivered to customer.');
+  closeAppDetailModal();
+  renderPage();
+}
+
+function openInstagramInboxModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('instagram', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Instagram Direct · Inbox</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Connected handle: <strong>@studioteni_ng</strong> · Meta Graph API</p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#666;">Recent Direct Message</span>
+        <span class="provider-badge connected" style="font-size:11px;">Active</span>
+      </div>
+      <div style="font-weight:700; font-size:14px; color:#161817;">@kene_o (Kenechukwu)</div>
+      <div style="font-size:13px; color:#374151; margin-top:4px; font-style:italic;">
+        “Do you take walk-ins in Yaba or VI? I need a clean taper this evening.”
+      </div>
+      <div style="font-size:11.5px; color:#059669; font-weight:600; margin-top:6px;">
+        ✓ Context: Victoria Island studio open until 7:00 PM · Dele available at 5:30 PM
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+      <button type="button" class="btn-approve" onclick="notify('Replied to @kene_o with booking link.'); closeAppDetailModal();">
+        Approve &amp; send Instagram DM
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openTikTokBookingLinkModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const link = `${window.location.origin}/book?ref=tiktok_bio`;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('tiktok', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">TikTok for Business · Tracked Booking Link</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Connected account: <strong>@studioteni</strong></p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:6px;">Your Tracked Bio Booking Link</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" readonly value="${link}" style="flex:1; padding:8px 10px; font-size:12px; font-family:monospace; background:#fff; border:1px solid #ccc; border-radius:6px;">
+        <button type="button" class="btn-approve" onclick="navigator.clipboard.writeText('${link}'); notify('Link copied to clipboard!');">Copy link</button>
+      </div>
+      <div style="font-size:11.5px; color:#666; margin-top:6px;">
+        Paste this link into your TikTok profile bio to track views and haircut appointments originating from viral video transformations.
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openEmailInboxModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('zoho-mail', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Business Email · Zoho Mail</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Mailbox: <strong>hello@studioteni.ng</strong></p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+      <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666;">Receiving Health</div>
+        <div style="font-size:12px; color:#15803D; font-weight:700; margin-top:2px;">● Inbound Active (IMAP &amp; Webhook Healthy)</div>
+      </div>
+      <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666;">Sending Health</div>
+        <div style="font-size:12px; color:#15803D; font-weight:700; margin-top:2px;">● SPF, DKIM, DMARC Verified</div>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border:1px solid #D1D5DB; border-radius:10px; padding:12px; margin-bottom:14px;">
+      <div style="font-weight:700; font-size:13px; color:#161817;">Quotation #VQ-2026-112 · Horizon Capital</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">18 executive staff headshots on-location (₦350,000 total · ₦140,000 deposit)</div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+      <button type="button" class="btn-approve" onclick="closeAppDetailModal(); runWorkflow('review_quote');">
+        Draft quotation email
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openAvailabilityPreviewModal(stylist = 'dele') {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const isDele = stylist === 'dele';
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo(isDele ? 'google-calendar' : 'outlook-calendar', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Availability Preview · Calendar Sync</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">
+            ${isDele ? 'Dele (Chair 1) · Google Calendar' : 'Segun (Chair 2) · Microsoft Outlook'}
+          </p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <!-- Stylist Switcher Tabs -->
+    <div style="display:flex; gap:10px; margin-bottom:14px;">
+      <button type="button" class="btn-secondary" style="${isDele ? 'background:#161817; color:#fff;' : ''} font-size:12px; padding:6px 14px;" onclick="openAvailabilityPreviewModal('dele')">
+        Dele (Chair 1 · Google Calendar)
+      </button>
+      <button type="button" class="btn-secondary" style="${!isDele ? 'background:#161817; color:#fff;' : ''} font-size:12px; padding:6px 14px;" onclick="openAvailabilityPreviewModal('segun')">
+        Segun (Chair 2 · Outlook / Studio)
+      </button>
+    </div>
+
+    <!-- Slots Schedule -->
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>1:00 PM</strong> · Tobi Adebayo (Signature Haircut &amp; Beard Trim)
+        </div>
+        <span class="provider-badge connected" style="font-size:11px;">Booked in Vela</span>
+      </div>
+
+      ${isDele ? `
+        <div style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="color:#991B1B;">2:30 PM · BLOCKED</strong> · External Event: <em>"Doctor appointment (Busy)"</em>
+            <div style="font-size:11px; color:#7F1D1D; margin-top:2px;">
+              Dele's Google Calendar sync read this busy period and removed 2:30 PM from customer booking slots.
+            </div>
+          </div>
+          <span class="provider-badge attention" style="font-size:11px;">Blocked by Google Calendar</span>
+        </div>
+      ` : `
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong style="color:#166534;">2:30 PM · OPEN</strong> · Segun (Chair 2)
+            <div style="font-size:11px; color:#14532D; margin-top:2px;">
+              No external conflicts on Segun's schedule. Slot remains bookable by salon clients.
+            </div>
+          </div>
+          <span class="provider-badge connected" style="font-size:11px;">Bookable</span>
+        </div>
+      `}
+
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong style="color:#166534;">4:15 PM · OPEN</strong> · Free for customer booking
+        </div>
+        <span class="provider-badge connected" style="font-size:11px;">Bookable</span>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close preview</button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openCheckoutPreviewModal(providerId = 'paystack') {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const apps = getAppsState();
+  const isPaystackDefault = Boolean(apps.paystack?.isDefault);
+  const activeDefaultName = isPaystackDefault ? 'Paystack' : 'Flutterwave';
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo(isPaystackDefault ? 'paystack' : 'flutterwave', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Booking Checkout Preview</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Customer deposit checkout demonstration</p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:4px;">Booking Details</div>
+      <div style="font-size:14px; font-weight:700;">Signature Haircut &amp; Beard Trim · ₦10,000</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Staff: Dele (Chair 1) · Time: Today at 4:15 PM</div>
+      <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #D1D5DB; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:13px;">20% Deposit Due Now:</span>
+        <span style="font-weight:700; font-size:16px; color:#15803D;">₦2,000</span>
+      </div>
+    </div>
+
+    <div style="background:#FFFFFF; border:1px solid #D1D5DB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="width:8px; height:8px; border-radius:50%; background:#15803D;"></span>
+        <strong style="font-size:13px;">Collecting deposit via ${activeDefaultName} (Active NGN Default Gateway)</strong>
+      </div>
+      <div style="font-size:12px; color:#4B5563; line-height:1.4;">
+        ${isPaystackDefault
+          ? 'Paystack is configured as your active NGN default gateway under Payment Settings. The client is presented with Paystack Naira card, GTBank / Zenith bank transfer, and USSD options.'
+          : 'Flutterwave is configured as your active NGN default gateway under Payment Settings. The client is presented with Flutterwave multi-channel checkout.'}
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="closeAppDetailModal(); openPaymentGatewaySelector();">
+        Change default gateway
+      </button>
+      <button type="button" class="btn-approve" onclick="notify('Test payment verified! Deposit credited.'); closeAppDetailModal();">
+        Simulate successful deposit
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openZohoBooksPreviewModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('zoho-books', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Zoho Books · Invoice Preview</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Organization: <strong>Studio Teni Services Ltd (#8029193)</strong></p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-weight:700; font-size:14px; color:#161817;">Invoice #ZB-INV-2026-092</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Generated from accepted Quotation #VQ-2026-112</div>
+      <div style="margin-top:10px; font-size:12px; line-height:1.5;">
+        • Client: Horizon Capital (Folake Phillips)<br>
+        • Total Amount: ₦350,000<br>
+        • Verified Deposit Credited: ₦140,000 (via Paystack)<br>
+        • Balance Due on Completion: ₦210,000
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+      <button type="button" class="btn-approve" onclick="notify('Invoice synced to Zoho Books ledger!'); closeAppDetailModal();">
+        Confirm sync
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openZohoCrmLeadModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('zoho-crm', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Zoho CRM · Corporate Lead Review</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Category: <strong>Sales &amp; CRM</strong> · Studio Teni Services Ltd</p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#666; margin-bottom:4px;">Qualified Lead</div>
+      <div style="font-weight:700; font-size:14px; color:#161817;">Kemi Adeleke (HR · Horizon Capital)</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Email: kemi.adeleke@horizoncap.ng · Deal value: ₦350,000</div>
+      
+      <div style="margin-top:10px; padding:8px 10px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; font-size:11.5px; color:#166534;">
+        ✓ <strong>Deduplication check passed:</strong> Match found for "Horizon Capital" (100% confidence). Appended corporate headshots deal without creating duplicate contact record.
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+      <button type="button" class="btn-approve" onclick="notify('Lead deal stage advanced to Proposal Sent.'); closeAppDetailModal();">
+        Advance deal stage
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openMetaAdsDraftModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('meta-ads', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Meta Ads · Campaign Draft</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Ad Account: <strong>Studio Teni (act_2819201)</strong></p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-weight:700; font-size:13.5px; color:#161817;">Campaign: Fill Empty Weekday Studio Chairs</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Target: Victoria Island, Lekki &amp; Ikoyi (5km radius)</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Objective: Direct appointments via WhatsApp &amp; booking link</div>
+      <div style="font-size:12px; color:#555; margin-top:2px;">Daily budget: ₦5,000 / day · 7-day duration (Total cap: ₦35,000)</div>
+    </div>
+
+    <div style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:8px; padding:10px 12px; font-size:12px; color:#92400E; margin-bottom:14px;">
+      <strong>⚠️ Explicit spend approval required:</strong> This is a draft campaign. No money will be deducted from your ad account until you review and confirm publishing.
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+      <button type="button" class="btn-approve" onclick="notify('Campaign draft saved. Awaiting scheduled start.'); closeAppDetailModal();">
+        Save campaign draft
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+}
+
+function openAppleCalendarModal() {
+  const modal = byId('appDetailModal');
+  const card = byId('appDetailModalCard');
+  if (!modal || !card) return;
+
+  const webcalUrl = `webcal://${window.location.host}/api/calendar/subscribe?token=demo_token_8821`;
+
+  card.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(22,24,23,0.08); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        ${renderAppLogo('apple-calendar', 36)}
+        <div>
+          <h3 style="margin:0; font-size:16px; font-weight:700;">Apple Calendar · Subscription Feed</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#666;">Sync bookings to iPhone, iPad and Mac</p>
+        </div>
+      </div>
+      <button onclick="closeAppDetailModal()" style="background:none; border:none; cursor:pointer; font-size:18px; color:#666;">✕</button>
+    </div>
+
+    <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-size:12px; font-weight:700; color:#161817; margin-bottom:6px;">Your 1-Way Webcal Feed URL</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" readonly value="${webcalUrl}" style="flex:1; padding:8px 10px; font-size:11.5px; font-family:monospace; background:#fff; border:1px solid #ccc; border-radius:6px;">
+        <button type="button" class="btn-approve" onclick="navigator.clipboard.writeText('${webcalUrl}'); notify('Subscription URL copied!');">Copy</button>
+      </div>
+      <div style="font-size:11.5px; color:#666; margin-top:8px; line-height:1.4;">
+        On your iPhone: Go to <strong>Settings → Calendar → Accounts → Add Account → Other → Add Subscribed Calendar</strong> and paste this URL.
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end;">
+      <button type="button" class="btn-secondary" onclick="closeAppDetailModal()">Close</button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
 }
 
 // -------------------------------------------------------------
@@ -2009,6 +3032,8 @@ function renderClients() {
 // -------------------------------------------------------------
 function renderMoney() {
   const container = el('div');
+  const apps = (typeof workspace !== 'undefined' && workspace.connectedApps) ? workspace.connectedApps : getAppsState();
+  const defaultProvider = apps.flutterwave?.isDefault ? 'Flutterwave' : 'Paystack';
 
   const heroBar = el('div', '', 'page-hero-header');
   heroBar.innerHTML = `
@@ -2022,6 +3047,10 @@ function renderMoney() {
         </div>
       </div>
       <div class="page-hero-actions">
+        <span style="font-size:12px; color:#555; background:#FAF9F5; border:1px solid #E5E7EB; border-radius:6px; padding:6px 10px; display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:8px; height:8px; border-radius:50%; background:#15803d;"></span>
+          Default NGN Gateway: <strong>${defaultProvider}</strong>
+        </span>
         <a href="#apps?category=payments" class="page-hero-btn-secondary" title="Configure Paystack, Flutterwave or Stripe in Connected Apps">Payment setup</a>
         <a href="#inbox" class="page-hero-btn-secondary">Review quote enquiries</a>
       </div>
@@ -3347,7 +4376,7 @@ window.PROVIDER_REGISTRY = {
   'zoho-crm': {
     id: 'zoho-crm',
     name: 'Zoho CRM',
-    category: 'accounting',
+    category: 'sales',
     setupType: 'oauth',
     requiresWebhook: false,
     assetPath: '/assets/integrations/zoho-crm.svg',
@@ -3396,12 +4425,13 @@ window.PROVIDER_REGISTRY = {
     permittedAsset: 'Official Dropbox Glyph',
     integrationMethod: 'Dropbox OAuth 2.0 (Dropbox API v2)',
     supportedCapabilities: [
-      'Choose photoshoot job folders and attach deliverables',
-      'Generate expiring client delivery download links',
-      'Preview client and file access before sharing'
+      'Import copies into client galleries',
+      'Originals in Dropbox remain untouched',
+      'Expiring client delivery download links',
+      'One-time import without altering Dropbox files'
     ],
-    outcomeExplanation: 'Vela can attach deliverables from Dropbox job folders and prepare secure client download links with your approval.',
-    availableFinishes: ['Choose job folder', 'Preview client delivery link'],
+    outcomeExplanation: 'Choose photos from your Dropbox to add to client galleries. Vela imports high-resolution copies while originals remain untouched.',
+    availableFinishes: ['Choose from Dropbox', 'Manage connected folder'],
     supportsMultipleAccounts: false,
     developerRequirements: 'Dropbox App Console, files.content.read and sharing.write scopes'
   },
@@ -3459,18 +4489,22 @@ const defaultAppsCatalogue = {
   flutterwave: {
     ...window.PROVIDER_REGISTRY.flutterwave,
     headline: 'Collect deposits and international payments in NGN, USD and GBP.',
-    status: 'disconnected',
+    status: 'continue_setup',
+    connectionState: 'key_verified_awaiting_webhook',
     isDefault: false,
     mode: 'test',
-    accountIdentity: 'Studio Teni Global (flw_live_...9182)',
+    accountIdentity: 'Studio Teni Global (flw_test_...8821)',
     settlementAccount: 'Zenith Bank · ...8821',
     supportedCurrencies: ['NGN', 'USD', 'GBP', 'EUR'],
     permissions: {
       readTransactions: true,
       createCheckout: true
     },
-    lastSync: 'Never',
-    health: 'Not connected',
+    waitingForEvent: true,
+    unfinishedStep: 3,
+    webhookStatus: 'waiting_for_event',
+    lastSync: 'Awaiting first webhook',
+    health: 'Key verified · Awaiting webhook',
     config: {
       defaultCurrency: 'NGN',
       enableCard: true,
@@ -3692,16 +4726,25 @@ const defaultAppsCatalogue = {
   },
   dropbox: {
     ...window.PROVIDER_REGISTRY.dropbox,
-    headline: 'Store raw camera shoots and finished client albums securely.',
-    status: 'disconnected',
-    accountIdentity: 'Unconnected',
+    headline: 'Select photos from Dropbox to deliver private client galleries.',
+    status: 'connected',
+    isDefault: false,
+    mode: 'live',
+    accountIdentity: 'Studio Teni Portfolio Dropbox',
     permissions: {
-      createUploads: true
+      createUploads: true,
+      importToGalleries: true
     },
-    lastSync: 'Never',
-    health: 'Not connected',
-    config: {},
-    activityLog: []
+    lastSync: 'Just now',
+    health: 'Connected · Access Token Active',
+    config: {
+      accountName: 'Studio Teni Portfolio Dropbox',
+      selectedFolder: '/Studio Teni Client Deliveries/Amaka Wedding 2026/',
+      syncType: 'one_time_import'
+    },
+    activityLog: [
+      { timestamp: 'Just now', event: 'Connection active', status: 'success', details: 'Access to /Studio Teni Client Deliveries/ verified' }
+    ]
   },
   'meta-ads': {
     ...window.PROVIDER_REGISTRY['meta-ads'],
@@ -3727,6 +4770,14 @@ function getAppsState() {
     workspace.connectedApps = JSON.parse(JSON.stringify(defaultAppsCatalogue));
     save({ connectedApps: workspace.connectedApps });
   }
+  for (const k of Object.keys(defaultAppsCatalogue)) {
+    if (!workspace.connectedApps[k]) {
+      workspace.connectedApps[k] = JSON.parse(JSON.stringify(defaultAppsCatalogue[k]));
+    }
+  }
+  if (workspace.connectedApps['zoho-crm']) {
+    workspace.connectedApps['zoho-crm'].category = 'sales';
+  }
   return workspace.connectedApps;
 }
 
@@ -3741,34 +4792,112 @@ function renderAppLogo(appId, size = 40) {
 }
 
 function getAppSummary(app) {
+  if (app.id === 'dropbox') {
+    return 'Studio Teni Portfolio · Add photos to gallery';
+  }
   if (app.id === 'paystack') {
-    return `Studio Teni · ${app.isDefault ? 'Default for NGN deposits' : 'Active for NGN deposits'}`;
-  }
-  if (app.id === 'whatsapp') {
-    return `Studio Teni · ${app.config.replyMode === 'auto' ? 'Auto-reply routine enquiries' : 'Replies require approval'}`;
-  }
-  if (app.id === 'google-calendar') {
-    return `Dele · Chair 1 schedule`;
-  }
-  if (app.id === 'zoho-books') {
-    return `Studio Teni Services Ltd · Invoice sync active`;
-  }
-  if (app.id === 'zoho-mail') {
-    return `hello@studioteni.ng · Inbound & Outbound healthy`;
-  }
-  if (app.id === 'instagram') {
-    return `@studioteni_ng · DMs & story inquiries`;
-  }
-  if (app.id === 'tiktok') {
-    return `@studioteni · Viral video inquiries`;
+    return app.isDefault ? 'Live NGN Default · Naira card & bank checkout' : 'Live NGN Gateway · Naira deposits';
   }
   if (app.id === 'flutterwave') {
-    return `Studio Teni Global · USD/GBP/NGN international`;
+    if (app.status === 'continue_setup' || app.connectionState === 'key_verified_awaiting_webhook') {
+      return 'Awaiting payment confirmation · Multi-currency';
+    }
+    return app.isDefault ? 'Live NGN Default · Multi-currency USD/GBP/EUR' : 'Multi-currency gateway · USD/GBP/EUR';
   }
   if (app.id === 'stripe') {
-    return `Studio Teni Ltd · Global cards & Apple Pay`;
+    return 'Studio Teni Ltd · Global cards & Apple Pay';
+  }
+  if (app.id === 'whatsapp') {
+    return app.config?.replyMode === 'auto' ? 'Studio number ending 4567 · Auto-replies routine enquiries' : 'Studio number ending 4567 · Draft replies require approval';
+  }
+  if (app.id === 'google-calendar') {
+    return 'Dele’s chair · View availability';
+  }
+  if (app.id === 'outlook-calendar') {
+    return 'Segun (Chair 2) · Microsoft 365 schedule';
+  }
+  if (app.id === 'apple-calendar') {
+    return 'Personal devices · 1-way webcal feed';
+  }
+  if (app.id === 'zoho-books') {
+    return 'Studio Teni Services Ltd · Quote to invoice';
+  }
+  if (app.id === 'zoho-crm') {
+    return 'Corporate clients · Deduplicated leads';
+  }
+  if (app.id === 'zoho-mail') {
+    return 'hello@studioteni.ng · Inbound & Outbound healthy';
+  }
+  if (app.id === 'instagram') {
+    return '@studioteni_ng · DMs & story replies';
+  }
+  if (app.id === 'tiktok') {
+    return '@studioteni · Tracked link & video comments';
+  }
+  if (app.id === 'google-drive') {
+    return 'Client deliverables · Add photos';
+  }
+  if (app.id === 'meta-ads') {
+    return 'VI Studio Chairs · Spend approval required';
   }
   return app.accountIdentity ? `${app.accountIdentity} · Active` : app.headline;
+}
+
+function getAppPrimaryAction(app) {
+  const isContinue = app.status === 'continue_setup' || app.connectionState === 'key_verified_awaiting_webhook';
+  const isAttention = app.status === 'needs_attention';
+  if (isAttention) {
+    return { label: 'Reconnect', onclick: `openAppDetailModal('${app.id}')`, style: 'background:#DC2626;' };
+  }
+  if (isContinue) {
+    return { label: 'Finish setup', onclick: `openAppDetailModal('${app.id}')`, style: 'background:#B45309;' };
+  }
+  if (app.id === 'dropbox') {
+    return { label: 'Add photos', onclick: `openDropboxImportFlow('gal-amaka', 1)` };
+  }
+  if (app.id === 'whatsapp') {
+    return { label: 'Open inbox', onclick: `openWhatsAppInboxModal()` };
+  }
+  if (app.id === 'google-calendar') {
+    return { label: 'View availability', onclick: `openAvailabilityPreviewModal('dele')` };
+  }
+  if (app.id === 'outlook-calendar') {
+    return { label: 'View availability', onclick: `openAvailabilityPreviewModal('segun')` };
+  }
+  if (app.id === 'apple-calendar') {
+    return { label: 'View subscription', onclick: `openAppleCalendarModal()` };
+  }
+  if (app.id === 'paystack') {
+    return { label: 'Preview checkout', onclick: `openCheckoutPreviewModal('paystack')` };
+  }
+  if (app.id === 'flutterwave') {
+    return { label: 'Preview checkout', onclick: `openCheckoutPreviewModal('flutterwave')` };
+  }
+  if (app.id === 'stripe') {
+    return { label: 'Preview checkout', onclick: `openCheckoutPreviewModal('stripe')` };
+  }
+  if (app.id === 'zoho-mail') {
+    return { label: 'Open inbox', onclick: `openEmailInboxModal()` };
+  }
+  if (app.id === 'instagram') {
+    return { label: 'Open inbox', onclick: `openInstagramInboxModal()` };
+  }
+  if (app.id === 'tiktok') {
+    return { label: 'Create link', onclick: `openTikTokBookingLinkModal()` };
+  }
+  if (app.id === 'zoho-books') {
+    return { label: 'Preview invoice', onclick: `openZohoBooksPreviewModal()` };
+  }
+  if (app.id === 'zoho-crm') {
+    return { label: 'Review first lead', onclick: `openZohoCrmLeadModal()` };
+  }
+  if (app.id === 'google-drive') {
+    return { label: 'Add photos', onclick: `openAddPhotosModal('gal-horizon')` };
+  }
+  if (app.id === 'meta-ads') {
+    return { label: 'Create campaign', onclick: `openMetaAdsDraftModal()` };
+  }
+  return { label: 'Open tool', onclick: `openAppDetailModal('${app.id}')` };
 }
 
 // Render Connected Apps Screen (Simplified Two-Section Layout)
@@ -3812,13 +4941,13 @@ function renderConnectedApps(params) {
   const attentionApps = allApps.filter(a => a.status === 'needs_attention');
 
   // =========================================================
-  // SECTION 1: CONNECTED
+  // SECTION 1: YOUR APPS
   // =========================================================
   const connectedSection = el('div', '', 'apps-section-container');
   connectedSection.innerHTML = `
     <div class="apps-summary-card">
       <div class="apps-summary-header">
-        <div class="apps-summary-title">Connected · ${connectedApps.length + attentionApps.length + continueApps.length} active</div>
+        <div class="apps-summary-title">Your apps · ${connectedApps.length + attentionApps.length + continueApps.length} active</div>
       </div>
 
       ${attentionApps.length > 0 ? `
@@ -3850,9 +4979,7 @@ function renderConnectedApps(params) {
           let statusText = isDemo ? 'Demo' : (isContinue ? 'Key verified · Awaiting webhook' : (isAttention ? 'Needs Attention' : 'Connected'));
           let statusDotColor = isDemo ? '#6B7280' : (isContinue ? '#B45309' : (isAttention ? '#DC2626' : '#15803D'));
 
-          let actionBtnText = isContinue ? 'Continue setup' : (isAttention ? 'Reconnect' : 'Manage');
-          let actionBtnClass = isContinue ? 'btn-approve' : 'btn-secondary';
-          let actionBtnStyle = isContinue ? 'font-size:12px; padding:5px 14px; background:#B45309;' : 'font-size:12px; padding:5px 14px;';
+          const primaryAction = getAppPrimaryAction(app);
 
           return `
             <div class="app-compact-row" id="connected-row-${app.id}">
@@ -3863,16 +4990,19 @@ function renderConnectedApps(params) {
                     <span class="app-compact-name">${escapeHtml(app.name)}</span>
                     ${badgeHtml}
                   </div>
-                  <div class="app-compact-desc">${escapeHtml(isContinue ? 'Payment notifications awaiting verification' : getAppSummary(app))}</div>
+                  <div class="app-compact-desc">${escapeHtml(getAppSummary(app))}</div>
                 </div>
               </div>
-              <div class="app-compact-right">
-                <span class="app-status-indicator" style="color:${statusDotColor};">
+              <div class="app-compact-right" style="display:flex; align-items:center; gap:8px;">
+                <span class="app-status-indicator" style="color:${statusDotColor}; margin-right:4px;">
                   <span class="app-status-dot" style="background:${statusDotColor};"></span>
                   ${escapeHtml(statusText)}
                 </span>
-                <button type="button" class="${actionBtnClass}" style="${actionBtnStyle}" onclick="openAppDetailModal('${app.id}')">
-                  ${actionBtnText}
+                <button type="button" class="btn-approve" style="font-size:12px; padding:5px 14px; ${primaryAction.style || ''}" onclick="${primaryAction.onclick}">
+                  ${escapeHtml(primaryAction.label)}
+                </button>
+                <button type="button" class="btn-secondary" style="font-size:12px; padding:5px 12px;" onclick="openAppDetailModal('${app.id}')">
+                  Manage
                 </button>
               </div>
             </div>
@@ -3914,8 +5044,8 @@ function renderConnectedApps(params) {
   discoverSection.innerHTML = `
     <div class="apps-section-title-row">
       <div>
-        <div class="apps-section-title">Discover apps</div>
-        <div class="apps-section-subtitle">Available integrations you can add to Vela.</div>
+        <div class="apps-section-title">Add an app</div>
+        <div class="apps-section-subtitle">Available tools and integrations you can connect to Vela.</div>
       </div>
     </div>
 
@@ -3930,6 +5060,7 @@ function renderConnectedApps(params) {
         <button class="apps-category-tab ${currentAppsCategory === 'payments' ? 'active' : ''}" onclick="setAppsCategory('payments')">Payments</button>
         <button class="apps-category-tab ${currentAppsCategory === 'messaging' ? 'active' : ''}" onclick="setAppsCategory('messaging')">Messaging</button>
         <button class="apps-category-tab ${currentAppsCategory === 'calendar' ? 'active' : ''}" onclick="setAppsCategory('calendar')">Calendar</button>
+        <button class="apps-category-tab ${currentAppsCategory === 'sales' ? 'active' : ''}" onclick="setAppsCategory('sales')">Sales & CRM</button>
         <button class="apps-category-tab ${currentAppsCategory === 'accounting' ? 'active' : ''}" onclick="setAppsCategory('accounting')">Accounting</button>
         <button class="apps-category-tab ${currentAppsCategory === 'files' ? 'active' : ''}" onclick="setAppsCategory('files')">Files</button>
         <button class="apps-category-tab ${currentAppsCategory === 'marketing' ? 'active' : ''}" onclick="setAppsCategory('marketing')">Marketing</button>
@@ -5445,7 +6576,8 @@ function renderManageModal(app) {
   // Specific failure messages
   let specificFailure = null;
   if (isNeedsAttention) {
-    if (isCalendar) specificFailure = "Vela can read Dele’s availability. Permission to add appointments has expired. Reauthorise connection to resume updates.";
+    if (app.id === 'dropbox') specificFailure = "Dropbox access expired. Your imported photos in client galleries remain safe. Reconnect account to resume importing new photos.";
+    else if (isCalendar) specificFailure = "Vela can read Dele’s availability. Permission to add appointments has expired. Reauthorise connection to resume updates.";
     else if (isBooks) specificFailure = "The deposit was recorded in Vela. Zoho Books sync failed. Retry invoice sync.";
     else if (isMail) specificFailure = "Your quotation is saved. Reconnect Zoho Mail to send it from Studio Teni.";
     else if (isPayment) specificFailure = "This checkout was created with Paystack. Its payment will still be reconciled there even though Flutterwave is now your default.";
@@ -5471,8 +6603,15 @@ function renderManageModal(app) {
     </div>
 
     ${specificFailure ? `
-      <div class="app-failure-callout">
+      <div class="app-failure-callout" style="background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; padding:12px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px;">
         <strong>⚠️ Attention Required:</strong> ${escapeHtml(specificFailure)}
+        ${app.id === 'dropbox' ? `
+          <div style="margin-top:8px;">
+            <button type="button" class="btn-approve" style="font-size:11.5px; padding:5px 14px; background:#DC2626;" onclick="reconnectDropboxPrompt()">
+              Reconnect Dropbox
+            </button>
+          </div>
+        ` : ''}
       </div>
     ` : ''}
 
@@ -5483,8 +6622,9 @@ function renderManageModal(app) {
         <div class="manage-q-content">
           <div><strong>${escapeHtml(app.accountIdentity || 'Studio Teni Enterprise Account')}</strong></div>
           <div style="font-size:12px; color:#666; margin-top:2px;">
-            Mode: <strong>${(app.mode || 'live').toUpperCase()}</strong>
-            ${app.settlementAccount ? ` · Payouts: <strong>${escapeHtml(app.settlementAccount)}</strong>` : ''}
+            ${app.id === 'dropbox'
+              ? 'Connected folder: <code>/Studio Teni Client Deliveries/Amaka Wedding 2026/</code><br>Mode: <strong>LIVE</strong> · Sync type: <strong>One-time import (Originals untouched)</strong>'
+              : `Mode: <strong>${(app.mode || 'live').toUpperCase()}</strong>${app.settlementAccount ? ` · Payouts: <strong>${escapeHtml(app.settlementAccount)}</strong>` : ''}`}
           </div>
         </div>
       </div>
@@ -5498,6 +6638,12 @@ function renderManageModal(app) {
               <span class="manage-capability-tag">✓ ${escapeHtml(cap)}</span>
             `).join('')}
           </div>
+
+          ${app.id === 'dropbox' ? `
+            <div style="font-size:11.5px; color:#555; line-height:1.4;">
+              Imports high-resolution copies into client galleries. Originals in Dropbox remain untouched. Clarification: Disconnecting Dropbox does not delete imported photos.
+            </div>
+          ` : ''}
 
           ${isCalendar ? `
             <div class="app-permission-row" style="margin-top:6px;">
@@ -5531,57 +6677,45 @@ function renderManageModal(app) {
         </div>
       </div>
 
-      <!-- Question 3: When did it last work? -->
+      <!-- Question 3: Where do I go to use it right now? -->
       <div class="manage-q-block">
-        <div class="manage-q-heading">3. When did it last work?</div>
+        <div class="manage-q-heading">3. Where do I go to use it right now?</div>
         <div class="manage-q-content">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span>Last successful sync: <strong>${escapeHtml(app.lastSync || 'Just now')}</strong></span>
-            <span style="font-size:11px; color:#15803d; font-weight:600;">${escapeHtml(app.health || 'Active')}</span>
-          </div>
-
-          ${isMail ? `
-            <div class="dual-health-grid" style="margin-bottom:8px;">
-              <div class="dual-health-card">
-                <div class="dual-health-title">Incoming Mail</div>
-                <div class="dual-health-status" style="color:#15803d;">● IMAP &amp; Webhook healthy</div>
-              </div>
-              <div class="dual-health-card">
-                <div class="dual-health-title">Outgoing Replies</div>
-                <div class="dual-health-status" style="color:#15803d;">● SPF, DKIM, DMARC passed</div>
-              </div>
+          ${app.id === 'dropbox' ? `
+            <div style="font-size:12px; color:#4B5563; margin-bottom:8px;">
+              Choose photos from your Dropbox to add to client galleries:
             </div>
-          ` : ''}
-
-          ${isTikTok ? `
-            <div style="background:#FAF9F5; border:1px solid #E5E7EB; border-radius:6px; padding:8px 10px; margin-bottom:8px; font-size:11.5px;">
-              <div style="color:#B45309; margin-bottom:3px;">⚠️ Direct messages: Pending review. Automated outgoing DMs paused.</div>
-              <div style="color:#15803d; margin-bottom:3px;">✓ Video comments: Active</div>
-              <div style="color:#15803d;">✓ Portfolio lookbooks: Active</div>
+            <button type="button" class="btn-approve" style="font-size:13px; padding:7px 16px;" onclick="closeAppDetailModal(); openAddPhotosModal('gal-amaka');">
+              Add photos to a gallery
+            </button>
+          ` : `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span>Last successful sync: <strong>${escapeHtml(app.lastSync || 'Just now')}</strong></span>
+              <span style="font-size:11px; color:#15803d; font-weight:600;">${escapeHtml(app.health || 'Active')}</span>
             </div>
-          ` : ''}
-
-          <div class="manage-activity-list">
-            ${(app.activityLog && app.activityLog.length > 0 ? app.activityLog : [
-              { timestamp: '10m ago', event: 'Health check passed', details: 'Webhooks and API token verified active' }
-            ]).map(item => `
-              <div class="manage-activity-row">
-                <span>${escapeHtml(item.event)} (${escapeHtml(item.details)})</span>
-                <span style="color:#888;">${escapeHtml(item.timestamp)}</span>
-              </div>
-            `).join('')}
-          </div>
+            <button type="button" class="btn-approve" style="font-size:12.5px; padding:6px 14px;" onclick="${getAppPrimaryAction(app).onclick}">
+              ${escapeHtml(getAppPrimaryAction(app).label)}
+            </button>
+          `}
         </div>
       </div>
 
-      <!-- Question 4: What do I do if it stops? -->
+      <!-- Question 4: If it stops working, how do I fix it? -->
       <div class="manage-q-block">
-        <div class="manage-q-heading">4. What do I do if it stops?</div>
+        <div class="manage-q-heading">4. If it stops working, how do I fix it?</div>
         <div class="manage-q-content">
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
             <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="testCapabilityHealth('${app.id}')">
               Test connection
             </button>
+            ${app.id === 'dropbox' ? `
+              <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="notify('Connected folder: /Studio Teni Client Deliveries/Amaka Wedding 2026/');">
+                Change folder
+              </button>
+              <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 12px;" onclick="reconnectDropboxPrompt()">
+                Reconnect account
+              </button>
+            ` : ''}
             ${isNeedsAttention && app.id === 'zoho-books' ? `
               <button type="button" class="btn-approve" style="font-size:12px; padding:6px 12px; background:#B45309;" onclick="retryAppAction('sync_zoho_books')">
                 Retry Zoho Books sync
@@ -5592,7 +6726,7 @@ function renderManageModal(app) {
                 Retry WhatsApp reply
               </button>
             ` : ''}
-            ${isNeedsAttention && app.id !== 'zoho-books' && app.id !== 'whatsapp' ? `
+            ${isNeedsAttention && app.id !== 'zoho-books' && app.id !== 'whatsapp' && app.id !== 'dropbox' ? `
               <button type="button" class="btn-approve" style="font-size:12px; padding:6px 12px; background:#B45309;" onclick="connectAppPrompt('${app.id}')">
                 Reconnect account
               </button>
@@ -5602,6 +6736,11 @@ function renderManageModal(app) {
                 + Add another account
               </button>
             ` : ''}
+          </div>
+          <div style="font-size:11.5px; color:#666;">
+            ${app.id === 'dropbox'
+              ? 'If access expires: imported photos remain safe in Vela, but new imports pause until reconnected. Disconnecting does not delete imported photos.'
+              : 'Historical receipts, bookings and drafts remain preserved if disconnected.'}
           </div>
         </div>
       </div>
@@ -5828,7 +6967,14 @@ function setDefaultPaymentGateway(appId, isDefault) {
     apps[appId].isDefault = false;
   }
   save({ connectedApps: apps });
-  notify(`${apps[appId].name} is now ${isDefault ? 'the default NGN deposit provider' : 'no longer default'}.`);
+
+  fetch('/api/apps/currency-default', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currency: 'NGN', provider: isDefault ? appId : 'paystack' })
+  }).catch(() => {});
+
+  notify(`${apps[appId]?.name || appId} is now ${isDefault ? 'the default NGN deposit provider' : 'no longer default'}.`);
   renderPage();
 }
 
@@ -6059,6 +7205,22 @@ window.toggleAppPerm = toggleAppPerm;
 window.testCapabilityHealth = testCapabilityHealth;
 window.connectAppPrompt = connectAppPrompt;
 window.disconnectAppPrompt = disconnectAppPrompt;
+window.openAddPhotosModal = openAddPhotosModal;
+window.openDropboxImportFlow = openDropboxImportFlow;
+window.executeDropboxImport = executeDropboxImport;
+window.openGalleryProofPreview = openGalleryProofPreview;
+window.toggleGalleryPublish = toggleGalleryPublish;
+window.reconnectDropboxPrompt = reconnectDropboxPrompt;
+window.openWhatsAppInboxModal = openWhatsAppInboxModal;
+window.openInstagramInboxModal = openInstagramInboxModal;
+window.openTikTokBookingLinkModal = openTikTokBookingLinkModal;
+window.openEmailInboxModal = openEmailInboxModal;
+window.openAvailabilityPreviewModal = openAvailabilityPreviewModal;
+window.openCheckoutPreviewModal = openCheckoutPreviewModal;
+window.openZohoBooksPreviewModal = openZohoBooksPreviewModal;
+window.openZohoCrmLeadModal = openZohoCrmLeadModal;
+window.openMetaAdsDraftModal = openMetaAdsDraftModal;
+window.openAppleCalendarModal = openAppleCalendarModal;
 
 window.checkMultiStylistAvailability = function(timeSlot) {
   const isOnePm = timeSlot.includes('1:00');
