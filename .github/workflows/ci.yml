@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: api
+
+jobs:
+  verify:
+    name: Verify API
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: vela
+          POSTGRES_PASSWORD: vela_ci
+          POSTGRES_DB: vela_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vela -d vela_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://vela:vela_ci@localhost:5432/vela_test?schema=public
+      # CI-only value; real environments inject a random secret from the platform store.
+      JWT_SECRET: ci-4f9c2a7b1e8d3f6a0b5c9e2d7a4f1b8c
+      CORS_ORIGINS: http://localhost:3002
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: api/.nvmrc
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Apply migrations to a fresh database
+        run: npm run db:migrate
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Build
+        run: npm run build
+
+      - name: Dependency audit (high and critical)
+        run: npm audit --omit=dev --audit-level=high
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            | tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Scan commits
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --no-banner --exit-code 1

@@ -1,0 +1,15 @@
+# Secret scanning runs in CI (see .github/workflows/ci.yml).
+# Default rules stay enabled; anything credential-shaped fails the build.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+Paystack publishable key in the React bundle (client/src/pages/CustomDomains.tsx).
+Publishable keys are designed to be embedded in browser code and are not secrets.
+The allowlist is scoped to that file and to the pk_ prefix only, so any secret
+key (sk_live_/sk_test_) added to the same file still fails the scan.
+"""
+paths = ['''^client/src/pages/CustomDomains\.tsx$''']
+regexes = ['''pk_live_[0-9a-f]{40}''']
