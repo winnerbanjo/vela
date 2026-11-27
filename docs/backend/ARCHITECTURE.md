@@ -59,7 +59,7 @@ flowchart TB
     end
 
     subgraph Vela["Vela platform"]
-        WEB["React SPA<br/>client/ on Vercel"]
+        WEB["Merchant dashboard<br/>root app, :3030"]
         API["Vela API<br/>Fastify + TypeScript"]
         WORKER["Vela worker<br/>pg-boss consumers"]
         DB[("PostgreSQL 16")]
@@ -104,7 +104,7 @@ flowchart TB
 
 | Container | Responsibility | Scaling unit | Notes |
 | --- | --- | --- | --- |
-| **Web SPA** (`client/`) | Rendering, form state, optimistic UI | Static CDN | Already built. We do not rewrite it; we satisfy its contract. |
+| **Web app** (root `server.js` + `dashboard.html`) | Rendering, form state, optimistic UI | Static CDN | The shipped dashboard at `/dashboard`. We satisfy its contract; see [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md). |
 | **API** (`apps/api`) | AuthN/Z, validation, domain rules, sync vendor calls, webhook intake | Stateless, N replicas | No cron, no long tasks. P95 target < 300 ms excluding vendor calls. |
 | **Worker** (`apps/worker`) | Reminders, hold expiry, webhook follow-ups, campaign sends, reconciliation, AI jobs | 1–2 replicas, concurrency per queue | Same image, different entrypoint. Restart-safe by design. |
 | **PostgreSQL** | System of record + job queue (pg-boss) + outbox | Managed (Neon/Render) | `btree_gist` extension required. |
@@ -227,7 +227,7 @@ Every response carries `x-request-id`. Every error is machine-readable:
 }
 ```
 
-`message` is kept because `client/src/lib/api.ts` reads it. `code` is what our tests and UI logic use.
+`message` is kept because the dashboard displays it. `code` is what our tests and UI logic use.
 
 ---
 
@@ -477,22 +477,25 @@ Implementation notes:
 
 | Topic | Decision |
 | --- | --- |
-| Base path | `/api` (Vite proxies `/api` unchanged; the deployed client defaults to `https://api.nilebooking.co/api`) |
+| Base path | `/api` (same origin as the dashboard in development; `https://api.<domain>/api` in production) |
 | Versioning | `/api` is v1. Breaking changes go to `/api/v2`; additive fields are always allowed. |
-| Auth | httpOnly `__Host-vela_session` cookie **and** `Authorization: Bearer` during migration (client still stores a token). |
+| Auth | httpOnly `__Host-vela_session` cookie **and** `Authorization: Bearer` for tooling and tests. |
 | Content type | `application/json`; webhooks use `application/json` with raw-body capture. |
 | Validation | Zod schemas in `src/contracts`, shared with OpenAPI generation. Unknown keys rejected. |
 | Pagination | `?page=1&limit=20` (max 100), response `{ data, pagination: { page, limit, total, totalPages } }`. |
-| Errors | `{ message, code, requestId, details? }`, RFC 7807-shaped. `message` preserved for the existing client. |
+| Errors | `{ message, code, requestId, details? }`, RFC 7807-shaped. `message` is what the dashboard displays. |
 | Idempotency | `Idempotency-Key` header required on `POST /bookings`, `/quotes/:id/send`, `/payments/*`. 24 h retention. |
 | Rate limits | Per IP + per user, see SECURITY.md §9. |
 | OpenAPI | Generated from Zod, published at `/api/docs` (non-production) and committed as `openapi.json`. |
 
-### 10.2 Endpoint inventory (mapped to `client/src/lib/api.ts`)
+### 10.2 Endpoint inventory (mapped to the shipped dashboard)
+
+> The authoritative endpoint list is [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §5.
+> This table tracks module coverage; route names follow the dashboard wherever it already calls them.
 
 | Module | Endpoints | Week-1 status |
 | --- | --- | --- |
-| identity | `POST /auth/register`, `/verify-otp`, `/resend-otp`, `/login`, `/admin-login`, `/forgot-password`, `/reset-password`, `GET /auth/me`, `PUT /auth/profile`, `PATCH /auth/onboarding`, `POST /auth/logout`, `/auth/refresh` | Build |
+| identity | `POST /auth/register`, `/verify-otp`, `/resend-otp`, `/login`, `/logout`, `/refresh`, `/forgot-password`, `/reset-password`, `GET /auth/me`, `PATCH /auth/profile` | Build; dashboard auth screens are demo-only today |
 | staff | `GET/POST /staff`, `DELETE /staff/:id` | Build |
 | catalog | `/services` CRUD, `/services/provider/:slug`, `/service-categories` CRUD + reorder | Build |
 | catalog | `/auth/portfolio`, `/auth/portfolio/:index`, `/reviews/*` | Build |
@@ -500,7 +503,9 @@ Implementation notes:
 | sales | `/quotes`, `/quotes/:id/send`, `/quotes/:id/versions`, `/public/quotes/:token/accept` | Build (new surface) |
 | payments | `/payments/paystack/verify`, `/payments/banks`, `/payments/verify-bank`, `/payments/transactions`, `/transactions/:id/verify`, `/refund`, `/webhooks/paystack` | Build |
 | jobs | `/jobs`, `/jobs/:id`, `/public/jobs/:token`, `/intake/:token` | Build (new surface) |
-| dashboard | `GET /dashboard/summary`, `/dashboard/today` | Build |
+| dashboard | `GET /dashboard/summary`, `/dashboard/today`, `/money/summary`, `/money/ledger`, `/clients` | Build |
+| inbox | `GET /conversations`, `/conversations/:id`, `PATCH /conversations/:id/mode`, `POST /conversations/:id/draft`, `/approve`, `/dismiss` | Build (agent behind a flag) |
+| integrations | `/apps` catalogue, `/apps/payment-gateways`, `/apps/:id/credentials`, `/apps/:id/keys`, `/apps/:id/connect`, `/apps/:id/disconnect`, `/apps/:id/rotate-key`, `/apps/:id/currency-default`, `/apps/webhook-waiting`, `/webhooks/test-trigger`, `/retry` | Build; route names match the dashboard's current calls |
 | admin | `/admin/stats`, `/providers`, `/bookings`, `/customers`, `/transactions`, `/payouts`, `/refunds`, `/settings`, `/risk`, `/verifications` | Build read paths; writes behind role check |
 | domains | `/domains/check`, `/domains/purchase` | Stub with `501` + contract |
 
@@ -554,7 +559,7 @@ Transitions are validated in the service layer against an explicit allow-list; i
 | Errors | Typed `AppError` subclasses → one error handler → problem JSON. Unknown errors become `500` with no internals leaked. |
 | DB access | Prisma for CRUD, raw SQL for constraints/aggregates. One `withTenant()` helper that injects `merchant_id` and asserts it on every query. |
 | Migrations | Expand → deploy → contract. Forward-only, reviewed, run in CI against a scratch database. |
-| Testing | Unit: availability, money, state machines. Integration: auth, tenant isolation, webhooks, booking race. Contract: response shapes vs `client/src/lib/api.ts`. |
+| Testing | Unit: availability, money, state machines. Integration: auth, tenant isolation, webhooks, booking race. Contract: response shapes vs [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §4–5. |
 | CI | typecheck → lint → unit → integration (Postgres service) → build → migration check → dependency audit. |
 | Deploy | API and worker from the same image; staging auto, production manual approval. Health: `/health/live`, `/health/ready`. |
 | Backups | Managed daily + PITR; restore drill documented, not assumed. |
@@ -582,7 +587,7 @@ Transitions are validated in the service layer against an explicit allow-list; i
 
 ## 15. Assumptions and open questions
 
-1. **Ownership:** `client/` is the frontend of record; the root HTML app is legacy. Needs product confirmation before we delete anything.
+1. **Ownership (decided 27 Nov 2026):** the root app's dashboard at `localhost:3030/dashboard` is the frontend of record. `client/` stays until the gaps in [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §7 are closed.
 2. **Hosting:** API on Render/Fly, Postgres managed, R2 for files. Confirm procurement this week or use local Docker for the demo.
 3. **Paystack:** test keys + a test subaccount available by day 3; webhook tunnel (ngrok/cloudflared) for local verification.
 4. **WhatsApp:** a test number and approved template by day 5, otherwise the adapter ships with a sandbox flag and the channel stays off.
@@ -600,7 +605,7 @@ Stack approved on 26 Nov 2026. Versions are pinned in `package.json` + lockfile;
 | Runtime | Node.js 22 LTS (`.nvmrc`, `engines`) | Local 24 is fine; CI and deploy use 22 |
 | Language | TypeScript | 5.x, `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | HTTP | Fastify | 5.x |
-| Validation | Zod | 3.x — same major as `client/` so shared schemas stay compatible |
+| Validation | Zod | 3.x |
 | ORM | Prisma | 6.x + raw SQL migrations for constraints |
 | DB | PostgreSQL | 16+, `btree_gist`, `pgcrypto` |
 | Jobs | pg-boss | 10.x (uses the same Postgres) |
@@ -641,7 +646,7 @@ npm i -D typescript tsx prisma vitest @vitest/coverage-v8 eslint prettier \
 
 - `docker compose up` → Postgres with extensions, migrations applied, API and worker healthy.
 - `GET /health/ready` returns `200` with DB and queue checks.
-- The two PRD journeys run end-to-end against the real React client on `:3002`.
+- The two PRD journeys run end-to-end against the shipped dashboard on `:3030`.
 - Acceptance tests 2, 3, 5, 6, 12 pass as automated integration tests.
 - `openapi.json` matches the implemented routes; CI is green; no secret in git; `npm audit` has no high/critical.
 - Every money, role, and booking mutation is in `audit_logs`.

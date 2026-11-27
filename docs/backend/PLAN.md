@@ -12,7 +12,7 @@ The week is only survivable if scope is frozen before code starts. This plan fre
 One week builds **one complete vertical slice plus one second journey**, not the whole PRD. The PRD describes eight surfaces, five integrations, and a full CRM. That is a quarter of work. What we can honestly deliver in seven days:
 
 - A production-shaped API with working auth, tenancy, catalogue, scheduling, bookings, payments, and jobs.
-- Journey A (barber: availability → hold → deposit → confirmation) working end-to-end against the real React client.
+- Journey A (barber: availability → hold → deposit → confirmation) working end-to-end against the shipped dashboard at `localhost:3030/dashboard`.
 - Journey B (photography: quote v1/v2 → acceptance → deposit → job + intake) working end-to-end.
 - WhatsApp and the AI agent behind flags, with one happy path proven if vendor credentials arrive by day 5; otherwise adapters + tests with recorded fixtures.
 - Security controls from SECURITY.md §0–§10 enforced, with the S16 security test suite green.
@@ -30,7 +30,7 @@ What we will **not** have: campaign builder UI, external prospect discovery, cus
 | M1 | Boot: config validation, logging, health, Docker Postgres, CI, migrations, `.env.example` | `docker compose up` → `/health/ready` 200 |
 | M2 | Auth: register → OTP → login → refresh → logout; staff invites; RBAC | S7, S8, S9, S13 |
 | M3 | Tenancy: merchant, location, settings, timezone; tenant guard on every query | S5 |
-| M4 | Catalogue: services, categories, portfolio, reviews (public read + owner write) | Client service pages render real data |
+| M4 | Catalogue: services, portfolio, galleries, clients (owner write + public read) | Dashboard Services, Gallery and Clients sections render real data |
 | M5 | Schedule + availability engine (buffers, shifts, blocks) | PRD 45+10 example unit-tested |
 | M6 | Booking with hold + exclusion constraint + walk-in | S1, S10, S11 |
 | M7 | Paystack checkout, verified webhook, ledger, receipt, refund | S2, S3, S4 |
@@ -110,10 +110,10 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 - `requireAuth`, `requireRole`, `requireMerchant`; `AuthContext` on every request.
 - Staff create/list/delete with invite token; role matrix from SECURITY.md §3.1.
 - Merchant profile, location, settings, timezone, slug.
-- Services, categories (reorder), portfolio, reviews with public read endpoints matching `client/src/lib/api.ts`.
+- Services, portfolio, galleries, clients and reviews with read/write shapes defined by [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §3–5.
 - Audit log helper wired into role/profile/payout mutations.
 
-**Exit:** register → OTP → login → `/auth/me` works from the React app on `:3002`; cross-tenant read returns 404.
+**Exit:** register → OTP → login → `/auth/me` works against the API from `localhost:3030` (temporary wiring while the dashboard's auth screens are ported); cross-tenant read returns 404.
 **Security gate:** S5, S7, S8, S9, S13.
 
 ### Day 3 — Scheduling and the booking race (Sat 28 Nov)
@@ -216,7 +216,7 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 2. **Paystack test keys** + confirmation of the settlement account model (direct merchant vs platform subaccount).
 3. **Hosting choice** (Render / Fly / DigitalOcean App Platform) and who owns the account.
 4. **OpenAI + WhatsApp** keys, or an explicit "flag off this week".
-5. **Frontend confirmation** on localStorage → cookie migration (one small change in `client/src/lib/api.ts` + `AuthContext`).
+5. **Dashboard auth wiring** — `login.html`/`register.html` are demo-only. Confirm who ports the real auth screens and whether the dashboard keeps `localStorage` as a cache once the API is live.
 6. **Brand/domain** for `api.` so CORS and cookie domains are correct.
 
 Until 2–4 exist, I build against adapters with recorded fixtures and a `sandbox` flag, so nothing blocks.

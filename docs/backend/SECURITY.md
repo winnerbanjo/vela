@@ -82,7 +82,7 @@ flowchart LR
 | Access token | JWT, 15 min, `HS256` with a 32+ byte secret (or `ES256` with key pair), claims: `sub`, `merchantId`, `role`, `sid`, `jti`, `iat`, `exp`, `aud`, `iss`. |
 | Refresh | Opaque 256-bit random token, hashed (SHA-256) in `sessions`; 30 days; **rotated on every use**; reuse of a rotated token revokes the whole session family. |
 | Cookie | `__Host-vela_session`: `HttpOnly; Secure; SameSite=Lax; Path=/`. Lax is enough for top-level navigation and blocks cross-site POSTs. |
-| Bearer fallback | Supported because `client/src/lib/api.ts` reads `localStorage.token`. Marked as debt in §12; the client flips to cookie-only on day 5. |
+| Bearer fallback | Supported for tests and tooling. The shipped dashboard uses the same-origin session cookie; the token-backed `client/` frontend is kept only until [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §7 is closed. |
 | Login throttling | 5 failures per email per 15 min → 15 min lock with exponential backoff; 20 failures per IP per 15 min. Constant-time response for unknown email vs wrong password. |
 | OTP | 6 digits, 10 min TTL, max 5 attempts, stored as HMAC-SHA256 with a server pepper; single-use; resend limited to 3 per hour per email. |
 | Session invalidation | `sessions.revoked_at`; logout revokes the current session; password reset revokes all sessions for that user. |
@@ -207,7 +207,7 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.vela... data:; connect-src 'self' https://api.vela...
 ```
 
-CORS: exact allow-list from env (`https://app.vela...`, `https://*.vela...` for merchant subdomains, `http://localhost:3002` in dev). `credentials: true`, no wildcard with credentials. `Vary: Origin`.
+CORS: exact allow-list from env (`https://app.vela...`, `https://*.vela...` for merchant subdomains, `http://localhost:3030` in dev, plus `http://localhost:3002` while `client/` is retained). `credentials: true`, no wildcard with credentials. `Vary: Origin`.
 
 | Scope | Limit |
 | --- | --- |

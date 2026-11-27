@@ -1,9 +1,14 @@
 # Vela API
 
-Fastify 5 + TypeScript backend for the Vela React client (`client/`). This is the
-Day 1 foundation described in [PLAN.md](../docs/backend/PLAN.md); the binding
-design lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
-[SECURITY.md](../docs/backend/SECURITY.md).
+Fastify 5 + TypeScript backend for the shipped Vela dashboard
+(`node server.js` → http://localhost:3030/dashboard). This is the Day 1
+foundation described in [PLAN.md](../docs/backend/PLAN.md); the binding design
+lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
+[SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
+[DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
+
+`client/` is a separate React SPA kept temporarily; it is not at 3030 and is no
+longer the contract of record.
 
 ## Requirements
 

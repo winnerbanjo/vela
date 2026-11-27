@@ -2,6 +2,12 @@
 
 **Reviewed:** 26 November 2026
 
+> **Decision update (27 Nov 2026):** the dashboard to ship is the root app at
+> `http://localhost:3030/dashboard` (`server.js` → `dashboard.html` →
+> `dashboard/workspace.js`). It is now the frontend of record for backend work.
+> `client/` is retained temporarily; the gaps to close before removing it are
+> tracked in [docs/backend/DASHBOARD_CONTRACT.md](docs/backend/DASHBOARD_CONTRACT.md) §7.
+
 ## Executive summary
 
 This repository contains two overlapping Vela web applications rather than one unified stack:
@@ -70,6 +76,7 @@ Verified during this review:
 
 ## Practical takeaways
 
-- Treat `client/` as the primary modular product UI and identify/document its intended external API service before attempting full local product flows.
-- Treat root `server.js`/`server_api.js` as a separate legacy/static surface and integration prototype unless product owners confirm it remains authoritative.
+- Treat the root dashboard (`server.js` → `dashboard.html`) as the shipping product UI; the frontend contract is `docs/backend/DASHBOARD_CONTRACT.md`.
+- Treat `client/` as a temporary secondary frontend whose remaining unique capabilities (real auth screens, admin portal, public checkout, subdomain routing, typed DTOs) must be closed before deletion.
+- Treat `server_api.js` as a demo/integration prototype: only its integration endpoints are being carried into the new API, not its file-backed persistence.
 - Before production use, replace demo defaults, supply real secrets and public URLs, and review persistence, authentication/authorization, webhook verification, and operational deployment as a coherent system.

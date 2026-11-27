@@ -44,7 +44,7 @@ jobs:
       DATABASE_URL: postgresql://vela:vela_ci@localhost:5432/vela_test?schema=public
       # CI-only value; real environments inject a random secret from the platform store.
       JWT_SECRET: ci-4f9c2a7b1e8d3f6a0b5c9e2d7a4f1b8c
-      CORS_ORIGINS: http://localhost:3002
+      CORS_ORIGINS: http://localhost:3030
 
     steps:
       - name: Checkout
