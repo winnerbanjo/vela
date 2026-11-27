@@ -2,6 +2,11 @@ import type { PrismaClient } from '@prisma/client';
 
 const TABLES = [
   'audit_logs',
+  'resource_allocations',
+  'bookings',
+  'booking_holds',
+  'availability_overrides',
+  'availability_rules',
   'login_attempts',
   'portfolio_items',
   'services',

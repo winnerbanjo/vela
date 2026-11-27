@@ -7,8 +7,9 @@ lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
 [SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
 [DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
 
-`client/` is a separate React SPA kept temporarily; it is not at 3030 and is no
-longer the contract of record.
+Status: Day 3 — scheduling, holds, and bookings are live next to the Day 2
+identity/catalogue work. `client/` is a separate React SPA kept temporarily; it
+is not at 3030 and is no longer the contract of record.
 
 ## Requirements
 
@@ -61,12 +62,14 @@ src/
   modules/identity/  password hashing, OTP, sessions, auth routes
   modules/merchant/  profile, publish, custom domain
   modules/catalogue/ services and portfolio
+  modules/schedule/  availability engine (pure), rules/overrides, holds, bookings
   modules/staff/     invites, roles, removal
   platform/        config, logger, errors, db (withTenant), auth guards, audit, cors
   shared/          money (integer kobo), slug
   types/           Fastify type augmentation
 prisma/
-  schema.prisma    Day 1 tables: merchants, users, sessions, otp_codes, audit_logs
+  schema.prisma    merchants, users, sessions, otp_codes, audit_logs, catalogue,
+                   availability rules/overrides, holds, bookings, allocations
   migrations/      Hand-written SQL including constraints Prisma cannot express
 test/
   unit/            Pure logic and security contracts
@@ -98,6 +101,39 @@ Behaviour worth knowing:
 - Merchants, service, role and domain mutations write `audit_logs`.
 - Money is integer kobo in requests and responses (`priceKobo`, `depositKobo`).
 
+## Day 3 — scheduling, holds, bookings
+
+All under `/api`:
+
+| Area       | Routes                                                                                                                            |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Hours      | `GET/PUT /availability/rules`, `GET/POST /availability/overrides`, `DELETE /availability/overrides/:id`                           |
+| Public     | `GET /availability/slots?slug=&serviceId=&date=`, `POST /holds`, `DELETE /holds/:id`, `POST /bookings`                            |
+| Front desk | `GET /bookings`, `POST /bookings/walk-in`, `POST /bookings/:id/cancel`, `POST /bookings/:id/reschedule`, `GET /availability/next` |
+
+Behaviour worth knowing:
+
+- Opening hours are minutes from local midnight in the merchant's timezone;
+  conversion uses `Intl`, so a DST zone is handled without a date library.
+  Overrides replace the weekly window for one date (closed or different hours).
+- A slot is only returned when `start + duration` fits before closing. The
+  buffer is cleanup time after the client leaves: it blocks the next booking but
+  may run past closing.
+- **The client never supplies an end time or a price.** Both are derived from the
+  service, and the schemas are `.strict()`, so extra fields are a 400.
+- `POST /holds` reserves the slot for `holdTtlMinutes` (default 15) by writing a
+  `resource_allocations` row. `resource_allocations_no_overlap` (GiST + `tstzrange`)
+  is the arbiter: 50 simultaneous holds on one slot produce one 201 and 49 409s.
+- Expiry is lazy + swept: every slot read and hold attempt expires stale rows,
+  and an unref'd 30 s timer is the backstop. A converted hold moves its
+  allocation from `hold` to `booking` in the same transaction.
+- Booking status moves only `confirmed → cancelled | completed | no_show`;
+  anything else is a 409. Cancelling frees the allocation immediately.
+- Confirming a hold snapshots `priceKobo` and `depositKobo` from the service, so
+  a later price change does not rewrite an existing booking.
+- Public booking routes are rate limited by `RATE_LIMIT_PUBLIC_MAX` (default 60
+  per minute per IP) in addition to the global limit.
+
 ## What Day 1 already enforces
 
 - **Config fails closed.** Zod-parsed at boot; placeholder or low-variety secrets
@@ -120,6 +156,12 @@ Behaviour worth knowing:
 
 - The rate-limit store is in-memory: correct for single-instance local dev only.
   The Redis-backed limiter lands with the staging deploy (PLAN.md Day 4).
+- The hold sweeper is an in-process timer. It is a backstop only: correctness
+  comes from the lazy sweep on every read/hold plus the exclusion constraint, so
+  a second instance cannot double-book. pg-boss takes over on Day 3+ alongside
+  reminder jobs.
+- No deposits or Paystack yet: a confirmed booking records `depositKobo` but no
+  payment is taken, and `pending_payment` does not exist as a state.
 - **OTP delivery:** outside production, register/forgot-password/staff-invite
   responses include `devCode` because Resend is not wired yet. Production never
   returns it, which means production verification is blocked until email lands

@@ -37,6 +37,7 @@ export interface AppConfig {
   readonly corsOrigins: readonly string[];
   readonly corsRules: readonly CorsOriginRule[];
   readonly rateLimitMax: number;
+  readonly rateLimitPublicMax: number;
   readonly bodyLimitBytes: number;
   readonly trustProxy: boolean;
   readonly version: string;
@@ -59,6 +60,7 @@ const envSchema = z.object({
   JWT_AUDIENCE: z.string().min(1).default('vela-client'),
   CORS_ORIGINS: z.string().min(1, 'must list at least one origin'),
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(100_000).default(300),
+  RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().min(1).max(100_000).default(60),
   BODY_LIMIT_BYTES: z.coerce
     .number()
     .int()
@@ -217,6 +219,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ),
     corsRules,
     rateLimitMax: envValues.RATE_LIMIT_MAX,
+    rateLimitPublicMax: envValues.RATE_LIMIT_PUBLIC_MAX,
     bodyLimitBytes: envValues.BODY_LIMIT_BYTES,
     trustProxy: envValues.TRUST_PROXY === 'true',
     version: envValues.APP_VERSION,

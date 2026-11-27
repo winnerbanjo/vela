@@ -121,6 +121,9 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 
 ### Day 3 — Scheduling and the booking race (Sat 28 Nov)
 
+**Delivered:** weekly availability rules + date overrides (closed or different hours), lead time and slot interval, pure availability engine with the PRD 45+10 example and a DST-zone test, `resource_allocations` with the `btree_gist` exclusion constraint, holds with a 15-minute default TTL (lazy expiry + 30 s backstop sweeper), public slots/hold/confirm, walk-in, cancel, reschedule, next-available, and 14 unit + 10 integration tests (including 50 simultaneous holds on one slot → one 201, 49 409s). 89 tests green.
+**Deferred:** pg-boss (the sweeper is an in-process backstop; correctness does not depend on it), reminder cancellation (keys off `booking.status`), staff-scoped opening hours in the API (the schema and engine support `staff_id`; the routes currently manage the merchant-wide calendar), and `pending_payment` (needs Paystack on Day 4).
+
 - Availability rules, overrides, blackout dates, lead time.
 - Pure availability engine + unit tests for the PRD example and timezone edges (DST-free Lagos, but test a DST zone anyway).
 - `resource_allocations` with the `btree_gist` exclusion constraint (raw SQL migration).
