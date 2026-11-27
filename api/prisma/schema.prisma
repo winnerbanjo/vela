@@ -1,4 +1,5 @@
-// Vela schema — Day 1 foundation (merchants, users, sessions, OTP, audit).
+// Vela schema — Day 1 foundation (merchants, users, sessions, OTP, audit) and
+// Day 2 identity/catalogue (merchant profile, services, portfolio).
 // Constraints Prisma cannot express (partial/functional indexes, CHECKs,
 // exclusion constraints) live in prisma/migrations and are covered by tests.
 // Money is BIGINT kobo; timestamps are timestamptz in UTC.
@@ -39,19 +40,36 @@ enum OtpPurpose {
   staff_invite
 }
 
-model Merchant {
-  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String         @db.VarChar(120)
-  slug      String         @unique @db.VarChar(63)
-  timezone  String         @default("Africa/Lagos") @db.VarChar(64)
-  currency  String         @default("NGN") @db.Char(3)
-  status    MerchantStatus @default(onboarding)
-  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt DateTime?      @map("deleted_at") @db.Timestamptz(6)
+enum ServiceStatus {
+  active
+  archived
+}
 
-  users     User[]
-  auditLogs AuditLog[]
+model Merchant {
+  id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String         @db.VarChar(120)
+  slug                    String         @unique @db.VarChar(63)
+  trade                   String         @default("other") @db.VarChar(32)
+  bio                     String?        @db.VarChar(1000)
+  location                String?        @db.VarChar(200)
+  phone                   String?        @db.VarChar(32)
+  contactEmail            String?        @map("contact_email") @db.VarChar(320)
+  customDomain            String?        @unique @map("custom_domain") @db.VarChar(253)
+  customDomainVerifiedAt  DateTime?      @map("custom_domain_verified_at") @db.Timestamptz(6)
+  publishedAt             DateTime?      @map("published_at") @db.Timestamptz(6)
+  hasUnpublishedChanges   Boolean        @default(true) @map("has_unpublished_changes")
+  inboxMode               String         @default("draft") @map("inbox_mode") @db.VarChar(16)
+  timezone                String         @default("Africa/Lagos") @db.VarChar(64)
+  currency                String         @default("NGN") @db.Char(3)
+  status                  MerchantStatus @default(onboarding)
+  createdAt               DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?      @map("deleted_at") @db.Timestamptz(6)
+
+  users          User[]
+  services       Service[]
+  portfolioItems PortfolioItem[]
+  auditLogs      AuditLog[]
 
   @@map("merchants")
 }
@@ -74,6 +92,7 @@ model User {
   merchant  Merchant?  @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   sessions  Session[]
   otpCodes  OtpCode[]
+  services  Service[]  @relation("ServiceStaff")
   auditLogs AuditLog[] @relation("AuditActor")
 
   @@index([merchantId])
@@ -118,6 +137,50 @@ model OtpCode {
 
   @@index([email, purpose, createdAt(sort: Desc)])
   @@map("otp_codes")
+}
+
+model Service {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId      String        @map("merchant_id") @db.Uuid
+  name            String        @db.VarChar(120)
+  description     String?       @db.VarChar(1000)
+  durationMinutes Int           @map("duration_minutes")
+  bufferMinutes   Int           @default(0) @map("buffer_minutes")
+  priceKobo       BigInt        @map("price_kobo")
+  depositKobo     BigInt        @default(0) @map("deposit_kobo")
+  status          ServiceStatus @default(active)
+  staffId         String?       @map("staff_id") @db.Uuid
+  sortOrder       Int           @default(0) @map("sort_order")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  staff    User?    @relation("ServiceStaff", fields: [staffId], references: [id], onDelete: SetNull)
+  portfolioItems PortfolioItem[]
+
+  @@index([merchantId, status])
+  @@index([staffId])
+  @@map("services")
+}
+
+model PortfolioItem {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId String    @map("merchant_id") @db.Uuid
+  serviceId  String?   @map("service_id") @db.Uuid
+  title      String    @db.VarChar(120)
+  caption    String?   @db.VarChar(300)
+  imageUrl   String    @map("image_url") @db.VarChar(2048)
+  isCover    Boolean   @default(false) @map("is_cover")
+  sortOrder  Int       @default(0) @map("sort_order")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  service  Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, sortOrder])
+  @@map("portfolio_items")
 }
 
 model AuditLog {
