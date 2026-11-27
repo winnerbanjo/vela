@@ -105,6 +105,9 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 
 ### Day 2 — Identity, tenancy, catalogue (Fri 27 Nov)
 
+**Delivered:** auth (register, OTP, resend, login, refresh rotation + reuse detection, logout, forgot/reset, staff invite acceptance), argon2id policy, login throttling, `requireAuth`/`requireRole`/`requireMerchant`, merchant profile + publish + custom domain, services CRUD with archive/restore, portfolio CRUD with single cover, staff invite/update/remove, audit rows on all mutations. 45 unit + 46 integration tests green.
+**Deferred to Day 3+:** galleries (client deliveries), reviews, clients/money read models (need bookings). Categories are dropped: the shipped dashboard has no category surface.
+
 - Auth flows: register, OTP issue/verify (hashed, TTL, attempts), login, refresh rotation + reuse detection, logout, forgot/reset.
 - Argon2id module + password policy; constant-time comparisons; login throttling.
 - `requireAuth`, `requireRole`, `requireMerchant`; `AuthContext` on every request.

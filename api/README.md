@@ -58,8 +58,12 @@ feature, not a misconfiguration.
 src/
   apps/api/        Fastify bootstrap, health routes
   apps/worker/     Worker entrypoint (queue consumers arrive Day 3)
-  platform/        config, logger, errors, db (withTenant), cors
-  shared/          money (integer kobo)
+  modules/identity/  password hashing, OTP, sessions, auth routes
+  modules/merchant/  profile, publish, custom domain
+  modules/catalogue/ services and portfolio
+  modules/staff/     invites, roles, removal
+  platform/        config, logger, errors, db (withTenant), auth guards, audit, cors
+  shared/          money (integer kobo), slug
   types/           Fastify type augmentation
 prisma/
   schema.prisma    Day 1 tables: merchants, users, sessions, otp_codes, audit_logs
@@ -68,6 +72,31 @@ test/
   unit/            Pure logic and security contracts
   integration/     Real Postgres: health, tenant scoping, append-only audit
 ```
+
+## Day 2 — identity, merchant, catalogue
+
+Mounted under `/api`:
+
+| Area      | Routes                                                                                                                                                                                                |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth      | `POST /auth/register`, `/auth/verify-otp`, `/auth/resend-otp`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/accept-invite`, `GET /auth/me` |
+| Merchant  | `GET/PATCH /merchant`, `POST /merchant/publish`, `POST/DELETE /merchant/domain`, `POST /merchant/domain/verify` (501)                                                                                 |
+| Services  | `GET/POST /services`, `PATCH/DELETE /services/:id`, `POST /services/:id/archive`, `/restore`                                                                                                          |
+| Portfolio | `GET/POST /portfolio`, `PATCH/DELETE /portfolio/:id`                                                                                                                                                  |
+| Staff     | `GET/POST /staff`, `PATCH/DELETE /staff/:id`                                                                                                                                                          |
+
+Behaviour worth knowing:
+
+- Passwords are argon2id (64 MiB, t=3); OTPs are peppered HMAC digests, single-use,
+  10 min TTL, 5 attempts, 3 per email per hour.
+- The session cookie is opaque and hashed at rest, rotated on every refresh; a
+  replayed rotated token revokes the whole family. Bearer JWTs (15 min) are for
+  tooling and tests.
+- Login locks for 15 minutes after 5 failures per email per IP; unknown emails
+  still pay the argon2 cost so timing does not reveal accounts.
+- Every write carries the session's merchant id. A foreign id returns `404`.
+- Merchants, service, role and domain mutations write `audit_logs`.
+- Money is integer kobo in requests and responses (`priceKobo`, `depositKobo`).
 
 ## What Day 1 already enforces
 
@@ -91,6 +120,17 @@ test/
 
 - The rate-limit store is in-memory: correct for single-instance local dev only.
   The Redis-backed limiter lands with the staging deploy (PLAN.md Day 4).
+- **OTP delivery:** outside production, register/forgot-password/staff-invite
+  responses include `devCode` because Resend is not wired yet. Production never
+  returns it, which means production verification is blocked until email lands
+  (PLAN.md Day 5).
+- **Domain verification** returns `501`; DNS/TXT verification lands with the
+  domains module.
+- **Advisory gate:** `npm audit --omit=dev` reports high advisories for
+  `deepmerge-ts`/`effect` (through `@prisma/client` → `prisma` → `@prisma/config`)
+  and `zod` 3.x. Both fixes are major upgrades (Prisma 7, zod 4) and are tracked
+  as the next dependency task; CI's high-severity audit step will stay red until
+  then.
 - Row-level security is not enabled yet; scoping is enforced in the service layer
   and covered by tests.
 - `@prisma/client` is imported lazily in `platform/db.ts` because importing it
