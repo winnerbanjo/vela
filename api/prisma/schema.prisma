@@ -45,6 +45,30 @@ enum ServiceStatus {
   archived
 }
 
+enum HoldStatus {
+  active
+  converted
+  expired
+  released
+}
+
+enum BookingStatus {
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+enum BookingSource {
+  online
+  walk_in
+}
+
+enum AllocationKind {
+  hold
+  booking
+}
+
 model Merchant {
   id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String         @db.VarChar(120)
@@ -61,15 +85,23 @@ model Merchant {
   inboxMode               String         @default("draft") @map("inbox_mode") @db.VarChar(16)
   timezone                String         @default("Africa/Lagos") @db.VarChar(64)
   currency                String         @default("NGN") @db.Char(3)
+  leadTimeMinutes         Int            @default(0) @map("lead_time_minutes")
+  slotIntervalMinutes     Int            @default(15) @map("slot_interval_minutes")
+  holdTtlMinutes          Int            @default(15) @map("hold_ttl_minutes")
   status                  MerchantStatus @default(onboarding)
   createdAt               DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt               DateTime?      @map("deleted_at") @db.Timestamptz(6)
 
-  users          User[]
-  services       Service[]
-  portfolioItems PortfolioItem[]
-  auditLogs      AuditLog[]
+  users                User[]
+  services             Service[]
+  portfolioItems       PortfolioItem[]
+  auditLogs            AuditLog[]
+  availabilityRules    AvailabilityRule[]
+  availabilityOverrides AvailabilityOverride[]
+  holds                BookingHold[]
+  bookings             Booking[]
+  allocations          ResourceAllocation[]
 
   @@map("merchants")
 }
@@ -94,6 +126,10 @@ model User {
   otpCodes  OtpCode[]
   services  Service[]  @relation("ServiceStaff")
   auditLogs AuditLog[] @relation("AuditActor")
+  availabilityRules     AvailabilityRule[]     @relation("AvailabilityRuleStaff")
+  availabilityOverrides AvailabilityOverride[]   @relation("AvailabilityOverrideStaff")
+  holds                 BookingHold[]           @relation("HoldStaff")
+  bookings              Booking[]               @relation("BookingStaff")
 
   @@index([merchantId])
   @@index([email])
@@ -159,6 +195,8 @@ model Service {
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   staff    User?    @relation("ServiceStaff", fields: [staffId], references: [id], onDelete: SetNull)
   portfolioItems PortfolioItem[]
+  holds BookingHold[]
+  bookings Booking[]
 
   @@index([merchantId, status])
   @@index([staffId])
@@ -217,4 +255,120 @@ model AuditLog {
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([entityType, entityId])
   @@map("audit_logs")
+}
+
+// Weekly opening hours in the merchant's timezone. Minutes are offsets from
+// local midnight, so a rule never shifts when a DST zone changes offset.
+model AvailabilityRule {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId  String   @map("merchant_id") @db.Uuid
+  staffId     String?  @map("staff_id") @db.Uuid
+  weekday     Int
+  startMinute Int      @map("start_minute")
+  endMinute   Int      @map("end_minute")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  staff    User?    @relation("AvailabilityRuleStaff", fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, weekday])
+  @@map("availability_rules")
+}
+
+// A single date that replaces the weekly rule: closed all day, or different
+// hours. `date` is a local calendar date, not an instant.
+model AvailabilityOverride {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId  String   @map("merchant_id") @db.Uuid
+  staffId     String?  @map("staff_id") @db.Uuid
+  date        DateTime @db.Date
+  closed      Boolean  @default(false)
+  startMinute Int?     @map("start_minute")
+  endMinute   Int?     @map("end_minute")
+  reason      String?  @db.VarChar(120)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  staff    User?    @relation("AvailabilityOverrideStaff", fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, date])
+  @@map("availability_overrides")
+}
+
+// A short reservation of a resource while the customer pays. The matching
+// `resource_allocations` row is what makes the slot unavailable.
+model BookingHold {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId String     @map("merchant_id") @db.Uuid
+  serviceId  String     @map("service_id") @db.Uuid
+  staffId    String?    @map("staff_id") @db.Uuid
+  resourceId String     @map("resource_id") @db.Uuid
+  startsAt   DateTime   @map("starts_at") @db.Timestamptz(6)
+  endsAt     DateTime   @map("ends_at") @db.Timestamptz(6)
+  expiresAt  DateTime   @map("expires_at") @db.Timestamptz(6)
+  status     HoldStatus @default(active)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  service  Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  staff    User?    @relation("HoldStaff", fields: [staffId], references: [id], onDelete: SetNull)
+  booking  Booking?
+
+  @@index([merchantId, expiresAt])
+  @@index([status, expiresAt])
+  @@map("booking_holds")
+}
+
+model Booking {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId   String        @map("merchant_id") @db.Uuid
+  serviceId    String        @map("service_id") @db.Uuid
+  staffId      String?       @map("staff_id") @db.Uuid
+  holdId       String?       @unique @map("hold_id") @db.Uuid
+  resourceId   String        @map("resource_id") @db.Uuid
+  reference    String        @unique @db.VarChar(24)
+  clientName   String        @map("client_name") @db.VarChar(120)
+  clientEmail  String?       @map("client_email") @db.VarChar(320)
+  clientPhone  String?       @map("client_phone") @db.VarChar(32)
+  notes        String?       @db.VarChar(1000)
+  startsAt     DateTime      @map("starts_at") @db.Timestamptz(6)
+  endsAt       DateTime      @map("ends_at") @db.Timestamptz(6)
+  status       BookingStatus @default(confirmed)
+  source       BookingSource @default(online)
+  priceKobo    BigInt        @map("price_kobo")
+  depositKobo  BigInt        @map("deposit_kobo")
+  cancelledAt  DateTime?     @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason String?       @map("cancel_reason") @db.VarChar(200)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant Merchant     @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  service  Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  staff    User?        @relation("BookingStaff", fields: [staffId], references: [id], onDelete: SetNull)
+  hold     BookingHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, startsAt])
+  @@index([merchantId, status])
+  @@map("bookings")
+}
+
+// The serialization point for the booking race. `starts_at`/`ends_at` already
+// include the service buffer, and the exclusion constraint in the migration
+// makes a second overlapping row for the same resource impossible.
+model ResourceAllocation {
+  id         String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId String         @map("merchant_id") @db.Uuid
+  resourceId String         @map("resource_id") @db.Uuid
+  kind       AllocationKind
+  holdId     String?        @unique @map("hold_id") @db.Uuid
+  bookingId  String?        @unique @map("booking_id") @db.Uuid
+  startsAt   DateTime       @map("starts_at") @db.Timestamptz(6)
+  endsAt     DateTime       @map("ends_at") @db.Timestamptz(6)
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, startsAt])
+  @@index([resourceId, startsAt])
+  @@map("resource_allocations")
 }
