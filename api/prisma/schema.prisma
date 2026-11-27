@@ -69,6 +69,23 @@ enum AllocationKind {
   booking
 }
 
+enum PaymentProvider {
+  paystack
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  abandoned
+  refunded
+}
+
+enum LedgerKind {
+  charge
+  refund
+}
+
 model Merchant {
   id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String         @db.VarChar(120)
@@ -102,6 +119,8 @@ model Merchant {
   holds                BookingHold[]
   bookings             Booking[]
   allocations          ResourceAllocation[]
+  payments             Payment[]
+  ledgerEntries        LedgerEntry[]
 
   @@map("merchants")
 }
@@ -313,6 +332,7 @@ model BookingHold {
   service  Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   staff    User?    @relation("HoldStaff", fields: [staffId], references: [id], onDelete: SetNull)
   booking  Booking?
+  payments Payment[]
 
   @@index([merchantId, expiresAt])
   @@index([status, expiresAt])
@@ -346,6 +366,7 @@ model Booking {
   service  Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   staff    User?        @relation("BookingStaff", fields: [staffId], references: [id], onDelete: SetNull)
   hold     BookingHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
+  payments Payment[]
 
   @@index([merchantId, startsAt])
   @@index([merchantId, status])
@@ -371,4 +392,77 @@ model ResourceAllocation {
   @@index([merchantId, startsAt])
   @@index([resourceId, startsAt])
   @@map("resource_allocations")
+}
+
+// One attempt to pay for one hold or booking. `reference` is ours and is what
+// the provider echoes back, so the webhook never has to guess which row it is
+// talking about.
+model Payment {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId        String          @map("merchant_id") @db.Uuid
+  holdId            String?         @map("hold_id") @db.Uuid
+  bookingId         String?         @map("booking_id") @db.Uuid
+  provider          PaymentProvider @default(paystack)
+  reference         String          @unique @db.VarChar(64)
+  providerReference String?         @unique @map("provider_reference") @db.VarChar(100)
+  amountKobo        BigInt          @map("amount_kobo")
+  currency          String          @default("NGN") @db.Char(3)
+  status            PaymentStatus   @default(pending)
+  channel           String?         @db.VarChar(32)
+  failureReason     String?         @map("failure_reason") @db.VarChar(200)
+  authorizationUrl  String?         @map("authorization_url") @db.VarChar(2048)
+  metadata          Json?
+  paidAt            DateTime?       @map("paid_at") @db.Timestamptz(6)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  hold     BookingHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
+  booking  Booking?     @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  events   PaymentEvent[]
+  ledger   LedgerEntry[]
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([holdId])
+  @@index([status])
+  @@map("payments")
+}
+
+// Every provider delivery is stored before it is acted on, with a unique
+// provider event id so a retry can never duplicate a side effect.
+model PaymentEvent {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider          PaymentProvider @default(paystack)
+  eventId           String   @unique @map("event_id") @db.VarChar(120)
+  type              String   @db.VarChar(64)
+  payload           Json
+  signatureVerified Boolean  @default(false) @map("signature_verified")
+  processedAt       DateTime? @map("processed_at") @db.Timestamptz(6)
+  note              String?  @db.VarChar(200)
+  receivedAt        DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  paymentId String?  @map("payment_id") @db.Uuid
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([receivedAt(sort: Desc)])
+  @@map("payment_events")
+}
+
+// Append-only: the migration installs a trigger that rejects UPDATE and DELETE.
+// Amounts are signed so a refund is a negative row, never a mutated charge.
+model LedgerEntry {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId String     @map("merchant_id") @db.Uuid
+  paymentId  String?    @map("payment_id") @db.Uuid
+  kind       LedgerKind
+  amountKobo BigInt     @map("amount_kobo")
+  currency   String     @default("NGN") @db.Char(3)
+  memo       String?    @db.VarChar(200)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  payment  Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@map("ledger_entries")
 }
