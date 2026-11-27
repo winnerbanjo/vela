@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
+import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { AppConfig } from '../../platform/config.js';
@@ -8,6 +10,7 @@ import { createCorsOriginResolver } from '../../platform/cors.js';
 import { createPrismaClient } from '../../platform/db.js';
 import { registerErrorHandling } from '../../platform/errors.js';
 import { loggerOptions } from '../../platform/logger.js';
+import { identityRoutes } from '../../modules/identity/routes.js';
 import { healthRoutes } from './routes/health.js';
 
 /**
@@ -25,6 +28,7 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   });
 
   app.decorate('db', await createPrismaClient(config));
+  app.decorateRequest('auth');
 
   app.addHook('onSend', async (request, reply, payload) => {
     reply.header('x-request-id', request.id);
@@ -81,6 +85,14 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
     }),
   });
 
+  await app.register(cookie);
+  await app.register(jwt, {
+    secret: config.jwtSecret,
+    sign: { iss: config.jwtIssuer, aud: config.jwtAudience, expiresIn: '15m' },
+    verify: { allowedIss: config.jwtIssuer, allowedAud: config.jwtAudience },
+  });
+
+  await app.register(identityRoutes, { prefix: '/api/auth', config });
   await app.register(healthRoutes, { prefix: '/health', version: config.version });
 
   registerErrorHandling(app);
