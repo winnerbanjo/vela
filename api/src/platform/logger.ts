@@ -47,7 +47,9 @@ export function loggerOptions(config: AppConfig, service = 'vela-api'): LoggerOp
     },
   };
 
-  if (!config.isProduction && config.logLevel !== 'silent') {
+  // Tests keep plain JSON on stdout: a pretty-print worker is noise there and
+  // can swallow lines when the process exits quickly.
+  if (!config.isProduction && !config.isTest && config.logLevel !== 'silent') {
     return {
       ...options,
       transport: {

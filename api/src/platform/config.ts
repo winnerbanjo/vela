@@ -38,6 +38,9 @@ export interface AppConfig {
   readonly corsRules: readonly CorsOriginRule[];
   readonly rateLimitMax: number;
   readonly rateLimitPublicMax: number;
+  readonly paystackMode: 'live' | 'sandbox' | 'disabled';
+  readonly paystackSecretKey: string | null;
+  readonly paystackApiBase: string;
   readonly bodyLimitBytes: number;
   readonly trustProxy: boolean;
   readonly version: string;
@@ -61,6 +64,10 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().min(1, 'must list at least one origin'),
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(100_000).default(300),
   RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().min(1).max(100_000).default(60),
+  // Optional: without it, development/test run the sandbox adapter and
+  // production refuses money routes instead of pretending to charge.
+  PAYSTACK_SECRET_KEY: z.string().trim().optional(),
+  PAYSTACK_API_BASE: z.url().default('https://api.paystack.co'),
   BODY_LIMIT_BYTES: z.coerce
     .number()
     .int()
@@ -202,6 +209,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new ConfigError(issues);
   }
 
+  const paystackSecretKey = envValues.PAYSTACK_SECRET_KEY ? envValues.PAYSTACK_SECRET_KEY : null;
+  const paystackMode: AppConfig['paystackMode'] = paystackSecretKey
+    ? 'live'
+    : isProduction
+      ? 'disabled'
+      : 'sandbox';
+
   return {
     nodeEnv: envValues.NODE_ENV,
     isProduction,
@@ -220,6 +234,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     corsRules,
     rateLimitMax: envValues.RATE_LIMIT_MAX,
     rateLimitPublicMax: envValues.RATE_LIMIT_PUBLIC_MAX,
+    paystackMode,
+    paystackSecretKey,
+    paystackApiBase: envValues.PAYSTACK_API_BASE,
     bodyLimitBytes: envValues.BODY_LIMIT_BYTES,
     trustProxy: envValues.TRUST_PROXY === 'true',
     version: envValues.APP_VERSION,

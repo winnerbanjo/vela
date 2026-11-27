@@ -1,5 +1,4 @@
-import { randomBytes } from 'node:crypto';
-import type { Booking, Service } from '@prisma/client';
+import type { Service } from '@prisma/client';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { createAuthGuards } from '../../platform/auth.js';
@@ -12,6 +11,7 @@ import {
   ValidationError,
 } from '../../platform/errors.js';
 import { allocationFor, computeSlots } from './availability.js';
+import { bookingReference, confirmHold, serializeBooking } from './bookings.js';
 import { expireHolds } from './holds.js';
 import { assertTransition } from './state.js';
 import { addDays, instantToZonedMinute, zonedMinutesToInstant } from './time.js';
@@ -112,13 +112,6 @@ const rescheduleSchema = z
   .object({ startsAt: isoInstant, staffId: uuid.nullable().optional() })
   .strict();
 
-function toSafeNumber(value: bigint): number {
-  if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new InternalError('Stored amount exceeds the safe integer range');
-  }
-  return Number(value);
-}
-
 function isExclusionViolation(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
   const candidate = error as { message?: unknown; meta?: { code?: unknown; message?: unknown } };
@@ -126,30 +119,6 @@ function isExclusionViolation(error: unknown): boolean {
     .filter((value): value is string => typeof value === 'string')
     .join(' ');
   return text.includes('23P01') || text.includes('resource_allocations_no_overlap');
-}
-
-function bookingReference(): string {
-  return `VL-${randomBytes(4).toString('hex').toUpperCase()}`;
-}
-
-function serializeBooking(booking: Booking) {
-  return {
-    id: booking.id,
-    reference: booking.reference,
-    serviceId: booking.serviceId,
-    staffId: booking.staffId,
-    clientName: booking.clientName,
-    clientEmail: booking.clientEmail,
-    clientPhone: booking.clientPhone,
-    notes: booking.notes,
-    startsAt: booking.startsAt.toISOString(),
-    endsAt: booking.endsAt.toISOString(),
-    status: booking.status,
-    source: booking.source,
-    priceKobo: toSafeNumber(booking.priceKobo),
-    depositKobo: toSafeNumber(booking.depositKobo),
-    createdAt: booking.createdAt.toISOString(),
-  };
 }
 
 interface HoldRow {
@@ -667,73 +636,12 @@ export const scheduleRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (
     { config: { rateLimit: { max: config.rateLimitPublicMax, timeWindow: '1 minute' } } },
     async (request, reply) => {
       const body = confirmSchema.parse(request.body);
-      const now = new Date();
-
-      const hold = await app.db.bookingHold.findUnique({ where: { id: body.holdId } });
-      if (!hold) throw new NotFoundError('Hold not found');
-      if (hold.status !== 'active') throw new ConflictError('That hold is no longer active');
-      if (hold.expiresAt <= now) throw new ConflictError('That hold has expired');
-
-      const service = await app.db.service.findUnique({ where: { id: hold.serviceId } });
-      if (!service) throw new NotFoundError('Service not found');
 
       try {
-        const booking = await app.db.$transaction(async (tx) => {
-          const claimed = await tx.bookingHold.updateMany({
-            where: { id: hold.id, status: 'active', expiresAt: { gt: now } },
-            data: { status: 'converted' },
-          });
-          if (claimed.count === 0) {
-            throw new ConflictError('That hold has expired');
-          }
-
-          const created = await tx.booking.create({
-            data: {
-              merchantId: hold.merchantId,
-              serviceId: hold.serviceId,
-              staffId: hold.staffId,
-              holdId: hold.id,
-              resourceId: hold.resourceId,
-              reference: bookingReference(),
-              clientName: body.clientName,
-              clientEmail: body.clientEmail?.toLowerCase() ?? null,
-              clientPhone: body.clientPhone ?? null,
-              notes: body.notes ?? null,
-              startsAt: hold.startsAt,
-              endsAt: hold.endsAt,
-              status: 'confirmed',
-              source: 'online',
-              priceKobo: service.priceKobo,
-              depositKobo: service.depositKobo,
-            },
-          });
-
-          const moved = await tx.resourceAllocation.updateMany({
-            where: { holdId: hold.id },
-            data: {
-              kind: 'booking',
-              bookingId: created.id,
-              holdId: null,
-            },
-          });
-          if (moved.count !== 1) {
-            throw new InternalError('Hold allocation went missing');
-          }
-
-          await writeAudit(tx, {
-            merchantId: hold.merchantId,
-            actorId: null,
-            actorRole: 'client',
-            action: 'booking.confirmed',
-            entityType: 'booking',
-            entityId: created.id,
-            after: { reference: created.reference, startsAt: created.startsAt.toISOString() },
-            ip: request.ip,
-            userAgent: request.headers['user-agent'] ?? null,
-            requestId: request.id,
-          });
-
-          return created;
+        const booking = await confirmHold(app.db, body, {
+          ip: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+          requestId: request.id,
         });
 
         return reply.status(201).send({ booking: serializeBooking(booking) });

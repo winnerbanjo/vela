@@ -7,8 +7,8 @@ lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
 [SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
 [DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
 
-Status: Day 3 — scheduling, holds, and bookings are live next to the Day 2
-identity/catalogue work. `client/` is a separate React SPA kept temporarily; it
+Status: Day 4 — payments, the signed Paystack webhook, and an append-only ledger
+sit on top of Day 2 identity/catalogue and Day 3 scheduling. `client/` is a separate React SPA kept temporarily; it
 is not at 3030 and is no longer the contract of record.
 
 ## Requirements
@@ -63,6 +63,7 @@ src/
   modules/merchant/  profile, publish, custom domain
   modules/catalogue/ services and portfolio
   modules/schedule/  availability engine (pure), rules/overrides, holds, bookings
+  modules/payments/  Paystack adapter (live/sandbox/disabled), payments, webhook, ledger
   modules/staff/     invites, roles, removal
   platform/        config, logger, errors, db (withTenant), auth guards, audit, cors
   shared/          money (integer kobo), slug
@@ -134,6 +135,40 @@ Behaviour worth knowing:
 - Public booking routes are rate limited by `RATE_LIMIT_PUBLIC_MAX` (default 60
   per minute per IP) in addition to the global limit.
 
+## Day 4 — payments
+
+| Area    | Routes                                                                                     |
+| ------- | ------------------------------------------------------------------------------------------ |
+| Public  | `POST /payments/initialize` (from a live hold)                                             |
+| Staff   | `GET /payments`, `GET /payments/:reference`, `GET /payments/ledger/entries`                |
+| Owner   | `POST /payments/:id/refund` (password step-up)                                             |
+| Webhook | `POST /webhooks/paystack` (raw body, `x-paystack-signature`, deduped by provider event id) |
+
+Behaviour worth knowing:
+
+- **Modes.** `PAYSTACK_SECRET_KEY` set → `live`. No key outside production →
+  `sandbox`, which returns deterministic checkout/refund fixtures without a
+  network call, so the whole flow is testable. No key in production →
+  `disabled`: money routes return `501` instead of pretending to charge.
+- The amount is the service's deposit, or its full price when no deposit is
+  configured. A client-supplied amount is rejected by the strict schema.
+- The webhook parses the exact bytes Paystack signed (raw-body parser scoped to
+  `/api/webhooks` only) and compares HMAC-SHA512 in constant time. A bad or
+  missing signature is a `401` and touches no table.
+- Every delivery is stored in `payment_events` with a unique
+  `eventId` (`type:transactionId`). Three identical deliveries produce one event
+  row, one booking, and one ledger charge.
+- A `charge.success` whose amount or currency differs from the payment leaves it
+  `pending` with `failureReason: amount_mismatch`, writes an audit row, and
+  returns `200` so the provider stops retrying.
+- If the hold expired while the customer paid, the money is still recorded
+  (`succeeded`), no booking is invented, `failureReason` becomes
+  `paid_but_unscheduled`, and an owner exception is audited.
+- `ledger_entries` is append-only: a Postgres trigger rejects `UPDATE` and
+  `DELETE`. Amounts are signed, so a refund is a negative row.
+- Refunds require the owner's password again, are full-amount only, and reverse
+  the charge in the ledger (`charge + refund = 0`).
+
 ## What Day 1 already enforces
 
 - **Config fails closed.** Zod-parsed at boot; placeholder or low-variety secrets
@@ -160,8 +195,14 @@ Behaviour worth knowing:
   comes from the lazy sweep on every read/hold plus the exclusion constraint, so
   a second instance cannot double-book. pg-boss takes over on Day 3+ alongside
   reminder jobs.
-- No deposits or Paystack yet: a confirmed booking records `depositKobo` but no
-  payment is taken, and `pending_payment` does not exist as a state.
+- Live Paystack is untested against the real API: no key has been supplied, so
+  every payment test runs the sandbox adapter. The first live run needs test-mode
+  keys and a settlement decision (direct merchant vs platform subaccount).
+- Files/presigned uploads (M10) and the Redis-backed rate limiter are not built;
+  they need a storage provider choice and a staging Redis. The in-memory limiter
+  remains single-instance only.
+- Receipts, invoices, and dunning emails wait on Resend (Day 5). `payments` is the
+  source of truth for money already taken.
 - **OTP delivery:** outside production, register/forgot-password/staff-invite
   responses include `devCode` because Resend is not wired yet. Production never
   returns it, which means production verification is blocked until email lands

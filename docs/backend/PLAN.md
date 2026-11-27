@@ -136,6 +136,9 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 
 ### Day 4 — Money (Sun 29 Nov)
 
+**Delivered:** Paystack adapter in three modes (live with a key, deterministic sandbox without one outside production, disabled/501 in production), `payments` / `payment_events` / `ledger_entries` with an append-only trigger, raw-body webhook with constant-time HMAC-SHA512 and per-event dedupe (`type:transactionId`), charge → booking confirmation reusing the Day 3 hold path, amount/currency mismatch flagged instead of booked, paid-but-unscheduled exception, owner refund with password step-up, and 7 unit + 8 integration tests (three identical deliveries → one event, one booking, one ledger charge; refund reverses to zero; UPDATE/DELETE on the ledger rejected). 73 unit + 64 integration green.
+**Deferred:** live-mode verification against Paystack (no keys, settlement model undecided), files/presigned uploads (M10, needs a storage provider), Redis-backed rate limiting (needs staging Redis), invoices/receipts (Day 5).
+
 - Paystack adapter (init, verify, refund) with timeouts and typed errors.
 - Webhook route with raw-body capture, HMAC-SHA512 + timestamp, dedupe, fast 200.
 - `payments`, `payment_events`, `ledger_entries`, `invoices`, `invoice_line_items`.
