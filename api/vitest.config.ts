@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['test/**/*.test.ts'],
+    // Integration files share one Postgres database and reset it between
+    // tests, so they must not run in parallel.
+    fileParallelism: false,
     restoreMocks: true,
     testTimeout: 15_000,
     hookTimeout: 30_000,

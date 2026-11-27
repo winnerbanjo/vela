@@ -10,7 +10,10 @@ import { createCorsOriginResolver } from '../../platform/cors.js';
 import { createPrismaClient } from '../../platform/db.js';
 import { registerErrorHandling } from '../../platform/errors.js';
 import { loggerOptions } from '../../platform/logger.js';
+import { catalogueRoutes } from '../../modules/catalogue/routes.js';
 import { identityRoutes } from '../../modules/identity/routes.js';
+import { merchantRoutes } from '../../modules/merchant/routes.js';
+import { staffRoutes } from '../../modules/staff/routes.js';
 import { healthRoutes } from './routes/health.js';
 
 /**
@@ -85,6 +88,10 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
     }),
   });
 
+  // Must be registered before route plugins: Fastify only applies an error
+  // handler to plugins registered after it on the same instance.
+  registerErrorHandling(app);
+
   await app.register(cookie);
   await app.register(jwt, {
     secret: config.jwtSecret,
@@ -93,9 +100,10 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   });
 
   await app.register(identityRoutes, { prefix: '/api/auth', config });
+  await app.register(merchantRoutes, { prefix: '/api/merchant', config });
+  await app.register(catalogueRoutes, { prefix: '/api', config });
+  await app.register(staffRoutes, { prefix: '/api/staff', config });
   await app.register(healthRoutes, { prefix: '/health', version: config.version });
-
-  registerErrorHandling(app);
 
   return app;
 }

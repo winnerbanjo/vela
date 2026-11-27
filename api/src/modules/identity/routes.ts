@@ -66,6 +66,9 @@ const forgotPasswordSchema = z.object({ email: emailSchema }).strict();
 const resetPasswordSchema = z
   .object({ email: emailSchema, code: codeSchema, password: passwordSchema })
   .strict();
+const acceptInviteSchema = z
+  .object({ email: emailSchema, code: codeSchema, password: passwordSchema })
+  .strict();
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILED_LOGINS = 5;
@@ -455,6 +458,58 @@ export const identityRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (
       });
 
       return reply.send({ message: 'Password updated. Sign in with your new password.' });
+    },
+  );
+
+  app.post(
+    '/accept-invite',
+    { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } },
+    async (request, reply) => {
+      const body = acceptInviteSchema.parse(request.body);
+
+      const user = await app.db.user.findFirst({
+        where: { email: body.email, status: 'invited', deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!user) {
+        throw new UnauthorizedError('That invitation is invalid or has expired');
+      }
+
+      assertPasswordPolicy(body.password, { email: body.email, name: user.name });
+
+      await consumeOtp(app.db, pepper, {
+        email: body.email,
+        purpose: 'staff_invite',
+        code: body.code,
+      });
+
+      const passwordHash = await hashPassword(body.password);
+      const activated = await app.db.user.update({
+        where: { id: user.id },
+        data: { passwordHash, status: 'active', emailVerifiedAt: new Date() },
+      });
+
+      await writeAudit(app.db, {
+        merchantId: activated.merchantId,
+        actorId: activated.id,
+        actorRole: activated.role,
+        action: 'staff.invite_accepted',
+        entityType: 'user',
+        entityId: activated.id,
+        ip: request.ip,
+        userAgent: request.headers['user-agent'] ?? null,
+        requestId: request.id,
+      });
+
+      const meta = requestMeta(request);
+      const session = await startSession(reply, activated, meta);
+
+      return reply.send({
+        message: 'Welcome to the team.',
+        user: publicUser(activated),
+        accessToken: session.accessToken,
+        expiresIn: session.expiresIn,
+      });
     },
   );
 
