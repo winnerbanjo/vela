@@ -91,6 +91,11 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Overrides the workflow-level `api` default so gitleaks sees the repo root
+    # and can load .gitleaks.toml.
+    defaults:
+      run:
+        working-directory: .
 
     steps:
       - name: Checkout full history
