@@ -560,7 +560,7 @@ Transitions are validated in the service layer against an explicit allow-list; i
 | DB access | Prisma for CRUD, raw SQL for constraints/aggregates. One `withTenant()` helper that injects `merchant_id` and asserts it on every query. |
 | Migrations | Expand → deploy → contract. Forward-only, reviewed, run in CI against a scratch database. |
 | Testing | Unit: availability, money, state machines. Integration: auth, tenant isolation, webhooks, booking race. Contract: response shapes vs [DASHBOARD_CONTRACT.md](./DASHBOARD_CONTRACT.md) §4–5. |
-| CI | typecheck → lint → unit → integration (Postgres service) → build → migration check → dependency audit. |
+| CI | typecheck → lint → unit → integration (Postgres service) → build → migration check → dependency gate (exact, expiring exceptions). |
 | Deploy | API and worker from the same image; staging auto, production manual approval. Health: `/health/live`, `/health/ready`. |
 | Backups | Managed daily + PITR; restore drill documented, not assumed. |
 
@@ -605,7 +605,7 @@ Stack approved on 26 Nov 2026. Versions are pinned in `package.json` + lockfile;
 | Runtime | Node.js 22 LTS (`.nvmrc`, `engines`) | Local 24 is fine; CI and deploy use 22 |
 | Language | TypeScript | 5.x, `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
 | HTTP | Fastify | 5.x |
-| Validation | Zod | 3.x |
+| Validation | Zod | 4.x |
 | ORM | Prisma | 6.x + raw SQL migrations for constraints |
 | DB | PostgreSQL | 16+, `btree_gist`, `pgcrypto` |
 | Jobs | pg-boss | 10.x (uses the same Postgres) |

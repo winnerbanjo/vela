@@ -38,7 +38,7 @@
     "argon2": "^0.45.2",
     "fastify": "^5.12.8",
     "pino": "^9.14.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "allowScripts": {
     "@prisma/client@6.19.3": true,

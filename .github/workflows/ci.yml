@@ -85,7 +85,7 @@ jobs:
         run: npm run build
 
       - name: Dependency audit (high and critical)
-        run: npm audit --omit=dev --audit-level=high
+        run: npx tsx scripts/audit-gate.ts
 
   secrets:
     name: Secret scan

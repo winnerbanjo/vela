@@ -126,11 +126,11 @@ Behaviour worth knowing:
   (PLAN.md Day 5).
 - **Domain verification** returns `501`; DNS/TXT verification lands with the
   domains module.
-- **Advisory gate:** `npm audit --omit=dev` reports high advisories for
-  `deepmerge-ts`/`effect` (through `@prisma/client` → `prisma` → `@prisma/config`)
-  and `zod` 3.x. Both fixes are major upgrades (Prisma 7, zod 4) and are tracked
-  as the next dependency task; CI's high-severity audit step will stay red until
-  then.
+- **Advisory gate:** CI runs `scripts/audit-gate.ts`, which fails on any new
+  high or critical advisory. Two Prisma build-time advisories (`deepmerge-ts`,
+  `effect` via `@prisma/config`) are allowlisted by package + GHSA until
+  **19 Dec 2026**; the fix ships with the Prisma 7 upgrade. The exception expiry
+  is enforced by the gate and covered by tests, so it cannot silently persist.
 - Row-level security is not enabled yet; scoping is enforced in the service layer
   and covered by tests.
 - `@prisma/client` is imported lazily in `platform/db.ts` because importing it
