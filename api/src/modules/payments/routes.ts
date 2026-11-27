@@ -8,22 +8,19 @@ import {
   ConflictError,
   InternalError,
   NotFoundError,
-  NotImplementedError,
   PayloadTooLargeError,
   UnauthorizedError,
   ValidationError,
 } from '../../platform/errors.js';
-import { verifyPassword } from '../identity/password.js';
 import { confirmHold } from '../schedule/bookings.js';
 import {
-  createPaystackClient,
-  eventIdFor,
-  PaystackError,
-  verifyWebhookSignature,
-  webhookSecret,
-  type PaystackClient,
-  type PaystackConfig,
-} from './paystack.js';
+  merchantSecretKey,
+  decideSettlement,
+  paystackClientForMode,
+  platformPaystackConfig,
+} from './settlement.js';
+import { assertOwnerPassword } from './step-up.js';
+import { eventIdFor, PaystackError, verifyWebhookSignature, webhookSecret } from './paystack.js';
 
 /**
  * Payments and the Paystack webhook. Mounted at /api (webhook at /api/webhooks).
@@ -72,6 +69,7 @@ function serializePayment(payment: {
   amountKobo: bigint;
   currency: string;
   status: string;
+  settlementMode: string;
   channel: string | null;
   failureReason: string | null;
   authorizationUrl: string | null;
@@ -87,6 +85,7 @@ function serializePayment(payment: {
     amountKobo: toSafeNumber(payment.amountKobo),
     currency: payment.currency,
     status: payment.status,
+    settlementMode: payment.settlementMode,
     channel: payment.channel,
     failureReason: payment.failureReason,
     authorizationUrl: payment.authorizationUrl,
@@ -97,28 +96,15 @@ function serializePayment(payment: {
   };
 }
 
-function paystackConfigFor(config: AppConfig): PaystackConfig {
-  return {
-    mode: config.paystackMode,
-    secretKey: config.paystackSecretKey,
-    apiBase: config.paystackApiBase,
-  };
-}
-
 export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (app, { config }) => {
   const guards = createAuthGuards(app, config);
   const staffOnly = [guards.requireMerchant];
   const ownerOnly = [guards.requireMerchant, guards.requireRole('owner')];
-  const client: PaystackClient = createPaystackClient(paystackConfigFor(config));
 
   app.post(
     '/payments/initialize',
     { config: { rateLimit: { max: config.rateLimitPublicMax, timeWindow: '1 minute' } } },
     async (request, reply) => {
-      if (config.paystackMode === 'disabled') {
-        throw new NotImplementedError('Payments are not configured');
-      }
-
       const body = initializeSchema.parse(request.body);
       const now = new Date();
 
@@ -134,6 +120,14 @@ export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (a
         where: { id: hold.merchantId },
         select: { currency: true },
       });
+
+      // Direct mode uses the merchant's own key and settles in their account;
+      // platform mode splits the charge to their verified subaccount.
+      const settings = await app.db.paymentSettings.findUnique({
+        where: { merchantId: hold.merchantId },
+      });
+      const settlement = decideSettlement(config, settings);
+      const client = paystackClientForMode(config, settlement.mode, settings);
 
       // Deposit if one is configured, otherwise the full price. Never the client's.
       const amountKobo =
@@ -152,6 +146,7 @@ export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (a
           amountKobo,
           currency: merchant.currency,
           status: 'pending',
+          settlementMode: settlement.mode,
           metadata: {
             clientName: body.name,
             clientEmail: body.email.toLowerCase(),
@@ -168,6 +163,7 @@ export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (a
           reference,
           currency: merchant.currency,
           ...(body.callbackUrl ? { callbackUrl: body.callbackUrl } : {}),
+          ...(settlement.subaccountCode ? { subaccountCode: settlement.subaccountCode } : {}),
           metadata: { holdId: hold.id, paymentReference: reference },
         });
 
@@ -238,19 +234,11 @@ export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (a
     '/payments/:id/refund',
     { preHandler: ownerOnly },
     async (request) => {
-      if (config.paystackMode === 'disabled') {
-        throw new NotImplementedError('Payments are not configured');
-      }
-
       const merchantId = request.auth?.merchantId as string;
       const id = uuid.parse(request.params.id);
       const body = refundSchema.parse(request.body ?? {});
 
-      const actor = await app.db.user.findUnique({ where: { id: request.auth?.userId as string } });
-      if (!actor?.passwordHash) throw new UnauthorizedError('Password confirmation failed');
-      if (!(await verifyPassword(actor.passwordHash, body.password))) {
-        throw new UnauthorizedError('Password confirmation failed');
-      }
+      await assertOwnerPassword(app, request, body.password);
 
       const payment = await app.db.payment.findFirst({ where: { id, merchantId } });
       if (!payment) throw new NotFoundError('Payment not found');
@@ -261,9 +249,17 @@ export const paymentRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (a
         throw new ConflictError('This payment has no provider reference to refund');
       }
 
+      // Refund through the same credential the charge used. Direct payments
+      // must never be refunded from the platform account.
+      const settings =
+        payment.settlementMode === 'direct'
+          ? await app.db.paymentSettings.findUnique({ where: { merchantId } })
+          : null;
+      const refundClient = paystackClientForMode(config, payment.settlementMode, settings);
+
       let refunded;
       try {
-        refunded = await client.refund({
+        refunded = await refundClient.refund({
           providerReference: payment.providerReference,
           amountKobo: toSafeNumber(payment.amountKobo),
         });
@@ -349,7 +345,9 @@ export const paystackWebhookRoutes: FastifyPluginAsync<{ config: AppConfig }> = 
   app,
   { config },
 ) => {
-  const secret = webhookSecret(paystackConfigFor(config));
+  // Null when the platform account is disabled; direct-mode deliveries are
+  // verified against each merchant's own key below.
+  const platformSecret = webhookSecret(platformPaystackConfig(config));
 
   app.addContentTypeParser(
     'application/json',
@@ -374,18 +372,8 @@ export const paystackWebhookRoutes: FastifyPluginAsync<{ config: AppConfig }> = 
         throw new PayloadTooLargeError();
       }
 
-      const signature = request.headers['x-paystack-signature'];
-      if (
-        !verifyWebhookSignature(
-          rawBody,
-          typeof signature === 'string' ? signature : undefined,
-          secret,
-        )
-      ) {
-        // Deliberately a 401 without touching the database: an unauthenticated
-        // delivery must not be able to fill the event table.
-        throw new UnauthorizedError('Invalid webhook signature');
-      }
+      const signatureHeader = request.headers['x-paystack-signature'];
+      const signature = typeof signatureHeader === 'string' ? signatureHeader : undefined;
 
       const payload = request.body as {
         event?: unknown;
@@ -400,6 +388,39 @@ export const paystackWebhookRoutes: FastifyPluginAsync<{ config: AppConfig }> = 
       };
       const type = typeof payload.event === 'string' ? payload.event : 'unknown';
       const data = payload.data && typeof payload.data === 'object' ? payload.data : {};
+      const reference = typeof data.reference === 'string' ? data.reference : null;
+      const payment = reference ? await app.db.payment.findUnique({ where: { reference } }) : null;
+
+      let verified = platformSecret
+        ? verifyWebhookSignature(rawBody, signature, platformSecret)
+        : false;
+
+      // A direct-mode charge is signed with the merchant's own secret key. Only
+      // look it up by an already-stored reference, and never touch a table until
+      // one of the two signatures verifies.
+      if (!verified && payment?.settlementMode === 'direct') {
+        const settings = await app.db.paymentSettings.findUnique({
+          where: { merchantId: payment.merchantId },
+        });
+        if (settings?.status === 'active' && settings.secretKeyCiphertext) {
+          try {
+            verified = verifyWebhookSignature(
+              rawBody,
+              signature,
+              merchantSecretKey(config, settings),
+            );
+          } catch {
+            verified = false;
+          }
+        }
+      }
+
+      if (!verified) {
+        // Deliberately a 401 without writing: an unauthenticated delivery must
+        // not be able to fill the event table.
+        throw new UnauthorizedError('Invalid webhook signature');
+      }
+
       const eventId = eventIdFor(type, data.id, rawBody);
 
       const inserted = await app.db.paymentEvent.createMany({
@@ -410,9 +431,6 @@ export const paystackWebhookRoutes: FastifyPluginAsync<{ config: AppConfig }> = 
       if (inserted.count === 0) {
         return reply.status(200).send({ received: true, duplicate: true });
       }
-
-      const reference = typeof data.reference === 'string' ? data.reference : null;
-      const payment = reference ? await app.db.payment.findUnique({ where: { reference } }) : null;
 
       if (!payment) {
         await app.db.paymentEvent.updateMany({

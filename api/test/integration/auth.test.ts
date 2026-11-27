@@ -108,7 +108,11 @@ describe.skipIf(!hasDatabase)('identity routes', () => {
 
   it('does not expose the OTP when NODE_ENV is production', async () => {
     const productionApp = await buildApp(
-      testConfig({ NODE_ENV: 'production', CORS_ORIGINS: 'https://app.vela.test' }),
+      testConfig({
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'https://app.vela.test',
+        PAYMENT_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
+      }),
     );
     try {
       const { response } = await register(productionApp, {});

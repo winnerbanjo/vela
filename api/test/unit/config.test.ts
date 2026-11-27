@@ -72,6 +72,7 @@ describe('loadConfig', () => {
       ...BASE,
       NODE_ENV: 'production',
       CORS_ORIGINS: 'http://localhost:3002',
+      PAYMENT_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString('base64'),
     });
 
     expect(config.isProduction).toBe(true);
@@ -89,5 +90,20 @@ describe('loadConfig', () => {
 
   it('rejects a non-postgres DATABASE_URL', () => {
     expect(() => loadConfig({ ...BASE, DATABASE_URL: 'mysql://localhost/db' })).toThrow(/postgres/);
+  });
+
+  it('requires a 32-byte base64 payment encryption key in production', () => {
+    expect(() =>
+      loadConfig({ ...BASE, NODE_ENV: 'production', CORS_ORIGINS: 'https://app.example.com' }),
+    ).toThrow(/PAYMENT_ENCRYPTION_KEY is required/);
+
+    expect(() =>
+      loadConfig({
+        ...BASE,
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'https://app.example.com',
+        PAYMENT_ENCRYPTION_KEY: 'too-short',
+      }),
+    ).toThrow(/32 bytes/);
   });
 });

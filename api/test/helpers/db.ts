@@ -5,6 +5,7 @@ const TABLES = [
   'payment_events',
   'ledger_entries',
   'payments',
+  'payment_settings',
   'resource_allocations',
   'bookings',
   'booking_holds',

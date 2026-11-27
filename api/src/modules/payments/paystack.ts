@@ -35,8 +35,11 @@ export class PaystackError extends Error {
   }
 }
 
-export function webhookSecret(config: PaystackConfig): string {
-  return config.mode === 'live' && config.secretKey ? config.secretKey : SANDBOX_SECRET_KEY;
+/** The platform webhook secret, or null when the platform account is off. */
+export function webhookSecret(config: PaystackConfig): string | null {
+  if (config.mode === 'live' && config.secretKey) return config.secretKey;
+  if (config.mode === 'sandbox') return SANDBOX_SECRET_KEY;
+  return null;
 }
 
 export function signWebhookPayload(rawBody: Buffer | string, secret: string): string {
@@ -73,12 +76,18 @@ export function eventIdFor(type: string, dataId: unknown, rawBody: Buffer | stri
   return `${type}:sha256:${createHash('sha256').update(rawBody).digest('hex')}`;
 }
 
+export interface Bank {
+  readonly code: string;
+  readonly name: string;
+}
+
 export interface InitializeInput {
   readonly email: string;
   readonly amountKobo: number;
   readonly reference: string;
   readonly currency: string;
   readonly callbackUrl?: string;
+  readonly subaccountCode?: string;
   readonly metadata?: Record<string, string>;
 }
 
@@ -94,23 +103,41 @@ export interface RefundResult {
 export interface PaystackClient {
   initialize(input: InitializeInput): Promise<InitializeResult>;
   refund(input: { providerReference: string; amountKobo?: number }): Promise<RefundResult>;
+  /** Confirms the key is accepted by Paystack before it is stored. */
+  verifyCredentials(): Promise<void>;
+  listBanks(): Promise<Bank[]>;
+  resolveAccount(input: {
+    bankCode: string;
+    accountNumber: string;
+  }): Promise<{ accountName: string }>;
+  createSubaccount(input: {
+    businessName: string;
+    bankCode: string;
+    accountNumber: string;
+    percentageCharge: number;
+  }): Promise<{ subaccountCode: string }>;
 }
 
-interface PaystackEnvelope {
+/** Deterministic fixtures so the non-network mode behaves like the real one. */
+export const SANDBOX_BANKS: readonly Bank[] = [
+  { code: '058', name: 'Guaranty Trust Bank' },
+  { code: '057', name: 'Zenith Bank' },
+  { code: '044', name: 'Access Bank' },
+  { code: '50211', name: 'Kuda Microfinance Bank' },
+];
+
+interface PaystackEnvelope<T> {
   status?: boolean;
   message?: string;
-  data?: {
-    authorization_url?: string;
-    reference?: string;
-    id?: number | string;
-  };
+  data?: T;
 }
 
-async function call(
+async function request<T>(
   config: PaystackConfig,
+  method: 'GET' | 'POST',
   path: string,
-  body: Record<string, unknown>,
-): Promise<PaystackEnvelope> {
+  body?: Record<string, unknown>,
+): Promise<T> {
   if (config.mode !== 'live' || !config.secretKey) {
     throw new PaystackError('Paystack is not configured', false);
   }
@@ -120,16 +147,16 @@ async function call(
 
   try {
     const response = await fetch(`${config.apiBase}${path}`, {
-      method: 'POST',
+      method,
       headers: {
         Authorization: `Bearer ${config.secretKey}`,
-        'Content-Type': 'application/json',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
-      body: JSON.stringify(body),
+      ...(body ? { body: JSON.stringify(body) } : {}),
       signal: controller.signal,
     });
 
-    const parsed = (await response.json().catch(() => ({}))) as PaystackEnvelope;
+    const parsed = (await response.json().catch(() => ({}))) as PaystackEnvelope<T>;
 
     if (!response.ok || parsed.status !== true) {
       // 5xx and 429 are worth retrying; a 400 is our bug and must not loop.
@@ -140,7 +167,7 @@ async function call(
       );
     }
 
-    return parsed;
+    return parsed.data as T;
   } catch (error) {
     if (error instanceof PaystackError) throw error;
     // Network failure or timeout: the caller may retry, the money has not moved.
@@ -164,17 +191,27 @@ export function createPaystackClient(config: PaystackConfig): PaystackClient {
         };
       }
 
-      const envelope = await call(config, '/transaction/initialize', {
-        email: input.email,
-        amount: input.amountKobo,
-        reference: input.reference,
-        currency: input.currency,
-        ...(input.callbackUrl ? { callback_url: input.callbackUrl } : {}),
-        ...(input.metadata ? { metadata: input.metadata } : {}),
-      });
+      const data = await request<{ authorization_url?: string; reference?: string }>(
+        config,
+        'POST',
+        '/transaction/initialize',
+        {
+          email: input.email,
+          amount: input.amountKobo,
+          reference: input.reference,
+          currency: input.currency,
+          ...(input.callbackUrl ? { callback_url: input.callbackUrl } : {}),
+          // Platform mode splits the charge to the merchant's subaccount, which
+          // also absorbs the Paystack fee. Direct mode sends no subaccount.
+          ...(input.subaccountCode
+            ? { subaccount: input.subaccountCode, bearer: 'subaccount' }
+            : {}),
+          ...(input.metadata ? { metadata: input.metadata } : {}),
+        },
+      );
 
-      const url = envelope.data?.authorization_url;
-      const reference = envelope.data?.reference ?? input.reference;
+      const url = data?.authorization_url;
+      const reference = data?.reference ?? input.reference;
       if (!url) {
         throw new PaystackError('Paystack returned no authorization URL', false);
       }
@@ -186,12 +223,69 @@ export function createPaystackClient(config: PaystackConfig): PaystackClient {
         return { providerReference: `sandbox_refund_${input.providerReference}` };
       }
 
-      const envelope = await call(config, '/refund', {
+      const data = await request<{ id?: number | string }>(config, 'POST', '/refund', {
         transaction: input.providerReference,
         ...(input.amountKobo === undefined ? {} : { amount: input.amountKobo }),
       });
 
-      return { providerReference: String(envelope.data?.id ?? 'refund') };
+      return { providerReference: String(data?.id ?? 'refund') };
+    },
+
+    async verifyCredentials() {
+      if (config.mode === 'sandbox') return;
+      await request<unknown>(config, 'GET', '/balance');
+    },
+
+    async listBanks() {
+      if (config.mode === 'sandbox') return [...SANDBOX_BANKS];
+
+      const data = await request<{ code?: string; name?: string }[]>(
+        config,
+        'GET',
+        '/bank?currency=NGN&country=nigeria',
+      );
+      if (!Array.isArray(data)) {
+        throw new PaystackError('Paystack returned an invalid bank list', false);
+      }
+      return data
+        .filter((bank): bank is { code: string; name: string } => Boolean(bank.code && bank.name))
+        .map((bank) => ({ code: bank.code, name: bank.name }));
+    },
+
+    async resolveAccount(input) {
+      if (config.mode === 'sandbox') {
+        return { accountName: `VELA SANDBOX ${input.accountNumber.slice(-4)}` };
+      }
+
+      const data = await request<{ account_name?: string }>(
+        config,
+        'GET',
+        `/bank/resolve?account_number=${encodeURIComponent(input.accountNumber)}&bank_code=${encodeURIComponent(input.bankCode)}`,
+      );
+      if (!data?.account_name) {
+        throw new PaystackError('Paystack could not resolve that account', false);
+      }
+      return { accountName: data.account_name };
+    },
+
+    async createSubaccount(input) {
+      if (config.mode === 'sandbox') {
+        const digest = createHash('sha256')
+          .update(`${input.businessName}|${input.bankCode}|${input.accountNumber}`)
+          .digest('hex');
+        return { subaccountCode: `ACCT_sandbox_${digest.slice(0, 10)}` };
+      }
+
+      const data = await request<{ subaccount_code?: string }>(config, 'POST', '/subaccount', {
+        business_name: input.businessName,
+        settlement_bank: input.bankCode,
+        account_number: input.accountNumber,
+        percentage_charge: input.percentageCharge,
+      });
+      if (!data?.subaccount_code) {
+        throw new PaystackError('Paystack returned no subaccount code', false);
+      }
+      return { subaccountCode: data.subaccount_code };
     },
   };
 }

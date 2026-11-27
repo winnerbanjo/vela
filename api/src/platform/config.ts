@@ -41,6 +41,8 @@ export interface AppConfig {
   readonly paystackMode: 'live' | 'sandbox' | 'disabled';
   readonly paystackSecretKey: string | null;
   readonly paystackApiBase: string;
+  /** Base64-encoded 32-byte KEK for merchant payment credentials. */
+  readonly paymentEncryptionKey: string | null;
   readonly bodyLimitBytes: number;
   readonly trustProxy: boolean;
   readonly version: string;
@@ -68,6 +70,9 @@ const envSchema = z.object({
   // production refuses money routes instead of pretending to charge.
   PAYSTACK_SECRET_KEY: z.string().trim().optional(),
   PAYSTACK_API_BASE: z.url().default('https://api.paystack.co'),
+  // Optional outside production (derived from JWT_SECRET for local dev), required
+  // in production so connected merchant keys are never stored under a weak key.
+  PAYMENT_ENCRYPTION_KEY: z.string().trim().optional(),
   BODY_LIMIT_BYTES: z.coerce
     .number()
     .int()
@@ -205,6 +210,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     issues.push(error instanceof Error ? error.message : 'CORS_ORIGINS is invalid');
   }
 
+  if (isProduction && !envValues.PAYMENT_ENCRYPTION_KEY) {
+    issues.push(
+      'PAYMENT_ENCRYPTION_KEY is required in production to encrypt connected credentials',
+    );
+  }
+  if (envValues.PAYMENT_ENCRYPTION_KEY) {
+    const decoded = Buffer.from(envValues.PAYMENT_ENCRYPTION_KEY, 'base64');
+    if (decoded.length !== 32) {
+      issues.push(
+        'PAYMENT_ENCRYPTION_KEY must be 32 bytes, base64 encoded (openssl rand -base64 32)',
+      );
+    }
+  }
+
   if (issues.length > 0) {
     throw new ConfigError(issues);
   }
@@ -237,6 +256,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     paystackMode,
     paystackSecretKey,
     paystackApiBase: envValues.PAYSTACK_API_BASE,
+    paymentEncryptionKey: envValues.PAYMENT_ENCRYPTION_KEY ?? null,
     bodyLimitBytes: envValues.BODY_LIMIT_BYTES,
     trustProxy: envValues.TRUST_PROXY === 'true',
     version: envValues.APP_VERSION,

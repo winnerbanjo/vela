@@ -7,8 +7,9 @@ lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
 [SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
 [DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
 
-Status: Day 4 — payments, the signed Paystack webhook, and an append-only ledger
-sit on top of Day 2 identity/catalogue and Day 3 scheduling. `client/` is a separate React SPA kept temporarily; it
+Status: Day 4 — payments, the signed Paystack webhook, an append-only ledger, and
+both settlement paths (platform subaccount or the merchant's own Paystack) sit on
+top of Day 2 identity/catalogue and Day 3 scheduling. `client/` is a separate React SPA kept temporarily; it
 is not at 3030 and is no longer the contract of record.
 
 ## Requirements
@@ -137,19 +138,33 @@ Behaviour worth knowing:
 
 ## Day 4 — payments
 
-| Area    | Routes                                                                                     |
-| ------- | ------------------------------------------------------------------------------------------ |
-| Public  | `POST /payments/initialize` (from a live hold)                                             |
-| Staff   | `GET /payments`, `GET /payments/:reference`, `GET /payments/ledger/entries`                |
-| Owner   | `POST /payments/:id/refund` (password step-up)                                             |
-| Webhook | `POST /webhooks/paystack` (raw body, `x-paystack-signature`, deduped by provider event id) |
+| Area    | Routes                                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Public  | `POST /payments/initialize` (from a live hold)                                                                                       |
+| Staff   | `GET /payments`, `GET /payments/:reference`, `GET /payments/ledger/entries`, `GET /payments/settings`, `GET /payments/banks`         |
+| Owner   | `POST /payments/:id/refund`, `PUT`/`DELETE /payments/settings`, `POST`/`DELETE /payments/payout-account` (all with password step-up) |
+| Webhook | `POST /webhooks/paystack` (raw body, `x-paystack-signature`, platform or merchant key, deduped by provider event id)                 |
 
 Behaviour worth knowing:
 
 - **Modes.** `PAYSTACK_SECRET_KEY` set → `live`. No key outside production →
   `sandbox`, which returns deterministic checkout/refund fixtures without a
   network call, so the whole flow is testable. No key in production →
-  `disabled`: money routes return `501` instead of pretending to charge.
+  `disabled`: platform money routes return `501` instead of pretending to charge.
+- **Settlement.** A merchant either settles through the platform's Paystack
+  account (a verified subaccount receives the split) or connects their own
+  Paystack secret key, in which case checkout and refunds use that key and money
+  never touches Vela. `payments.settlement_mode` is pinned when the payment is
+  initialized, so refunds always use the credential that took the charge.
+- **Credentials.** Merchant secret keys and full payout account numbers are
+  AES-256-GCM ciphertext. `PAYMENT_ENCRYPTION_KEY` (32 bytes, base64) is required
+  in production; only `last4` and a SHA-256 fingerprint are stored in the clear.
+  A key is verified with Paystack before it is stored, and every connection
+  change needs the owner's password again and writes an audit row.
+- **Payout accounts.** `POST /payments/payout-account` lists banks, resolves the
+  account name, rejects an unknown bank code, and creates the platform subaccount
+  (0% charge) before storing anything. Changing the bank creates a new
+  subaccount; the old one is left unused in Paystack.
 - The amount is the service's deposit, or its full price when no deposit is
   configured. A client-supplied amount is rejected by the strict schema.
 - The webhook parses the exact bytes Paystack signed (raw-body parser scoped to
@@ -195,9 +210,10 @@ Behaviour worth knowing:
   comes from the lazy sweep on every read/hold plus the exclusion constraint, so
   a second instance cannot double-book. pg-boss takes over on Day 3+ alongside
   reminder jobs.
-- Live Paystack is untested against the real API: no key has been supplied, so
-  every payment test runs the sandbox adapter. The first live run needs test-mode
-  keys and a settlement decision (direct merchant vs platform subaccount).
+- Live Paystack is still untested against the real API: no key has been supplied,
+  so every payment test runs the sandbox adapter. The settlement decision is made
+  (platform subaccount **and** the merchant's own account are both supported); the
+  first live run needs test-mode keys. See [PAYMENTS.md](../docs/backend/PAYMENTS.md).
 - Files/presigned uploads (M10) and the Redis-backed rate limiter are not built;
   they need a storage provider choice and a staging Redis. The in-memory limiter
   remains single-instance only.

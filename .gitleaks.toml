@@ -26,4 +26,5 @@ regexes = [
   '''k3Y-8f3a1c9b7d2e4f6a0c5b8d1e3f7a9c2bQ''',
   '''ci-4f9c2a7b1e8d3f6a0b5c9e2d7a4f1b8c''',
   '''argon2-placeholder''',
+  '''sk_test_vela_fixture_not_a_real_key''',
 ]

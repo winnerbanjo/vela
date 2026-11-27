@@ -73,6 +73,18 @@ enum PaymentProvider {
   paystack
 }
 
+// Where the money lands: the platform's Paystack account (split to the
+// merchant's subaccount) or the merchant's own connected Paystack account.
+enum PaymentMode {
+  platform
+  direct
+}
+
+enum PaymentConnectionStatus {
+  active
+  disabled
+}
+
 enum PaymentStatus {
   pending
   succeeded
@@ -121,6 +133,7 @@ model Merchant {
   allocations          ResourceAllocation[]
   payments             Payment[]
   ledgerEntries        LedgerEntry[]
+  paymentSettings      PaymentSettings?
 
   @@map("merchants")
 }
@@ -403,6 +416,9 @@ model Payment {
   holdId            String?         @map("hold_id") @db.Uuid
   bookingId         String?         @map("booking_id") @db.Uuid
   provider          PaymentProvider @default(paystack)
+  // Pinned at initialize time so a webhook/refund uses the same credential
+  // even if the merchant later switches settlement mode.
+  settlementMode    PaymentMode     @default(platform) @map("settlement_mode")
   reference         String          @unique @db.VarChar(64)
   providerReference String?         @unique @map("provider_reference") @db.VarChar(100)
   amountKobo        BigInt          @map("amount_kobo")
@@ -426,6 +442,33 @@ model Payment {
   @@index([holdId])
   @@index([status])
   @@map("payments")
+}
+
+// One row per merchant: how they get paid and where money settles. Secret keys
+// and full account numbers are AES-256-GCM ciphertext; only the last four and a
+// fingerprint are stored in the clear for display.
+model PaymentSettings {
+  id                      String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId              String                  @unique @map("merchant_id") @db.Uuid
+  mode                    PaymentMode             @default(platform)
+  status                  PaymentConnectionStatus @default(active)
+  secretKeyCiphertext     String?                 @map("secret_key_ciphertext") @db.Text
+  secretKeyLast4          String?                 @map("secret_key_last4") @db.VarChar(8)
+  secretKeyFingerprint    String?                 @map("secret_key_fingerprint") @db.VarChar(64)
+  providerVerifiedAt      DateTime?               @map("provider_verified_at") @db.Timestamptz(6)
+  subaccountCode          String?                 @map("subaccount_code") @db.VarChar(64)
+  bankCode                String?                 @map("bank_code") @db.VarChar(8)
+  bankName                String?                 @map("bank_name") @db.VarChar(80)
+  accountName             String?                 @map("account_name") @db.VarChar(120)
+  accountNumberCiphertext String?                 @map("account_number_ciphertext") @db.Text
+  accountNumberLast4      String?                 @map("account_number_last4") @db.VarChar(8)
+  bankVerifiedAt          DateTime?               @map("bank_verified_at") @db.Timestamptz(6)
+  createdAt               DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@map("payment_settings")
 }
 
 // Every provider delivery is stored before it is acted on, with a unique
