@@ -124,6 +124,15 @@ enum InvoiceStatus {
   void
 }
 
+// A job starts as intake_pending only when an intake form is attached; with no
+// form there is nothing for the client to submit, so it starts in progress.
+enum JobStatus {
+  intake_pending
+  in_progress
+  delivered
+  cancelled
+}
+
 model Merchant {
   id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String         @db.VarChar(120)
@@ -163,6 +172,8 @@ model Merchant {
   opportunities        Opportunity[]
   quotes               Quote[]
   invoices             Invoice[]
+  jobs                 Job[]
+  intakeTemplates      IntakeTemplate[]
 
   @@map("merchants")
 }
@@ -595,6 +606,7 @@ model QuoteVersion {
   quote    Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   items    QuoteLineItem[]
   invoices Invoice[]
+  job      Job?
 
   @@unique([quoteId, version])
   @@index([status, validUntil])
@@ -643,12 +655,74 @@ model Invoice {
   merchant     Merchant      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   quoteVersion QuoteVersion? @relation(fields: [quoteVersionId], references: [id], onDelete: SetNull)
   payments     Payment[]
+  job          Job?
 
   @@unique([merchantId, number])
   @@unique([quoteVersionId, kind])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([status])
   @@map("invoices")
+}
+
+// A reusable set of intake questions. Questions are validated by the API before
+// they are stored; the JSON keeps template edits cheap.
+model IntakeTemplate {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId String   @map("merchant_id") @db.Uuid
+  title      String   @db.VarChar(120)
+  questions  Json     @default("[]")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  jobs     Job[]
+  submissions IntakeSubmission[]
+
+  @@index([merchantId, updatedAt(sort: Desc)])
+  @@map("intake_templates")
+}
+
+model Job {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId        String    @map("merchant_id") @db.Uuid
+  quoteVersionId    String    @unique @map("quote_version_id") @db.Uuid
+  invoiceId         String?   @unique @map("invoice_id") @db.Uuid
+  intakeTemplateId  String?   @map("intake_template_id") @db.Uuid
+  title             String    @db.VarChar(160)
+  clientName        String    @map("client_name") @db.VarChar(120)
+  clientEmail       String?   @map("client_email") @db.VarChar(320)
+  clientPhone       String?   @map("client_phone") @db.VarChar(32)
+  eventDate         DateTime? @map("event_date") @db.Date
+  status            JobStatus @default(intake_pending)
+  portalTokenHash   String?   @unique @map("portal_token_hash") @db.Char(64)
+  portalTokenIssuedAt DateTime? @map("portal_token_issued_at") @db.Timestamptz(6)
+  deliveredAt       DateTime? @map("delivered_at") @db.Timestamptz(6)
+  cancelledAt       DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant       Merchant        @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  quoteVersion   QuoteVersion    @relation(fields: [quoteVersionId], references: [id], onDelete: Restrict)
+  invoice        Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  intakeTemplate IntakeTemplate? @relation(fields: [intakeTemplateId], references: [id], onDelete: SetNull)
+  submission     IntakeSubmission?
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("jobs")
+}
+
+model IntakeSubmission {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jobId       String   @unique @map("job_id") @db.Uuid
+  templateId  String?  @map("template_id") @db.Uuid
+  answers     Json
+  submittedAt DateTime @default(now()) @map("submitted_at") @db.Timestamptz(6)
+
+  job      Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  template IntakeTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@map("intake_submissions")
 }
 
 // Append-only: the migration installs a trigger that rejects UPDATE and DELETE.

@@ -2,6 +2,7 @@ import { Prisma, type Invoice, type PrismaClient } from '@prisma/client';
 import { writeAudit } from '../../platform/audit.js';
 import { InternalError } from '../../platform/errors.js';
 import { generateOpaqueToken, hashToken } from '../identity/tokens.js';
+import { createJobForInvoice } from '../jobs/create.js';
 
 /**
  * Invoice issuance and settlement.
@@ -274,6 +275,12 @@ export async function settleInvoicePayment(
           }
         }
       }
+    }
+
+    // The first cleared invoice (deposit or full) turns the quote into a job.
+    // Balance payments only settle money; they never create a second job.
+    if (invoice.kind === 'deposit' || invoice.kind === 'full') {
+      await createJobForInvoice(tx, invoice, { requestId: meta.requestId ?? null });
     }
 
     return { invoice: paidInvoice, paid: true, balanceInvoice };

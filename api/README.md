@@ -7,10 +7,11 @@ lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
 [SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
 [DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
 
-Status: Day 4 — payments, the signed Paystack webhook, an append-only ledger, and
-both settlement paths (platform subaccount or the merchant's own Paystack) sit on
-top of Day 2 identity/catalogue and Day 3 scheduling. `client/` is a separate React SPA kept temporarily; it
-is not at 3030 and is no longer the contract of record.
+Status: Day 5 — quotes with versioned public acceptance, sequential deposit and
+balance invoices, and jobs with intake and a client portal, on top of Day 2
+identity/catalogue, Day 3 scheduling, and Day 4 payments (signed webhook,
+append-only ledger, both settlement paths). `client/` is a separate React SPA
+kept temporarily; it is not at 3030 and is no longer the contract of record.
 
 ## Requirements
 
@@ -65,6 +66,9 @@ src/
   modules/catalogue/ services and portfolio
   modules/schedule/  availability engine (pure), rules/overrides, holds, bookings
   modules/payments/  Paystack adapter (live/sandbox/disabled), payments, webhook, ledger
+  modules/quotes/    opportunities, immutable quote versions, public acceptance
+  modules/invoices/  numbered invoices, deposit/balance, public payment links
+  modules/jobs/      jobs, intake templates/submissions, client portal, delivery
   modules/staff/     invites, roles, removal
   platform/        config, logger, errors, db (withTenant), auth guards, audit, cors
   shared/          money (integer kobo), slug
@@ -184,6 +188,36 @@ Behaviour worth knowing:
 - Refunds require the owner's password again, are full-amount only, and reverse
   the charge in the ledger (`charge + refund = 0`).
 
+## Day 5 — quotes, invoices, jobs
+
+| Area   | Routes                                                                                                                                                                                                             |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Staff  | `POST`/`GET /quotes`, `GET /quotes/:id`, `POST /quotes/:id/versions`, `GET /jobs`, `GET /jobs/:id`, `PATCH /jobs/:id`, `POST /jobs/:id/portal-link`, `GET /intake/templates`, `GET /invoices`, `GET /invoices/:id` |
+| Owner  | `POST /quotes/:id/send`, `POST`/`PUT /intake/templates`, `POST /invoices/:id/link`, `POST /invoices/:id/void`                                                                                                      |
+| Public | `GET`/`POST /public/quotes/:token` (`accept`, `decline`), `GET`/`POST /public/invoices/:token` (`pay`), `GET`/`POST /public/jobs/:token` (`intake`)                                                                |
+
+Behaviour worth knowing:
+
+- **Quotes are versions, not edits.** Sending creates an immutable version with
+  a single-purpose token; sending a revision supersedes the previous version, so
+  an old link returns `409` instead of beating the new price. Totals and the
+  deposit are recomputed from line items; client-supplied totals are rejected.
+- **Tokens are digests.** Quote, invoice, and portal links are 32 random bytes,
+  returned once, stored as SHA-256, rotatable, and rate limited. Losing a link
+  means minting a new one, never reading the old one back.
+- **Acceptance is atomic.** Accepting a quote, marking it accepted, and issuing
+  the deposit (or full) invoice happen in one transaction. A zero-deposit quote
+  gets one full invoice; nothing invents an appointment for an undated project.
+- **Invoice numbers are sequential per merchant** from one atomic counter, with
+  unique `(merchant_id, number)` and `(quote_version_id, kind)` indexes behind it.
+  A cleared deposit issues the balance invoice exactly once.
+- **Jobs follow money.** The verified payment of a deposit or full invoice
+  creates one job per quote version inside the settlement transaction; balance
+  payments never create a second job. Intake is validated against the attached
+  template, and `delivered`/`cancelled` are terminal.
+- Quote, invoice, job, and intake-template mutations write audit rows; tenant
+  reads return `404` for another merchant's rows.
+
 ## What Day 1 already enforces
 
 - **Config fails closed.** Zod-parsed at boot; placeholder or low-variety secrets
@@ -217,8 +251,9 @@ Behaviour worth knowing:
 - Files/presigned uploads (M10) and the Redis-backed rate limiter are not built;
   they need a storage provider choice and a staging Redis. The in-memory limiter
   remains single-instance only.
-- Receipts, invoices, and dunning emails wait on Resend (Day 5). `payments` is the
-  source of truth for money already taken.
+- Receipts and dunning emails still wait on Resend. Invoices exist as
+  first-class rows with public payment links; `payments` remains the source of
+  truth for money already taken.
 - **OTP delivery:** outside production, register/forgot-password/staff-invite
   responses include `devCode` because Resend is not wired yet. Production never
   returns it, which means production verification is blocked until email lands
