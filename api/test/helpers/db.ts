@@ -1,6 +1,10 @@
 import type { PrismaClient } from '@prisma/client';
 
 const TABLES = [
+  'agent_drafts',
+  'whatsapp_messages',
+  'whatsapp_threads',
+  'merchant_integrations',
   'audit_logs',
   'payment_events',
   'ledger_entries',

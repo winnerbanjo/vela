@@ -43,6 +43,14 @@ export interface AppConfig {
   readonly paystackApiBase: string;
   /** Base64-encoded 32-byte KEK for merchant payment credentials. */
   readonly paymentEncryptionKey: string | null;
+  /** Live with all three WhatsApp values; sandbox outside production; disabled in production. */
+  readonly messagingMode: 'live' | 'sandbox' | 'disabled';
+  readonly whatsappAccessToken: string | null;
+  readonly whatsappPhoneNumberId: string | null;
+  readonly whatsappAppSecret: string | null;
+  readonly whatsappVerifyToken: string | null;
+  readonly whatsappApiBase: string;
+  readonly agentMode: 'sandbox' | 'disabled';
   readonly bodyLimitBytes: number;
   readonly trustProxy: boolean;
   readonly version: string;
@@ -73,6 +81,14 @@ const envSchema = z.object({
   // Optional outside production (derived from JWT_SECRET for local dev), required
   // in production so connected merchant keys are never stored under a weak key.
   PAYMENT_ENCRYPTION_KEY: z.string().trim().optional(),
+  // WhatsApp Cloud API. Without the token, phone number id, and app secret,
+  // development/test run the sandbox adapter and production disables sends.
+  WHATSAPP_ACCESS_TOKEN: z.string().trim().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().trim().max(64).optional(),
+  WHATSAPP_APP_SECRET: z.string().trim().optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().trim().min(8).max(128).optional(),
+  WHATSAPP_API_BASE: z.url().default('https://graph.facebook.com/v21.0'),
+  AGENT_MODE: z.enum(['sandbox', 'disabled']).default('sandbox'),
   BODY_LIMIT_BYTES: z.coerce
     .number()
     .int()
@@ -235,6 +251,25 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       ? 'disabled'
       : 'sandbox';
 
+  const whatsappAccessToken = envValues.WHATSAPP_ACCESS_TOKEN ?? null;
+  const whatsappPhoneNumberId = envValues.WHATSAPP_PHONE_NUMBER_ID ?? null;
+  const whatsappAppSecret = envValues.WHATSAPP_APP_SECRET ?? null;
+  const messagingConfigured = Boolean(
+    whatsappAccessToken && whatsappPhoneNumberId && whatsappAppSecret,
+  );
+  const messagingMode: AppConfig['messagingMode'] = messagingConfigured
+    ? 'live'
+    : isProduction
+      ? 'disabled'
+      : 'sandbox';
+
+  if (messagingMode === 'live' && !envValues.WHATSAPP_VERIFY_TOKEN) {
+    issues.push('WHATSAPP_VERIFY_TOKEN is required when WhatsApp credentials are configured');
+  }
+  if (issues.length > 0) {
+    throw new ConfigError(issues);
+  }
+
   return {
     nodeEnv: envValues.NODE_ENV,
     isProduction,
@@ -257,6 +292,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     paystackSecretKey,
     paystackApiBase: envValues.PAYSTACK_API_BASE,
     paymentEncryptionKey: envValues.PAYMENT_ENCRYPTION_KEY ?? null,
+    messagingMode,
+    whatsappAccessToken,
+    whatsappPhoneNumberId,
+    whatsappAppSecret,
+    whatsappVerifyToken:
+      envValues.WHATSAPP_VERIFY_TOKEN ?? (isProduction ? null : 'vela-sandbox-verify'),
+    whatsappApiBase: envValues.WHATSAPP_API_BASE,
+    agentMode: envValues.AGENT_MODE,
     bodyLimitBytes: envValues.BODY_LIMIT_BYTES,
     trustProxy: envValues.TRUST_PROXY === 'true',
     version: envValues.APP_VERSION,
