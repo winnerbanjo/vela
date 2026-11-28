@@ -19,6 +19,7 @@ import { merchantRoutes } from '../../modules/merchant/routes.js';
 import { paymentConnectionRoutes } from '../../modules/payments/connections.js';
 import { paymentRoutes, paystackWebhookRoutes } from '../../modules/payments/routes.js';
 import { quoteRoutes } from '../../modules/quotes/routes.js';
+import { reconciliationRoutes } from '../../modules/reconciliation/routes.js';
 import { scheduleRoutes } from '../../modules/schedule/routes.js';
 import { staffRoutes } from '../../modules/staff/routes.js';
 import { healthRoutes } from './routes/health.js';
@@ -124,6 +125,7 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   await app.register(paymentConnectionRoutes, { prefix: '/api', config });
   await app.register(paystackWebhookRoutes, { prefix: '/api/webhooks', config });
   await app.register(staffRoutes, { prefix: '/api/staff', config });
+  await app.register(reconciliationRoutes, { prefix: '/api', config });
   await app.register(healthRoutes, { prefix: '/health', version: config.version });
 
   return app;

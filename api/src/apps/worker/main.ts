@@ -1,15 +1,16 @@
 import { ConfigError, loadConfig } from '../../platform/config.js';
 import { createPrismaClient } from '../../platform/db.js';
 import { createLogger } from '../../platform/logger.js';
+import { startReconciliationScheduler } from '../../modules/reconciliation/scheduler.js';
 
 const HEARTBEAT_MS = 30_000;
 const SIGNALS = ['SIGINT', 'SIGTERM'] as const;
 
 /**
- * Worker entrypoint. Queue consumers (holds.expire, booking.reminders,
- * payments.reconcile, messaging.outbound) are registered here from Day 3
- * (PLAN.md §4). Until then this process proves the shared database, logger,
- * and shutdown path so the worker is a real deploy target, not a stub file.
+ * Worker entrypoint. Durable queue consumers still wait on the Redis/pg-boss
+ * decision, but reconciliation runs here on a timer so a paid discrepancy is
+ * found by a process that is not serving traffic. The timer is a skeleton: the
+ * same `runReconciliation` function works unchanged under a real queue.
  */
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -24,7 +25,19 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  logger.info({ heartbeatMs: HEARTBEAT_MS }, 'worker ready');
+  const stopReconciliation = startReconciliationScheduler(prisma, {
+    intervalMs: config.reconciliationIntervalMinutes * 60_000,
+    onError: (error) => logger.error({ err: error }, 'reconciliation run failed'),
+    onRun: () => logger.info('reconciliation run completed'),
+  });
+
+  logger.info(
+    {
+      heartbeatMs: HEARTBEAT_MS,
+      reconciliationIntervalMinutes: config.reconciliationIntervalMinutes,
+    },
+    'worker ready',
+  );
 
   const heartbeat = setInterval(() => {
     prisma.$queryRaw`select 1`.then(
@@ -40,6 +53,7 @@ async function main(): Promise<void> {
     shuttingDown = true;
     logger.info({ signal }, 'worker shutting down');
     clearInterval(heartbeat);
+    stopReconciliation();
     await prisma.$disconnect();
     process.exit(0);
   };
