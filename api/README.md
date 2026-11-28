@@ -7,11 +7,10 @@ lives in [ARCHITECTURE.md](../docs/backend/ARCHITECTURE.md) and
 [SECURITY.md](../docs/backend/SECURITY.md), and the frontend contract is
 [DASHBOARD_CONTRACT.md](../docs/backend/DASHBOARD_CONTRACT.md).
 
-Status: Day 5 — quotes with versioned public acceptance, sequential deposit and
-balance invoices, and jobs with intake and a client portal, on top of Day 2
-identity/catalogue, Day 3 scheduling, and Day 4 payments (signed webhook,
-append-only ledger, both settlement paths). `client/` is a separate React SPA
-kept temporarily; it is not at 3030 and is no longer the contract of record.
+Status: quotes, invoices, jobs, payments, scheduling, catalogue, and identity are
+implemented, with platform-admin read surfaces and a tenant dashboard summary.
+`client/` is a separate React SPA kept temporarily; it is not at 3030 and is no
+longer the contract of record.
 
 ## Requirements
 
@@ -69,6 +68,8 @@ src/
   modules/quotes/    opportunities, immutable quote versions, public acceptance
   modules/invoices/  numbered invoices, deposit/balance, public payment links
   modules/jobs/      jobs, intake templates/submissions, client portal, delivery
+  modules/admin/     platform stats, merchants, providers, bookings, transactions, audit, reviews
+  modules/dashboard/ merchant landing summary in the tenant timezone
   modules/staff/     invites, roles, removal
   platform/        config, logger, errors, db (withTenant), auth guards, audit, cors
   shared/          money (integer kobo), slug
@@ -271,3 +272,27 @@ Behaviour worth knowing:
   loads a local `.env` as a side effect, which would bypass the config gate.
 - Port 5435 is used by `docker-compose.yml` so the API does not collide with
   other local Postgres instances.
+
+## Platform admin and dashboard summary
+
+Admin routes require the `admin` role. Platform admins are the only accounts
+without a merchant, and that shape is enforced by a database CHECK constraint, so
+a tenant owner cannot reach these routes even by guessing an id.
+
+| Area         | Routes                                                                                |
+| ------------ | ------------------------------------------------------------------------------------- |
+| Admin reads  | `GET /admin/overview`, `/admin/merchants`, `/admin/merchants/:id`, `/admin/providers` |
+| Admin reads  | `GET /admin/bookings`, `/admin/transactions`, `/admin/audit`                          |
+| Review queue | `GET /admin/verifications`, `POST /admin/verifications/:id/review`                    |
+| Tenant       | `GET /dashboard/summary`                                                              |
+
+Behaviour worth knowing:
+
+- The verification queue is derived, not duplicated: a payment with a
+  `failureReason` and no `reviewedAt` is waiting for a human. Reviewing it writes
+  `reviewedAt`/`reviewedBy` and an audit row, and the queue entry disappears.
+- Provider responses carry the bank and `last4` display values only. Secret keys
+  and full account numbers are never selected.
+- `GET /dashboard/summary` resolves "today" and "this month" in the merchant's
+  timezone, so a Lagos tenant's evening bookings are not counted as tomorrow.
+- Every money value in these responses is integer kobo.
