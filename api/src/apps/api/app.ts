@@ -14,6 +14,7 @@ import { startHoldSweeper } from '../../modules/schedule/holds.js';
 import { catalogueRoutes } from '../../modules/catalogue/routes.js';
 import { identityRoutes } from '../../modules/identity/routes.js';
 import { invoiceRoutes } from '../../modules/invoices/routes.js';
+import { jobRoutes } from '../../modules/jobs/routes.js';
 import { merchantRoutes } from '../../modules/merchant/routes.js';
 import { paymentConnectionRoutes } from '../../modules/payments/connections.js';
 import { paymentRoutes, paystackWebhookRoutes } from '../../modules/payments/routes.js';
@@ -118,6 +119,7 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   await app.register(scheduleRoutes, { prefix: '/api', config });
   await app.register(quoteRoutes, { prefix: '/api', config });
   await app.register(invoiceRoutes, { prefix: '/api', config });
+  await app.register(jobRoutes, { prefix: '/api', config });
   await app.register(paymentRoutes, { prefix: '/api', config });
   await app.register(paymentConnectionRoutes, { prefix: '/api', config });
   await app.register(paystackWebhookRoutes, { prefix: '/api/webhooks', config });

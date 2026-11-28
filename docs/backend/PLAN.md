@@ -159,7 +159,10 @@ Each day ends with: tests green, a short demo, a commit trail, and an updated ri
 - Exception handling: paid-but-unscheduled, amount mismatch, expired hold.
 - Reconciliation job skeleton.
 
-**Exit:** Journey B runs end-to-end in the browser; v1 acceptance after v2 returns 409.
+**Delivered:** opportunities and quotes with immutable versions; send with a hashed, single-purpose share token and validity; public view/accept/decline where only the latest sent version can be accepted (v1 after v2 returns 409, expired returns 409); acceptance atomically issues a sequential deposit (or full) invoice, and a verified deposit payment issues the balance invoice exactly once. Jobs are created by the verified deposit/full payment, carry a digest-only client portal, validate intake against a template, and move through an allow-listed state machine where delivered/cancelled are terminal. Invoice numbers come from a per-merchant atomic counter; quote, invoice, job, and template mutations are audited. 105 unit + 104 integration tests green (quote, invoice, and job suites run against real Postgres and a signed webhook).
+**Deferred:** the reconciliation job skeleton (it needs the queue/Redis decision from Day 6; the webhook and ledger remain the source of truth), receipts/email via Resend, dashboard wiring for the new quote/invoice/job screens, and live Paystack verification (still no keys).
+
+**Exit:** Journey B runs end-to-end in the API (quote v1/v2 → acceptance → deposit → balance → job → intake → delivery); v1 acceptance after v2 returns 409. Browser acceptance waits on the dashboard port.
 **Security gate:** share tokens hashed and single-purpose; quote totals recomputed; audit on send/accept.
 
 ### Day 6 — Integrations behind flags, admin, hardening (Tue 1 Dec)
