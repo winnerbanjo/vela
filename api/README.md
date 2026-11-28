@@ -271,3 +271,28 @@ Behaviour worth knowing:
   loads a local `.env` as a side effect, which would bypass the config gate.
 - Port 5435 is used by `docker-compose.yml` so the API does not collide with
   other local Postgres instances.
+
+## Reconciliation
+
+Mounted under `/api`, owner-only, and run on a timer by the worker:
+
+| Area       | Routes                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------- |
+| Runs       | `POST /reconciliation/run`, `GET /reconciliation/runs`                                      |
+| Exceptions | `GET /reconciliation/exceptions?status=open`, `POST /reconciliation/exceptions/:id/resolve` |
+
+Behaviour worth knowing:
+
+- Reconciliation only reads. It compares each payment with its signed ledger
+  rows and records a finding; it never writes a compensating ledger entry or
+  changes a payment.
+- Findings cover a missing or wrong charge, a refund that does not reverse the
+  charge, a payment pending for more than 24 hours, the webhook's
+  `amount_mismatch`, and paid-but-unscheduled money.
+- Re-running the job cannot open the same finding twice: a partial unique index
+  covers `(merchant_id, payment_id, kind)` where the finding is open. A resolved
+  finding may reappear if the problem comes back.
+- Resolving is tenant-scoped (`404` across merchants), owner-only, and audited.
+- The worker sweeps every live merchant every `RECONCILIATION_INTERVAL_MINUTES`
+  (default 360, `0` disables it). The timer is the seam where a durable queue
+  takes over; it is not required for correctness.

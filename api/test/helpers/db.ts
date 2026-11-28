@@ -1,6 +1,8 @@
 import type { PrismaClient } from '@prisma/client';
 
 const TABLES = [
+  'reconciliation_exceptions',
+  'reconciliation_runs',
   'audit_logs',
   'payment_events',
   'ledger_entries',

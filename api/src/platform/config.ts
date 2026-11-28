@@ -43,6 +43,8 @@ export interface AppConfig {
   readonly paystackApiBase: string;
   /** Base64-encoded 32-byte KEK for merchant payment credentials. */
   readonly paymentEncryptionKey: string | null;
+  /** Worker reconciliation cadence; 0 disables the timer. */
+  readonly reconciliationIntervalMinutes: number;
   readonly bodyLimitBytes: number;
   readonly trustProxy: boolean;
   readonly version: string;
@@ -73,6 +75,7 @@ const envSchema = z.object({
   // Optional outside production (derived from JWT_SECRET for local dev), required
   // in production so connected merchant keys are never stored under a weak key.
   PAYMENT_ENCRYPTION_KEY: z.string().trim().optional(),
+  RECONCILIATION_INTERVAL_MINUTES: z.coerce.number().int().min(0).max(1440).default(360),
   BODY_LIMIT_BYTES: z.coerce
     .number()
     .int()
@@ -257,6 +260,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     paystackSecretKey,
     paystackApiBase: envValues.PAYSTACK_API_BASE,
     paymentEncryptionKey: envValues.PAYMENT_ENCRYPTION_KEY ?? null,
+    reconciliationIntervalMinutes: envValues.RECONCILIATION_INTERVAL_MINUTES,
     bodyLimitBytes: envValues.BODY_LIMIT_BYTES,
     trustProxy: envValues.TRUST_PROXY === 'true',
     version: envValues.APP_VERSION,
