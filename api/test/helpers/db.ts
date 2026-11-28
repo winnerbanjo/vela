@@ -6,6 +6,8 @@ const TABLES = [
   'ledger_entries',
   'payments',
   'payment_settings',
+  'invoice_counters',
+  'invoices',
   'quote_line_items',
   'quote_versions',
   'quotes',

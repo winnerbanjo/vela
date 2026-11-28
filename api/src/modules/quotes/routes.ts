@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from '../../platform/errors.js';
 import { hashToken } from '../identity/tokens.js';
+import { issueInvoicesForAcceptance } from '../invoices/issue.js';
 import {
   acceptanceBlockReason,
   computeQuoteTotals,
@@ -590,7 +591,17 @@ export const quoteRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (app
 
       const version = await app.db.quoteVersion.findUnique({
         where: { shareTokenHash: hashToken(token) },
-        include: { quote: { select: { id: true, merchantId: true, latestVersion: true } } },
+        include: {
+          quote: {
+            select: {
+              id: true,
+              merchantId: true,
+              latestVersion: true,
+              clientName: true,
+              currency: true,
+            },
+          },
+        },
       });
       if (!version) throw new NotFoundError('Quote not found');
 
@@ -613,7 +624,7 @@ export const quoteRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (app
         throw new ConflictError(blockReason);
       }
 
-      await app.db.$transaction(async (tx) => {
+      const accepted = await app.db.$transaction(async (tx) => {
         const claimed = await tx.quoteVersion.updateMany({
           where: { id: version.id, status: 'sent' },
           data: { status: 'accepted', acceptedAt: now },
@@ -643,6 +654,25 @@ export const quoteRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (app
           userAgent: request.headers['user-agent'] ?? null,
           requestId: request.id,
         });
+
+        // Acceptance and the first invoice are one atomic step: an accepted
+        // quote always has a payable document, and a failed invoice rolls the
+        // acceptance back.
+        const issued = await issueInvoicesForAcceptance(tx, {
+          merchantId: version.quote.merchantId,
+          quoteVersionId: version.id,
+          quoteVersion: version.version,
+          clientName: version.quote.clientName,
+          currency: version.quote.currency,
+          amounts: {
+            totalKobo: version.totalKobo,
+            depositKobo: version.depositKobo,
+            balanceKobo: version.balanceKobo,
+          },
+          now,
+        });
+
+        return issued;
       });
 
       return {
@@ -653,6 +683,14 @@ export const quoteRoutes: FastifyPluginAsync<{ config: AppConfig }> = async (app
         totalKobo: toSafeNumber(version.totalKobo),
         depositKobo: toSafeNumber(version.depositKobo),
         balanceKobo: toSafeNumber(version.balanceKobo),
+        invoice: {
+          id: accepted.invoice.id,
+          number: accepted.invoice.number,
+          kind: accepted.invoice.kind,
+          amountKobo: toSafeNumber(accepted.invoice.amountKobo),
+          publicToken: accepted.publicToken,
+          sharePath: `/invoice/${accepted.publicToken}`,
+        },
       };
     },
   );
