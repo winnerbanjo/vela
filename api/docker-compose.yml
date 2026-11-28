@@ -1,0 +1,37 @@
+# Local development database only. The credentials below are intentionally
+# fixed, non-secret values that must never be reused outside a developer laptop;
+# staging and production take DATABASE_URL from the platform secret store.
+#
+# Port 5435 avoids clashing with other local Postgres instances.
+name: vela-api
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vela-api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vela
+      POSTGRES_PASSWORD: vela_local_only
+      POSTGRES_DB: vela
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    ports:
+      - '5435:5432'
+    volumes:
+      - vela-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vela -d vela']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    command:
+      - postgres
+      - -c
+      - timezone=UTC
+      - -c
+      - log_min_duration_statement=250
+
+volumes:
+  vela-postgres-data:
+    name: vela-api-postgres-data

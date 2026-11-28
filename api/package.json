@@ -1,0 +1,63 @@
+{
+  "name": "vela-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vela backend API and worker (modular monolith)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/apps/api/server.ts",
+    "dev:worker": "tsx watch --env-file-if-exists=.env src/apps/worker/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/apps/api/server.js",
+    "start:worker": "node dist/apps/worker/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:unit": "vitest run test/unit",
+    "test:integration": "node --env-file-if-exists=.env ./node_modules/vitest/vitest.mjs run test/integration",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/cors": "^11.4.3",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/jwt": "^10.2.9",
+    "@fastify/rate-limit": "^10.3.0",
+    "@prisma/client": "^6.19.3",
+    "argon2": "^0.45.2",
+    "fastify": "^5.12.8",
+    "pino": "^9.14.0",
+    "zod": "^4.6.7"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "argon2@0.45.2": true
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^22.20.7",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.39.5",
+    "pino-pretty": "^11.3.0",
+    "prettier": "^3.10.1",
+    "prisma": "^6.19.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^3.2.7"
+  }
+}
