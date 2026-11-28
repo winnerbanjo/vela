@@ -3,8 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+  # Every pull request is verified, whatever branch it targets, so a stacked
+  # feature branch is tested before the branch beneath it merges.
   pull_request:
-    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
