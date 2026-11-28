@@ -12,6 +12,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from '../../platform/errors.js';
+import { settleInvoicePayment } from '../invoices/issue.js';
 import { confirmHold } from '../schedule/bookings.js';
 import {
   merchantSecretKey,
@@ -75,6 +76,7 @@ function serializePayment(payment: {
   authorizationUrl: string | null;
   holdId: string | null;
   bookingId: string | null;
+  invoiceId: string | null;
   paidAt: Date | null;
   createdAt: Date;
 }) {
@@ -91,6 +93,7 @@ function serializePayment(payment: {
     authorizationUrl: payment.authorizationUrl,
     holdId: payment.holdId,
     bookingId: payment.bookingId,
+    invoiceId: payment.invoiceId,
     paidAt: payment.paidAt?.toISOString() ?? null,
     createdAt: payment.createdAt.toISOString(),
   };
@@ -585,11 +588,21 @@ export const paystackWebhookRoutes: FastifyPluginAsync<{ config: AppConfig }> = 
         }
       }
 
+      // An invoice payment settles the invoice and, for a deposit, issues the
+      // balance invoice. Amounts were checked above against the payment row.
+      let invoicePaid = false;
+      if (payment.invoiceId) {
+        const settled = await settleInvoicePayment(app.db, payment, {
+          requestId: request.id,
+        });
+        invoicePaid = settled?.paid ?? false;
+      }
+
       await app.db.paymentEvent.updateMany({
         where: { eventId },
         data: {
           processedAt: new Date(),
-          note: bookingId ? 'booking_confirmed' : 'payment_recorded',
+          note: bookingId ? 'booking_confirmed' : invoicePaid ? 'invoice_paid' : 'payment_recorded',
         },
       });
 

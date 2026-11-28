@@ -110,6 +110,20 @@ enum QuoteStatus {
   superseded
 }
 
+// A deposit (or full) invoice at acceptance; the balance invoice is issued once
+// the deposit is paid.
+enum InvoiceKind {
+  deposit
+  balance
+  full
+}
+
+enum InvoiceStatus {
+  open
+  paid
+  void
+}
+
 model Merchant {
   id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String         @db.VarChar(120)
@@ -148,6 +162,7 @@ model Merchant {
   paymentSettings      PaymentSettings?
   opportunities        Opportunity[]
   quotes               Quote[]
+  invoices             Invoice[]
 
   @@map("merchants")
 }
@@ -429,6 +444,7 @@ model Payment {
   merchantId        String          @map("merchant_id") @db.Uuid
   holdId            String?         @map("hold_id") @db.Uuid
   bookingId         String?         @map("booking_id") @db.Uuid
+  invoiceId         String?         @map("invoice_id") @db.Uuid
   provider          PaymentProvider @default(paystack)
   // Pinned at initialize time so a webhook/refund uses the same credential
   // even if the merchant later switches settlement mode.
@@ -449,11 +465,13 @@ model Payment {
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   hold     BookingHold? @relation(fields: [holdId], references: [id], onDelete: SetNull)
   booking  Booking?     @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  invoice  Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   events   PaymentEvent[]
   ledger   LedgerEntry[]
 
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([holdId])
+  @@index([invoiceId])
   @@index([status])
   @@map("payments")
 }
@@ -574,8 +592,9 @@ model QuoteVersion {
   supersededAt       DateTime?   @map("superseded_at") @db.Timestamptz(6)
   createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  quote Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  items QuoteLineItem[]
+  quote    Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  items    QuoteLineItem[]
+  invoices Invoice[]
 
   @@unique([quoteId, version])
   @@index([status, validUntil])
@@ -595,6 +614,41 @@ model QuoteLineItem {
 
   @@index([versionId, sortOrder])
   @@map("quote_line_items")
+}
+
+// An invoice is a number in the merchant's books, not a mutable price. Only the
+// quote acceptance path creates one; the balance is created after the deposit
+// clears. The public payment link is stored as a digest.
+model Invoice {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId          String        @map("merchant_id") @db.Uuid
+  quoteVersionId      String?       @map("quote_version_id") @db.Uuid
+  kind                InvoiceKind
+  status              InvoiceStatus @default(open)
+  number              Int
+  currency            String        @default("NGN") @db.Char(3)
+  amountKobo          BigInt        @map("amount_kobo")
+  paidKobo            BigInt        @default(0) @map("paid_kobo")
+  clientName          String        @map("client_name") @db.VarChar(120)
+  description         String        @db.VarChar(200)
+  dueAt               DateTime?     @map("due_at") @db.Timestamptz(6)
+  publicTokenHash     String?       @unique @map("public_token_hash") @db.Char(64)
+  publicTokenIssuedAt DateTime?     @map("public_token_issued_at") @db.Timestamptz(6)
+  issuedAt            DateTime      @default(now()) @map("issued_at") @db.Timestamptz(6)
+  paidAt              DateTime?     @map("paid_at") @db.Timestamptz(6)
+  voidedAt            DateTime?     @map("voided_at") @db.Timestamptz(6)
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant     Merchant      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  quoteVersion QuoteVersion? @relation(fields: [quoteVersionId], references: [id], onDelete: SetNull)
+  payments     Payment[]
+
+  @@unique([merchantId, number])
+  @@unique([quoteVersionId, kind])
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("invoices")
 }
 
 // Append-only: the migration installs a trigger that rejects UPDATE and DELETE.
