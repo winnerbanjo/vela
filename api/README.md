@@ -271,3 +271,39 @@ Behaviour worth knowing:
   loads a local `.env` as a side effect, which would bypass the config gate.
 - Port 5435 is used by `docker-compose.yml` so the API does not collide with
   other local Postgres instances.
+
+## WhatsApp and the agent
+
+Both are opt-in per merchant and off by default. Mounted under `/api`:
+
+| Area     | Routes                                                                                              |
+| -------- | --------------------------------------------------------------------------------------------------- |
+| Settings | `GET /messaging/settings`, `PUT /messaging/settings` (owner)                                        |
+| Inbox    | `GET /messaging/threads`, `GET /messaging/threads/:id`, `POST /messaging/threads/:id/reply`         |
+| Agent    | `POST/GET /agent/drafts`, `POST /agent/drafts/:id/approve`, `POST /agent/drafts/:id/reject` (owner) |
+| Webhook  | `GET/POST /webhooks/whatsapp` (Meta verification + signed inbound events)                           |
+
+Behaviour worth knowing:
+
+- **Modes.** With `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, and
+  `WHATSAPP_APP_SECRET` set, the API is `live` and requires
+  `WHATSAPP_VERIFY_TOKEN`. Without them, development/test run a `sandbox` adapter
+  that returns deterministic message ids and never touches the network; production
+  returns `501` from sends instead of pretending.
+- **Merchant tokens.** A merchant can connect their own Cloud API number and
+  access token. The token is AES-256-GCM ciphertext; only `last4` is displayed.
+- **Inbound routing.** The webhook maps `metadata.phone_number_id` to exactly one
+  merchant integration, so one WhatsApp app can serve multiple tenants. An unknown
+  or disabled number is acknowledged and ignored.
+- **Signature and dedupe.** With an app secret configured, the raw body must carry
+  a valid `X-Hub-Signature-256`; production refuses unsigned events. Each provider
+  message id is unique, so a retried delivery is acknowledged without a second row.
+- **Opt-out and quiet hours.** A message that is exactly `STOP`, `STOP ALL`,
+  `UNSUBSCRIBE`, `CANCEL`, `END`, or `QUIT` sets `opted_out_at`. No outbound reply
+  or approved agent draft can send to that thread, and nothing sends between 21:00
+  and 08:00 in the merchant's timezone.
+- **Agent safety.** The agent's tool allow-list is read-only
+  (`business_profile`, `services`, `quote_status`); it has no discount, refund, or
+  send tool. Draft generation never interpolates the free-text goal, so a prompt
+  injection cannot become a price. Approval is owner-only and is the only code path
+  that sends a draft, and every draft counts against `agentMonthlyDraftLimit`.

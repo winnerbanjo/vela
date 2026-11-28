@@ -15,6 +15,8 @@ import { catalogueRoutes } from '../../modules/catalogue/routes.js';
 import { identityRoutes } from '../../modules/identity/routes.js';
 import { invoiceRoutes } from '../../modules/invoices/routes.js';
 import { jobRoutes } from '../../modules/jobs/routes.js';
+import { agentRoutes } from '../../modules/messaging/agent-routes.js';
+import { messagingRoutes, whatsappWebhookRoutes } from '../../modules/messaging/routes.js';
 import { merchantRoutes } from '../../modules/merchant/routes.js';
 import { paymentConnectionRoutes } from '../../modules/payments/connections.js';
 import { paymentRoutes, paystackWebhookRoutes } from '../../modules/payments/routes.js';
@@ -122,7 +124,10 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   await app.register(jobRoutes, { prefix: '/api', config });
   await app.register(paymentRoutes, { prefix: '/api', config });
   await app.register(paymentConnectionRoutes, { prefix: '/api', config });
+  await app.register(messagingRoutes, { prefix: '/api', config });
+  await app.register(agentRoutes, { prefix: '/api', config });
   await app.register(paystackWebhookRoutes, { prefix: '/api/webhooks', config });
+  await app.register(whatsappWebhookRoutes, { prefix: '/api/webhooks', config });
   await app.register(staffRoutes, { prefix: '/api/staff', config });
   await app.register(healthRoutes, { prefix: '/health', version: config.version });
 
