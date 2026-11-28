@@ -98,6 +98,18 @@ enum LedgerKind {
   refund
 }
 
+// A quote version moves draft -> sent -> accepted/declined. Sending a newer
+// version retires the previous one as superseded, so an old link can never be
+// accepted after the client has seen a revised price.
+enum QuoteStatus {
+  draft
+  sent
+  accepted
+  declined
+  expired
+  superseded
+}
+
 model Merchant {
   id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                    String         @db.VarChar(120)
@@ -134,6 +146,8 @@ model Merchant {
   payments             Payment[]
   ledgerEntries        LedgerEntry[]
   paymentSettings      PaymentSettings?
+  opportunities        Opportunity[]
+  quotes               Quote[]
 
   @@map("merchants")
 }
@@ -489,6 +503,98 @@ model PaymentEvent {
 
   @@index([receivedAt(sort: Desc)])
   @@map("payment_events")
+}
+
+// A client enquiry that may or may not carry a date. `event_date` is a local
+// calendar date; a project quote (photography, design) often has none, so the
+// job it produces must not invent an appointment.
+model Opportunity {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId  String    @map("merchant_id") @db.Uuid
+  title       String    @db.VarChar(160)
+  clientName  String    @map("client_name") @db.VarChar(120)
+  clientEmail String?   @map("client_email") @db.VarChar(320)
+  clientPhone String?   @map("client_phone") @db.VarChar(32)
+  notes       String?   @db.VarChar(2000)
+  eventDate   DateTime? @map("event_date") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  quotes   Quote[]
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@map("opportunities")
+}
+
+// The stable identity of a quote; the price lives on immutable versions.
+model Quote {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchantId     String      @map("merchant_id") @db.Uuid
+  opportunityId  String?     @map("opportunity_id") @db.Uuid
+  clientName     String      @map("client_name") @db.VarChar(120)
+  clientEmail    String?     @map("client_email") @db.VarChar(320)
+  clientPhone    String?     @map("client_phone") @db.VarChar(32)
+  currency       String      @default("NGN") @db.Char(3)
+  status         QuoteStatus @default(draft)
+  latestVersion  Int         @default(0) @map("latest_version")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  merchant    Merchant       @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  opportunity Opportunity?   @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  versions    QuoteVersion[]
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("quotes")
+}
+
+// Immutable once sent: editing a quote creates the next version. The share
+// token is stored as a digest only, and only the holder can accept that exact
+// version.
+model QuoteVersion {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quoteId            String      @map("quote_id") @db.Uuid
+  version            Int
+  status             QuoteStatus @default(draft)
+  subtotalKobo       BigInt      @map("subtotal_kobo")
+  totalKobo          BigInt      @map("total_kobo")
+  depositPercent     Int         @map("deposit_percent")
+  depositKobo        BigInt      @map("deposit_kobo")
+  balanceKobo        BigInt      @map("balance_kobo")
+  validUntil         DateTime    @map("valid_until") @db.Timestamptz(6)
+  notes              String?     @db.VarChar(2000)
+  terms              String?     @db.VarChar(2000)
+  shareTokenHash     String?     @unique @map("share_token_hash") @db.Char(64)
+  shareTokenIssuedAt DateTime?   @map("share_token_issued_at") @db.Timestamptz(6)
+  sentAt             DateTime?   @map("sent_at") @db.Timestamptz(6)
+  acceptedAt         DateTime?   @map("accepted_at") @db.Timestamptz(6)
+  declinedAt         DateTime?   @map("declined_at") @db.Timestamptz(6)
+  supersededAt       DateTime?   @map("superseded_at") @db.Timestamptz(6)
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  quote Quote           @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  items QuoteLineItem[]
+
+  @@unique([quoteId, version])
+  @@index([status, validUntil])
+  @@map("quote_versions")
+}
+
+model QuoteLineItem {
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  versionId     String @map("version_id") @db.Uuid
+  description   String @db.VarChar(200)
+  quantity      Int    @default(1)
+  unitPriceKobo BigInt @map("unit_price_kobo")
+  totalKobo     BigInt @map("total_kobo")
+  sortOrder     Int    @default(0) @map("sort_order")
+
+  version QuoteVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@index([versionId, sortOrder])
+  @@map("quote_line_items")
 }
 
 // Append-only: the migration installs a trigger that rejects UPDATE and DELETE.
