@@ -467,6 +467,11 @@ model Payment {
   status            PaymentStatus   @default(pending)
   channel           String?         @db.VarChar(32)
   failureReason     String?         @map("failure_reason") @db.VarChar(200)
+  // Set when an operator has reviewed an exception flagged by the webhook
+  // (amount mismatch, paid but unscheduled). The queue is payments with a
+  // failure reason and no review yet.
+  reviewedAt        DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  reviewedBy        String?         @map("reviewed_by") @db.Uuid
   authorizationUrl  String?         @map("authorization_url") @db.VarChar(2048)
   metadata          Json?
   paidAt            DateTime?       @map("paid_at") @db.Timestamptz(6)

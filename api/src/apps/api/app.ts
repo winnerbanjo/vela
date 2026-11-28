@@ -11,7 +11,9 @@ import { createPrismaClient } from '../../platform/db.js';
 import { registerErrorHandling } from '../../platform/errors.js';
 import { loggerOptions } from '../../platform/logger.js';
 import { startHoldSweeper } from '../../modules/schedule/holds.js';
+import { adminRoutes } from '../../modules/admin/routes.js';
 import { catalogueRoutes } from '../../modules/catalogue/routes.js';
+import { dashboardRoutes } from '../../modules/dashboard/routes.js';
 import { identityRoutes } from '../../modules/identity/routes.js';
 import { invoiceRoutes } from '../../modules/invoices/routes.js';
 import { jobRoutes } from '../../modules/jobs/routes.js';
@@ -124,6 +126,8 @@ export async function buildApp(config: AppConfig): Promise<FastifyInstance> {
   await app.register(paymentConnectionRoutes, { prefix: '/api', config });
   await app.register(paystackWebhookRoutes, { prefix: '/api/webhooks', config });
   await app.register(staffRoutes, { prefix: '/api/staff', config });
+  await app.register(adminRoutes, { prefix: '/api', config });
+  await app.register(dashboardRoutes, { prefix: '/api', config });
   await app.register(healthRoutes, { prefix: '/health', version: config.version });
 
   return app;
